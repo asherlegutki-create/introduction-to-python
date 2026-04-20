@@ -39,7 +39,7 @@ A Codespace is a full coding environment that runs in your browser. You don't in
 
 ## Step 4 — Run Your First Program
 
-1. In the file panel on the left, open the `week1` folder
+1. In the file panel on the left, open the `tryme` folder
 2. Click on `hello.py`
 3. In the top menu, click **Terminal → New Terminal**
 4. In the terminal at the bottom, type:
@@ -58,10 +58,9 @@ python hello.py
 
 **To properly stop it:**
 
-1. Click the **three horizontal lines** (☰) in the top-left corner
-2. Go to **File → Close Remote Connection**
+1. Close the editor tab,
 
-**Or from GitHub:**
+**From GitHub:**
 
 1. Go to **github.com/codespaces**
 2. Find your running Codespace
