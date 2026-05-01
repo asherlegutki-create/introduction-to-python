@@ -29,6 +29,22 @@ TEMPLATES: dict[str, dict] = {
         "wander":   True,
     },
 
+        "my_friend": {
+        "name":             "a wandering student",
+        "key_words":        ("student", "wandering"),
+        "room_description": "&wA wandering student meanders about aimlessly.&N",
+        "description": (
+            "A student with a faraway look, clearly lost in thought.\n"
+            "Or possibly just lost."
+        ),
+        "race":     "Human",
+        "class":    "Student",
+        "level":    1,
+        "stats":    [60, 65, 60, 80, 70, 75],
+        "aggro":    False,
+        "wander":   True,
+    },
+
     "void_guardian": {
         "name":             "the Void Guardian",
         "key_words":        ("guardian", "void"),
@@ -46,21 +62,6 @@ TEMPLATES: dict[str, dict] = {
         "aggro":    False,
         "wander":   False,
         "position": "standing",
-    },
-
-    # kill=False — combat system refuses killing blow on this mob.
-    "moted_pc": {
-        "name":             "Moted",
-        "key_words":        ("moted", "dwarf"),
-        "room_description": "&wMoted the Dwarf is here.&N",
-        "description":      "A weathered Dwarven shaman. Best not to cross him.",
-        "race":             "Dwarf",
-        "class":            "Shaman",
-        "level":            24,
-        "stats":            [88, 80, 80, 80, 80, 80],
-        "aggro":            False,
-        "wander":           False,
-        "kill":             False,
     },
 
 }

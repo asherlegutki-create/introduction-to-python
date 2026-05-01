@@ -36,15 +36,12 @@ if TYPE_CHECKING:
 
 DIRECTIONS = frozenset({
     "north", "south", "east", "west", "up", "down",
-    "northeast", "northwest", "southeast", "southwest",
-    "n", "s", "e", "w", "u", "d", "ne", "nw", "se", "sw",
+    "n", "s", "e", "w", "u", "d",
 })
 
 _DIR_EXPAND = {
     "n": "north", "s": "south", "e": "east", "w": "west",
     "u": "up",    "d": "down",
-    "ne": "northeast", "nw": "northwest",
-    "se": "southeast", "sw": "southwest",
 }
 
 
@@ -75,7 +72,7 @@ def go(character: str,
         locations[character] = dest_id
         return rooms[dest_id]
     # No exit — check if any exit failed or there were none at all
-    return "&yAlas, you cannot go that way. . . .&N"
+    return "&NAlas, you cannot go that way. . . ."
 
 
 # ── GameState ─────────────────────────────────────────────────────────────────
@@ -171,9 +168,9 @@ class GameState:
             return go(self.player, self.locations, self.rooms, direction)
 
         # ── look ──────────────────────────────────────────────────────────────
-        if verb in ("look", "l"):
-            room = self.current_room
-            if room is None:
+        if verb in ("look", "l"):    ## fix this to look at objects/characters,
+            room = self.current_room ## it should use a reusable targeting
+            if room is None:         ## function
                 return "&RYou are nowhere.&N"
             return room.render(self.locations, self.characters)
 
@@ -187,7 +184,7 @@ class GameState:
             return char.character_sheet() if char else "&RNo character found.&N"
 
         # ── unknown ───────────────────────────────────────────────────────────
-        return f"&yHuh?&N  (type &whelp&N for commands)"
+        return "&NPardon?"
 
     # ── Utility ───────────────────────────────────────────────────────────────
 

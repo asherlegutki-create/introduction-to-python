@@ -19,7 +19,7 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as":         Object,
         "name":             "a &rred expo marker&N",
         "key_words":        ("red", "expo", "marker"),
-        "room_description": "A &rred expo marker&N has been carelessly discarded here.",
+        "room_description": "A {r&wred expo marker&N has been carelessly discarded here.",
         "description":      "A dark magenta low-scent dry-erase marker, about half used.",
     },
 
@@ -27,7 +27,7 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as":         Object,
         "name":             "a &ggreen expo marker&N",
         "key_words":        ("green", "expo", "marker"),
-        "room_description": "A &ggreen expo marker&N has been carelessly discarded here.",
+        "room_description": "a {g&wgreen expo marker&N has been carelessly discarded here.",
         "description":      "A forest green low-scent dry-erase marker, about half used.",
     },
 
