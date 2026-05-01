@@ -1,7 +1,7 @@
 """
 main.py
 ───────
-Run from the ashenmoor_pkg directory:
+Run from the introduction-to-python directory:
 
     python main.py
 
