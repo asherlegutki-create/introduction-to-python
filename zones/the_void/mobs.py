@@ -29,13 +29,13 @@ TEMPLATES: dict[str, dict] = {
         "wander":   True,
     },
 
-        "my_friend": {
-        "name":             "a wandering student",
-        "key_words":        ("student", "wandering"),
-        "room_description": "&wA wandering student meanders about aimlessly.&N",
+        "Nessie": {
+        "name":             "Nessie",
+        "key_words":        ("Nessloc", "Nessie"),
+        "room_description": "&wA A green animal that swims in The Void peacefully&N",
         "description": (
-            "A student with a faraway look, clearly lost in thought.\n"
-            "Or possibly just lost."
+            "A green creature that has a cute look to it's face.\n"
+            "It seems to be eating"
         ),
         "race":     "Human",
         "class":    "Student",
