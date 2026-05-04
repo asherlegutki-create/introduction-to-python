@@ -3,3 +3,5 @@
 
 print("Hello, world!")
 print("Python is set up correctly!")
+
+print('Yo!')
