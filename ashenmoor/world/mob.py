@@ -42,12 +42,12 @@ class Mob(Character):
 
     def __init__(self, d: dict, races: dict | None = None):
         super().__init__(d, races)
-        self.room_description: str   = d.get("room_description", "")
-        self.key_words:        tuple = d.get("key_words",        ())
-        self.description:      str   = d.get("description",      "")
-        self.aggro:            bool  = d.get("aggro",            False)
-        self.wander:           bool  = d.get("wander",           False)
-        self.killable:         bool  = d.get("kill",             True)
+        self.room_description: str = d.get("room_description", "")
+        self.key_words: tuple = d.get("key_words", ())
+        self.description: str = d.get("description", "")
+        self.aggro: bool = d.get("aggro", False)
+        self.wander: bool = d.get("wander", False)
+        self.killable: bool = d.get("kill", True)
         # killable notes:
         #   True  (default) — normal mob, can be killed in combat.
         #   False — protected character (player-controlled, quest-critical,
@@ -67,6 +67,20 @@ class Mob(Character):
 
     def __repr__(self) -> str:
         kill = "" if self.killable else ", killable=False"
-        return (f"Mob({self.name!r}, race={self.race!r}, "
-                f"class={self.cclass!r}, level={self.level}, "
-                f"aggro={self.aggro}{kill})")
+        return (
+            f"Mob({self.name!r}, race={self.race!r}, "
+            f"class={self.cclass!r}, level={self.level}, "
+            f"aggro={self.aggro}{kill})"
+        )
+
+
+mr_mob = Mob(
+    {
+        "room_description": "the_void",
+        "key_words": ("mob", "mr", "mr_mob"),
+        "description": "A Mob Created For Homework",
+        "aggro": False,
+        "wander": True,
+        "killable": True,
+    }
+)

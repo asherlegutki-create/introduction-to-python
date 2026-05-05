@@ -14,8 +14,8 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from ashenmoor.color  import crepl, cprint
-from ashenmoor.core   import Character, RACES
+from ashenmoor.color import crepl, cprint
+from ashenmoor.core import Character, RACES
 from ashenmoor.engine import GameState
 
 # ── Import zones ──────────────────────────────────────────────────────────────
@@ -30,20 +30,26 @@ from zones.the_void import ZONE as THE_VOID
 def main():
     # ── Characters ────────────────────────────────────────────────────────────
     characters = {
-        "Moted": Character({
-            "name":  "Moted",
-            "race":  "Dwarf",
-            "class": "Shaman",
-            "level": 24,
-            "stats": [88, 80, 80, 80, 80, 80],
-        }, races=RACES),
-        "Aleolas": Character({
-            "name":  "Aleolas",
-            "race":  "Grey Elf",
-            "class": "Ranger",
-            "level": 50,
-            "stats": [100, 80, 100, 80, 80, 80],
-        }, races=RACES),
+        "Moted": Character(
+            {
+                "name": "Moted",
+                "race": "Dwarf",
+                "class": "Shaman",
+                "level": 24,
+                "stats": [88, 80, 80, 80, 80, 80],
+            },
+            races=RACES,
+        ),
+        "Aleolas": Character(
+            {
+                "name": "Aleolas",
+                "race": "Grey Elf",
+                "class": "Ranger",
+                "level": 50,
+                "stats": [100, 80, 100, 80, 80, 80],
+            },
+            races=RACES,
+        ),
     }
 
     locations = {"Moted": 1, "Aleolas": 1}
@@ -60,14 +66,14 @@ def main():
     cprint(f"&w{len(state.rooms)} rooms loaded across all zones.&N")
 
     crepl(
-        handler  = state.handle,
-        prompt   = "&g> &N",
-        banner   = (
+        handler=state.handle,
+        prompt="&g> &N",
+        banner=(
             "&WWelcome to &RRiverview &WChristian &BSchool&N SUD!&N\n"
             "&wType &Wlook&N&w, &Wn&N&w/&Ws&N&w/&We&N&w/&Ww&N&w, "
             "&Wwho&N&w, &Wstats&N&w, &Wquit&N&w.&N"
         ),
-        farewell = "&CGoodbye!&N",
+        farewell="&CGoodbye!&N",
     )
 
 
