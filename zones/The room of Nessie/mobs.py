@@ -20,13 +20,29 @@ TEMPLATES: dict[str, dict] = {
             "It sits there... menacingly.\n"
             "Or it is just sitting there without a single thought in that head."
         ),
-        "race": "nonhuman",
-        "class": "Nessie",
+        "race": "Nessie",
+        "class": "Animal",
         "level": 1,
         "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
         "wander": False,
-    }
+    },
+
+    "Nessie": {
+    "name": "Nessie",
+    "key_words": ("Nessloc", "Nessie"),
+    "room_description": "&wA A green animal that swims in The Void peacefully and powerfully.&N",
+    "description": (
+        "A green creature that has a cute look to it's face.\n",
+        "It seems to be eating a metallic weapon... or just a radioactive core.",
+    ),
+    "race": "non_human",
+    "class": "Nessie",
+    "level": 50,
+    "stats": [100, 100, 100, 90, 90, 100],
+    "aggro": False,
+    "wander": False,
+    },
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
