@@ -27,7 +27,21 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     }
-}
+    "Mr. Carlson": {
+        "name": "Mr. Carlson",
+        "key_words": ("Mr.", "Carlson"),
+        "room_description": "&g Mr. Carlson is taking to a student in the hall.&N",
+        "description": (
+        "The principal of the school. \n"
+        "Very tall. He is wearing a blue jacket with a tie that has elk on it."),
+        "race": "Human",
+        "class": "Principal",
+        "level": 70,
+        "stats": [71, 75, 80, 84, 79, 73],
+        "aggro": True,
+        "wander": False,
+      },
+      }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)
