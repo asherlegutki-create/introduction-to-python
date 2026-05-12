@@ -12,6 +12,7 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
+    
     "wandering_student": {
         "name": "a wandering student",
         "key_words": ("student", "wandering"),
@@ -27,6 +28,8 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     }
+
+    
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")

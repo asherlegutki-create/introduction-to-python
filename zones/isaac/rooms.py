@@ -17,24 +17,24 @@ from . import mobs as M
 ROOMS: dict[int, Room] = {
     1: Room(
         {
-            "number": 1,
-            "name": "The Void",
-            "description": "There is nothing here but the sound of rushing of wind.\nWe are waiting for the Spirit of God to move over it.",
+            "number": 15001,
+            "name": "The Seomra",
+            "description": "This room is covered in &Yyellow warning tape&N and littered with &ytraffic cones&N.",
             "indoors": False,
             "terrain": "no ground",
             "exits": [
-                {"direction": "north", "roomId": 1},
-                {"direction": "south", "roomId": 1},
-                {"direction": "east", "roomId": 2},
-                {"direction": "west", "roomId": 3},
-                {"direction": "up", "roomId": 1},
-                {"direction": "down", "roomId": 1},
+                # {"direction": "north", "roomId": 1},
+                # {"direction": "south", "roomId": 1},
+                # {"direction": "east", "roomId": 2},
+                # {"direction": "west", "roomId": 3},
+                # {"direction": "up", "roomId": 1},
+                # {"direction": "down", "roomId": 1},
             ],
             "objects": [
                 O.spawn("silken_sack"),
                 O.spawn("windsong"),
             ],
-            "mobs": [M.spawn("escbaalion")],  # two independent students
+            "mobs": [M.spawn("escbaalion")],
         }
     ),
 }

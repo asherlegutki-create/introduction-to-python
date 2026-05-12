@@ -10,12 +10,12 @@ Usage:
 
 from ashenmoor.world import Zone
 from .objects import TEMPLATES as OBJECT_TEMPLATES
-from .mobs    import TEMPLATES as MOB_TEMPLATES
-from .rooms   import ROOMS
+from .mobs import TEMPLATES as MOB_TEMPLATES
+from .rooms import ROOMS
 
 ZONE = Zone(
-    name             = "The Void",
-    rooms            = ROOMS,
-    object_templates = OBJECT_TEMPLATES,
-    mob_templates    = MOB_TEMPLATES,
+    name="The Isaac Zone",
+    rooms=ROOMS,
+    object_templates=OBJECT_TEMPLATES,
+    mob_templates=MOB_TEMPLATES,
 )
