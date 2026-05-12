@@ -27,6 +27,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     },
+<<<<<<< HEAD
 
 
 
@@ -63,6 +64,20 @@ TEMPLATES: dict[str, dict] = {
         "wander": True,
         },
 
+=======
+    "Shrimpman": {
+        "name": "Shrimpman",
+        "key_words": ("shrimp"),
+        "room_description": "&wA Shrimpman is backflipping.&N",
+        "description": ("very pink.\n" "Shrimp."),
+        "race": "humanoid",
+        "class": "monk",
+        "level": 1,
+        "stats": [60, 65, 60, 80, 70, 75],
+        "aggro": False,
+        "wander": True,
+    },
+>>>>>>> 7e6b0d66c56fcf65e146dc459fdf2278a582c9be
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
