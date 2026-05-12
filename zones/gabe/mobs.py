@@ -56,7 +56,7 @@ TEMPLATES: dict[str, dict] = {
         "level": "14",
         "stats": [10 ,48 ,23 ,92 ,16 ,82 ],
         "aggro": False,
-        "wander": True,
+        "wander": False,
         },
 
 }
