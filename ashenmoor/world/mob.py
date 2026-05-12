@@ -72,15 +72,3 @@ class Mob(Character):
             f"class={self.cclass!r}, level={self.level}, "
             f"aggro={self.aggro}{kill})"
         )
-
-
-mr_mob = Mob(
-    {
-        "room_description": "the_void",
-        "key_words": ("mob", "mr", "mr_mob"),
-        "description": "A Mob Created For Homework",
-        "aggro": False,
-        "wander": True,
-        "killable": True,
-    }
-)
