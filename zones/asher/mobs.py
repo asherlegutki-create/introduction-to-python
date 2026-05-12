@@ -1,4 +1,4 @@
-"""
+`"""
 zones.the_void.mobs
 ───────────────────
 Mob templates for The Void zone.
@@ -26,8 +26,29 @@ TEMPLATES: dict[str, dict] = {
         "stats": [60, 65, 60, 80, 70, 75],
         "aggro": False,
         "wander": True,
-    }
-}
+    },
+
+
+    "weasel": {
+        "name": "weasel",
+        "key_words": ("weasel"),
+        "room_description": "&wA Weasel floats here randomly.&N",
+        "description": (
+            "It is very soft and chubby.\n",
+            "It seems like it standing on some cheese."
+
+            ),
+
+            "race": "non_human",
+            "class": "Weasel",
+            "level": 50,
+            "stats": [100, 100, 100, 90, 90, 100],
+            "aggro": False,
+            "wander": False,
+
+
+        }
+                }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)

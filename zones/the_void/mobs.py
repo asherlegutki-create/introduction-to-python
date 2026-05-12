@@ -81,7 +81,7 @@ TEMPLATES: dict[str, dict] = {
         "class": "Principal",
         "level": 70,
         "stats": [71, 75, 80, 84, 79, 73],
-        "aggro": True,
+        "aggro": "True,
         "wander": False,
     },
     "Red kobold": {
@@ -103,17 +103,21 @@ TEMPLATES: dict[str, dict] = {
     "weasel": {
         "name": "weasel",
         "key_words": ("weasel"),
-        "room_description": "&wA &YWeasel&N floats here randomly.&N",
-        "description": ("
+        "room_description": "&wA Weasel floats here randomly.&N",
+        "description": (
             "It is very soft and chubby.\n",
             "It seems like it standing on some cheese."
+
         ),
-        "race":     "animal",
-        "class":    "weasel",
-        "level":    50,
-        "stats":    [60, 100, 60, 100, 75, 100],
-        "aggro":    False,
-        "wander":   False,
+
+        "race": "non_human",
+        "class": "Weasel",
+        "level": 50,
+        "stats": [100, 100, 100, 90, 90, 100],
+        "aggro": False,
+        "wander": False,
+
+
     },
     "Nessie": {
         "name": "Nessie",
