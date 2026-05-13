@@ -40,8 +40,19 @@ TEMPLATES: dict[str, dict] = {
         "stats": [10, 10, 10, 10, 10, 10],
         "aggro": False,
         "wander": True,
-    }
+    },
+    "Shrimpman": {
+        "name": "Shrimpman",
+        "key_words": ("shrimp"),
+        "room_description": "&wA Shrimpman is backflipping.&N",
+        "description": ("very pink.\n" "Shrimp."),
+        "race": "humanoid",
+        "class": "monk",
+        "level": 1,
+        "stats": [60, 65, 60, 80, 70, 75],
+        "aggro": False,
+        "wander": True,
+    },
 }
-
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)
