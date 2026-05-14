@@ -12,31 +12,20 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "mr_mob": {
-        "name": "Mr Mob",
-        "key_words": ("mr", "mob"),
-        "room_description": "wondering in the forest",
-        "description": ("This mob was spawned from homework"),
+    "George_Washington": {
+        "name": "George_Washington",
+        "key_words": ("Washington", "George"),
+        "room_description": "&wA He stands forever in the position he was in crossing the Deleware.&N",
+        "description": (
+            "A man lost in the past.\n"
+        ),
         "race": "Human",
-        "class": "Student",
-        "level": 10,
-        "stats": [70, 65, 60, 80, 70, 95],
-        "aggro": False,
-        "wander": True,
-    },
-    "Shrimpman": {
-        "name": "Shrimpman",
-        "key_words": ("shrimp"),
-        "room_description": "&wA Shrimpman is backflipping.&N",
-        "description": ("very pink.\n" "Shrimp."),
-        "race": "humanoid",
-        "class": "monk",
+        "class": "President",
         "level": 1,
-        "stats": [60, 65, 60, 80, 70, 75],
+        "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
-        "wander": True,
-    },
+        "wander": False,
+    }
 }
-
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)

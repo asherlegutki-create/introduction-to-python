@@ -1,7 +1,7 @@
 """
 zones.the_void.rooms
 ────────────────────
-Room definitions for The Void zone.  Vnum range: 1 – 99.
+Room definitions for The Void zone.  Vnum range: 1 – 13.
 
 Each room entry calls O.spawn() / M.spawn() to place fresh object and mob
 instances.  Calling spawn() twice places two independent copies, so loot
@@ -18,10 +18,10 @@ ROOMS: dict[int, Room] = {
     1: Room(
         {
             "number": 1,
-            "name": "The Void",
-            "description": "There is nothing here but the sound of rushing of wind.\nWe are waiting for the Spirit of God to move over it.",
-            "indoors": False,
-            "terrain": "no ground",
+            "name": "&BThe Farlands&N",
+            "description": "Lots of repeating glitched terrian.",
+            "indoors": True,
+            "terrain": "ground",
             "exits": [
                 {"direction": "north", "roomId": 1},
                 {"direction": "south", "roomId": 1},
@@ -31,10 +31,9 @@ ROOMS: dict[int, Room] = {
                 {"direction": "down", "roomId": 1},
             ],
             "objects": [
-                O.spawn("silken_sack"),
-                O.spawn("windsong"),
+                O.spawn("Nuke shot"),
             ],
-            "mobs": [M.spawn("escbaalion")],  # two independent students
+            "mobs": [M.spawn("George Washington")],  # two independent students
         }
     ),
 }
