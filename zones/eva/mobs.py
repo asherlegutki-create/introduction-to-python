@@ -12,6 +12,29 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
+    
+    "mob_template": {
+        "name": "name",
+        "key_words": ("1", "2"),
+        "room_description": "",
+        "description": (
+            "this is just so i can ctrl c  ctrl v.\n"
+            "hi"
+        ),
+        "race": "race",
+        "class": "class",
+        "level": 5,
+        "stats": [60, 75, 65, 80, 70, 75],
+        "aggro": False,
+        "wander": True,
+    },
+    
+    
+    
+    
+    
+    
+    
     "fanciful_bard": {
         "name": "Marloe the Bard",
         "key_words": ("Bard", "Marloe", "Siren"),
@@ -43,18 +66,17 @@ TEMPLATES: dict[str, dict] = {
         "wander": False,
     },
 
-    "blank_template": {
-        "name": "name",
-        "key_words": ("1", "2"),
-        "room_description": "",
-        "description": (
-            "this is just so i can ctrl c  ctrl v.\n"
-            "hi"
-        ),
-        "race": "race",
-        "class": "class",
+    "Large_Orange_Cat": {
+        "name": "Large Orange Cat",
+        "key_words": ("cat", "orange", "large"),
+        "room_description": "A big &yorange cat&N sits here watching your movements with mild interest.",
+        "description": ("A fluffy &yorange tomcat&N of considerable size sits lazily on the floor.\n" 
+                       "His &Ggreen&N eyes follow you, seemingly out of boredom." 
+                        ),
+        "race": "cat",
+        "class": "pet",
         "level": 5,
-        "stats": [60, 75, 65, 80, 70, 75],
+        "stats": [50, 50, 50, 50, 50, 50],
         "aggro": False,
         "wander": True,
     },
