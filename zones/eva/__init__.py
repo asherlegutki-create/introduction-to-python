@@ -1,5 +1,5 @@
 """
-zones.the_void
+zones.the_planes
 ──────────────
 The Void — starter zone.  Vnums 1-99.
 
@@ -14,7 +14,7 @@ from .mobs    import TEMPLATES as MOB_TEMPLATES
 from .rooms   import ROOMS
 
 ZONE = Zone(
-    name             = "The Void",
+    name             = "The Planes",
     rooms            = ROOMS,
     object_templates = OBJECT_TEMPLATES,
     mob_templates    = MOB_TEMPLATES,

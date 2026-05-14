@@ -18,10 +18,10 @@ ROOMS: dict[int, Room] = {
     1: Room(
         {
             "number": 1,
-            "name": "The Void",
-            "description": "There is nothing here but the sound of rushing of wind.\nWe are waiting for the Spirit of God to move over it.",
+            "name": "&WThe &yc&Yh&N&ye&Ye&N&ys&Ye&N Layer&N",
+            "description": "&WYou are in the &Ycheese&N &Wlayer of the&N &yw&Go&N&yr&Gl&N&yd.\n &N&yc&Yh&N&ye&Ye&N&ys&Ye&N &Wis everywhere, in all shapes and sizes.&N\n &WThe air smells &N&rstrongly &Wof &yc&Yh&N&ye&Ye&N&ys&Ye&N,&W and you can see little&N &ybits &Wof it floating in the air.&N\n\n",
             "indoors": False,
-            "terrain": "no ground",
+            "terrain": "cheese",
             "exits": [
                 {"direction": "north", "roomId": 1},
                 {"direction": "south", "roomId": 1},
@@ -31,10 +31,10 @@ ROOMS: dict[int, Room] = {
                 {"direction": "down", "roomId": 1},
             ],
             "objects": [
-                O.spawn("silken_sack"),
-                O.spawn("windsong"),
+                O.spawn("cheese wheel"),
+                O.spawn("toy cheese"),
             ],
-            "mobs": [M.spawn("escbaalion")],  # two independent students
-        }
+            "mobs": [M.spawn("the cheese monster"), M.spawn("the cheez sniffer"), M.spawn("the cheese spirit")],
+        },
     ),
 }

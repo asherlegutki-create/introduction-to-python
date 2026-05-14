@@ -27,21 +27,37 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     
-    "Illrigger": {
+    
+    "Illrigger Mage": {
         "name": "Illrigger",
         "key_words": ("Illrigger"),
         "room_description": "&GIllriggers &Wwander these parts, searching for any intruders.&N",
         "description": (
             "&MIllrigger Mage, &Wit is clearly mastering the arts of &xDark Magic&N."
         ),
-        "race": "Human",
-        "class": "Illrigger",
+        "race": "Illrigger",
+        "class": "Mage",
         "level": 39,
         "stats": [75, 92, 53, 72, 85, 10],
         "aggro": True,
         "wander": True,
+
+    "Illrigger": {
+        "name": "Illrigger",
+        "key_words": ("Illrigger"),
+        "room_description": "&GIllriggers &Wwander these parts, searching for any intruders.&N",
+        "description": (
+            "&wIllrigger Guard, &Wit is clearly trying to guard the Woodland Manor"
+        ),
+        "race": "Illrigger",
+        "class": "Rogue",
+        "level": 23,
+        "stats": [45, 62, 53, 72, 38, 10],
+        "aggro": True,
+        "wander": True,
         }
     }
+}
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")

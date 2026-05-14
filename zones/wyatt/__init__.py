@@ -14,7 +14,7 @@ from .mobs    import TEMPLATES as MOB_TEMPLATES
 from .rooms   import ROOMS
 
 ZONE = Zone(
-    name             = "The Void",
+    name             = "Crystal_Caverns",
     rooms            = ROOMS,
     object_templates = OBJECT_TEMPLATES,
     mob_templates    = MOB_TEMPLATES,

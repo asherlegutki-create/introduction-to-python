@@ -17,24 +17,23 @@ from . import mobs as M
 ROOMS: dict[int, Room] = {
     1: Room(
         {
-            "number": 1,
-            "name": "The Void",
-            "description": "There is nothing here but the sound of rushing of wind.\nWe are waiting for the Spirit of God to move over it.",
-            "indoors": False,
-            "terrain": "no ground",
+            "number": 14,
+            "name": "Crystal Caverns",
+            "description": "&WIt is a&N dark &Wcave with minimal light coming off of the luminescent&N &Ccrystals&N.\nThe &Ccrystals&N are of &rv&ga&Cr&Bi&Ro&Yu&Gs&N &Wcolors&N",
+            "indoors": True,
+            "terrain": "rock",
             "exits": [
-                {"direction": "north", "roomId": 1},
-                {"direction": "south", "roomId": 1},
-                {"direction": "east", "roomId": 2},
-                {"direction": "west", "roomId": 3},
-                {"direction": "up", "roomId": 1},
-                {"direction": "down", "roomId": 1},
+                {"direction": "north", "roomId": 2},
+                {"direction": "south", "roomId": 3},
+                {"direction": "east", "roomId": 1},
+                {"direction": "west", "roomId": 2},
+                {"direction": "up", "roomId": 3},
+                {"direction": "down", "roomId": 2},
             ],
             "objects": [
-                O.spawn("silken_sack"),
-                O.spawn("windsong"),
+                O.spawn("Raptors claw"),
             ],
-            "mobs": [M.spawn("escbaalion")],  # two independent students
+            "mobs": [M.spawn("Green Nessie")],  # two independent students
         }
     ),
 }

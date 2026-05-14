@@ -20,9 +20,24 @@ TEMPLATES: dict[str, dict] = {
             "It sits there... menacingly.\n"
             "Or it is just sitting there without a single thought in that head."
         ),
-        "race": "nonhuman",
-        "class": "Nessie",
-        "level": 1,
+        "race": "Nessie",
+        "class": "Animal",
+        "level": 50,
+        "stats": [100, 100, 100, 100, 100, 100],
+        "aggro": False,
+        "wander": False,
+    },
+        "Green Nessie": {
+        "name": "Green Nessie",
+        "key_words": ("Green", "Nessie"),
+        "room_description": "&CThe Nessie. It wades in the shallow water staring into space&N",
+        "description": (
+            "It is a very strange creature and sits there wisely\n"
+            "Or it is just sitting there without a single thought in that head."
+        ),
+        "race": "Nessie",
+        "class": "Animal",
+        "level": 50,
         "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
         "wander": False,

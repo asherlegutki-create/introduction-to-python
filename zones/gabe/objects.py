@@ -14,36 +14,23 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "green_marker": {
-        "spawn_as":         Object,
-        "name":             "a &ggreen expo marker&N",
-        "key_words":        ("green", "expo", "marker"),
-        "room_description": "a {g&wgreen expo marker&N has been carelessly discarded here.",
-        "description":      "A forest green low-scent dry-erase marker, about half used.",
+    "cheese wheel": {
+        "spawn_as":         Item,
+        "name":             "a &Ya cheese wheel&N",
+        "key_words":        ("cheese", "wheel"),
+        "room_description": "a &Ya cheese wheel&N is laid here, looking very delicious.",
+        "description":      "a delicious-looking wheel of cheese.",
+        "weight":           5,
     },
 
-    "silken_sack": {
-        "spawn_as":         Item,
-        "name":             "a &+rtattered &+csilken sack&N",
-        "key_words":        ("tattered", "silken", "sack"),
-        "room_description": "A &+rtattered &+csilken sack&N lies here, discarded.",
-        "description":      "This sack seems to be in an awful condition.",
+    "toy cheese": {
+        "spawn_as":         Object,
+        "name":             "a toy cheese",
+        "key_words":        ("toy", "cheese"),
+        "room_description": "a &mtoy &Ycheese&N is lying on the ground here.",
+        "description":      "A cheese-shaped toy, made of wood and painted yellow.\n It looks like it would be fun to throw.",
         "weight":           2,
     },
-    "windsong" : {
-        "spawn_as":         Weapon,
-        'name': "&+ga &wg&Wl&wi&Wtt&wer&Wi&wng &N&+gelven scimitar&N",
-        'key_words': ('scimitar', 'elven', 'glittering'),
-        'room_description': "&+gA glittering elven scimitar is lying on the ground here.&N",
-        'description': """&+gIts blade encrusted with diamond dust, this magically light
-&+gelven blade glitters in the sunlight and seems to hum softly
-&+gwhen wielded in battle.&N""",
-        "weight":           3,
-        "dice":             "2d8",
-        "hitroll":          2,
-        "damroll":          4,
-    },
-
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")
