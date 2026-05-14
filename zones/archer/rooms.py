@@ -18,8 +18,8 @@ ROOMS: dict[int, Room] = {
     1: Room(
         {
             "number": 1,
-            "name": "Woodland Mansion",
-            "description": "A heavily fortified mansion your currently surrounded by Illriggers",
+            "name": "Woodland Manor",
+            "description": "A heavily fortified mansion, your currently surrounded by Illriggers",
             "indoors": True,
             "terrain": "floors, rooms, and walls",
             "exits": [
@@ -29,10 +29,13 @@ ROOMS: dict[int, Room] = {
                 {"direction": "west", "roomId": 3},
             ],
             "objects": [
-                O.spawn("silken_sack"),
+                O.spawn("Potion of Turtle Master"),
                 O.spawn("windsong"),
             ],
-            "mobs": [M.spawn("Illriger")],  # two independent students
+            "mobs": [ 
+                M.spawn("Illrigger Mage"),
+                M.spawn("Illrigger"),
+            ]
         }
     ),
 }
