@@ -41,10 +41,11 @@ ROOMS: dict[int, Room] = {
     ),
 
 
+
         2: Room(
         {
             "number": 2,
-            "name": "The &YC&N&yh&Y&Ne&ye&Ys&N&ye&N &BOasis&N",
+            "name": "The &YC&N&yh&Y&N&ye&ye&Ys&N&ye&N &BOasis&N",
             "description": "The Cheese Oasis is a big patch of grass surrounded by cheese. \n The grass is surprisingly green and lush, and there is a small pond in the center.\n  The air smells fresher here, and you can hear the sound of cheesy birds chirping.\n\n",
             "indoors": False,
             "terrain": "no ground",
@@ -58,8 +59,8 @@ ROOMS: dict[int, Room] = {
             ],
             "objects": [
                 O.spawn("cheese surfboard"),
-                O.spawn(""),
             ],
-            "mobs": [M.spawn("escbaalion")],  # two independent students
-        ),
-},
+            "mobs": [M.spawn("the cheesy bird")],
+        },
+    ),
+}
