@@ -14,35 +14,34 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    " green leaf": {
-        "spawn_as":         Object,
-        "name":             "a &ggreen&N &Gleaf&N",
-        "key_words":        ("green", "leaf"),
+    "green leaf": {
+        "spawn_as": Object,
+        "name": "a &ggreen&N &Gleaf&N",
+        "key_words": ("green", "leaf"),
         "room_description": "a {a green leaf has been carelessly discarded here.",
-        "description":      "A forest green leaf is lying on the ground.",
+        "description": "A forest green leaf is lying on the ground.",
     },
-
     "Banana": {
-        "spawn_as":         Object,
-        "name":             " &Ybanana&N",
-        "key_words":        ("banana"),
+        "spawn_as": Object,
+        "name": " &Ybanana&N",
+        "key_words": ("banana"),
         "room_description": "A &Ybannannna&N is hanging of a bush.",
-        "description":      "This banana seems to be very tasty."
+        "description": "This banana seems to be very tasty.",
     },
-    "The Fruit" : {
-        "spawn_as":         Object,
-        'name': "The Fruit",
-        'key_words': ('Fruit'),
-        'room_description': "The Fruit is hanging from a branch on a tree."
-        'description':      "This is the Fruit that adam and eve ate. THis fruit caused the first sin."
+    "The Fruit": {
+        "spawn_as": Object,
+        "name": "The Fruit",
+        "key_words": ("Fruit"),
+        "room_description": "The Fruit is hanging from a branch on a tree.",
+        "description": "This is the Fruit that adam and eve ate. THis fruit caused the first sin.",
     },
-    "The Horn" : {
-        "spawn_as":         Object,
-        'name': "Horn",
-        'key_words': ('Horn'),
-        'room_description': "The Horn is on a table in an Israelite tent."
-        'description':      "The Horn has been use to make loud noises while marching around the city of Jericho
-    
+    "The Horn": {
+        "spawn_as": Object,
+        "name": "Horn",
+        "key_words": ("Horn"),
+        "room_description": "The Horn is on a table in an Israelite tent.",
+        "description": "The Horn has been use to make loud noises while marching around the city of Jericho.",
+    },
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")

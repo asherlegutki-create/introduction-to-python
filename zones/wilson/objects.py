@@ -14,7 +14,7 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "Nuke Shot": {
+    "Nuke_Shot": {
         "spawn_as":         Object,
         "name":             "a &WNuke&N &RShot&N",
         "key_words":        ("Nuke", "Shot",),

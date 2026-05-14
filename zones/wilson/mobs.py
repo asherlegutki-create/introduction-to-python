@@ -13,8 +13,8 @@ from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
     "George_Washington": {
-        "name": "George_Washington",
-        "key_words": ("Washington", "George"),
+        "name": "George Washington",
+        "key_words": ("washington", "george"),
         "room_description": "&wA He stands forever in the position he was in crossing the Deleware.&N",
         "description": (
             "A man lost in the past.\n"

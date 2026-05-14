@@ -222,9 +222,9 @@ TEMPLATES: dict[str, dict] = {
         "wander": False,
     },
 
-    "Sand Puma": {
+    "Sand_Puma": {
         "name": "Sand Puma",
-        "key_words": ("puma"),
+        "key_words": ("sand", "puma"),
         "room_description": "&wA sand puma aimlesly being taken into the quick sand.&N",
         "description": ("rockyish sand color and yellow.\n" "puma +."),
         "race": "pumaish",
