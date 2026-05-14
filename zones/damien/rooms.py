@@ -19,22 +19,20 @@ ROOMS: dict[int, Room] = {
         {
             "number": 1,
             "name": "The Void",
-            "description": "There is nothing here but the sound of rushing of wind.\nWe are waiting for the Spirit of God to move over it.",
+            "description": "There is a weird feeling in the air, almost a feeling of doom. The ground moves slightly when you walk, as if it is floating.",
             "indoors": False,
-            "terrain": "no ground",
+            "terrain": "stone",
             "exits": [
                 {"direction": "north", "roomId": 1},
                 {"direction": "south", "roomId": 1},
-                {"direction": "east", "roomId": 2},
-                {"direction": "west", "roomId": 3},
-                {"direction": "up", "roomId": 1},
-                {"direction": "down", "roomId": 1},
+                {"direction": "east", "roomId": 1},
+                {"direction": "west", "roomId": 1},
             ],
             "objects": [
-                O.spawn("silken_sack"),
-                O.spawn("windsong"),
+                O.spawn("sack_of_darkness"),
+                O.spawn("sword_that_seals_the_darkness"),
             ],
-            "mobs": [M.spawn("escbaalion")],  # two independent students
+            "mobs": [M.spawn("void_dragon")],  # two independent students
         }
     ),
 }
