@@ -18,23 +18,37 @@ ROOMS: dict[int, Room] = {
     1: Room(
         {
             "number": 1,
-            "name": "The Void",
-            "description": "There is nothing here but the sound of rushing of wind.\nWe are waiting for the Spirit of God to move over it.",
-            "indoors": False,
-            "terrain": "no ground",
+            "name": "room j",
+            "description": "the room is filled with tables and chairs.\n the interactive board glows softly in the front",
+            "indoors": True,
+            "terrain": "ground",
             "exits": [
                 {"direction": "north", "roomId": 1},
                 {"direction": "south", "roomId": 1},
-                {"direction": "east", "roomId": 2},
-                {"direction": "west", "roomId": 3},
-                {"direction": "up", "roomId": 1},
-                {"direction": "down", "roomId": 1},
+                {"direction": "west", "roomid": 1},
             ],
             "objects": [
-                O.spawn("silken_sack"),
-                O.spawn("windsong"),
+                O.spawn("pencil"),
+                O.spawn("whiteboard_marker"),
             ],
             "mobs": [M.spawn("wandering_student")],  # two independent students
         }
     ),
+   2: Room(
+        {
+            "number": 2,
+            "name": "room h",
+            "description": "a well decorated room, filled with historical artifacts.",
+            "indoors": True,
+            "terrain": "ground",
+            "exits": [
+                {"direction": "north", "roomId": 1},
+                {"direction": "south", "roomId": 1},
+            ],
+            "objects": [
+                O.spawn("Mrs.Allisons_syth"),
+            ],
+            "mobs": [M.spawn("fellow_student")],  # two independent students
+        }
+    ), 
 }

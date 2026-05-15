@@ -1,5 +1,10 @@
 {
+<<<<<<< HEAD
+    "cSpell.words": [
+        "awsome"
+=======
     "githubPullRequests.ignoredPullRequestBranches": [
         "main"
+>>>>>>> 8d10f38c18685af04beaea170171d355026f39cf
     ]
 }

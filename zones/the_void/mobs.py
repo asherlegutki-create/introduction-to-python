@@ -34,7 +34,7 @@ TEMPLATES: dict[str, dict] = {
         "description": (
             "A humanoid lizard. He is &gdark-green&N, and has a short\n"
             "&Ccyan sail&N that runs from the top of his head to the end of his tail.\n"
-            "He wears an almost &Xblack cloak&N, but wears &rno&N pants.\n"
+            "He wears an almost &Xblack cloak&N, but wears &Rno&N pants.\n"
             "A &ybrown leather satchel&N is slung over his shoulder.\n"
             "Only &ghe&N knows what is inside his &ybag&N. . . ."
         ),
@@ -103,7 +103,11 @@ TEMPLATES: dict[str, dict] = {
     "weasel": {
         "name": "weasel",
         "key_words": ("weasel"),
+<<<<<<< HEAD
+        "room_description": "&wA &YWeasel&N floats here randomly.&N",
+=======
         "room_description": "&wA Weasel floats here randomly.&N",
+>>>>>>> 5b61dcf8511eb51050f4d8821a48bf675ff043cf
         "description": (
             "It is very soft and chubby.\n",
             "It seems like it standing on some cheese."
