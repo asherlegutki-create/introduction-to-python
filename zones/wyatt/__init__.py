@@ -12,3 +12,10 @@ ZONE = Zone(
     vnum_base        = ZONE_NUMBER,
     author           = ZONE_AUTHOR,
 )
+
+ZONE = Zone(
+    name             = "Travelers Tavern",
+    rooms            = ROOMS,
+    object_templates = OBJECT_TEMPLATES,
+    mob_templates    = MOB_TEMPLATES,
+)

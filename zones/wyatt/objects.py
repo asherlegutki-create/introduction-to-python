@@ -35,6 +35,14 @@ TEMPLATES: dict[str, dict] = {
         "hitroll":          2,
         "damroll":          4,
     },
+        "Glass": {
+        "spawn_as":         Item,
+        "name":             "a &WGlass&N",
+        "key_words":        ("Glass"),
+        "room_description": "&WA &wclear &Gglass",
+        "description":      "&W a &wclear &Gglass for &Cdrinking",
+        "weight":           .3,
+    },
 
 }
 

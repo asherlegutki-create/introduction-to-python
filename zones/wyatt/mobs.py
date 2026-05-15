@@ -41,7 +41,22 @@ TEMPLATES: dict[str, dict] = {
         "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
         "wander": False,
-    }
+    },
+        "Alisa Macailnov": {
+        "name": "Alisa Macailnov",
+        "key_words": ("Alisa", "Macailnov"),
+        "room_description": "A woman that keeps &Rev&Ger&Cyt&Bhi&Yng &Cshiny&N",
+        "description": (
+            "Alisa cleans the counter and bartends simultaneously.\n"
+            "She talks to the customers swiftly; asking questions about them."
+        ),
+        "race": "human",
+        "class": "Bartender",
+        "level": 25,
+        "stats": [73, 80, 78, 84, 65, 70],
+        "aggro": False,
+        "wander": False,
+    },
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
