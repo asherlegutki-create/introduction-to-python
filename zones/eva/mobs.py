@@ -28,13 +28,6 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     },
-    
-    
-    
-    
-    
-    
-    
     "fanciful_bard": {
         "name": "Marloe the Bard",
         "key_words": ("Bard", "Marloe", "Siren"),
@@ -65,7 +58,6 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
     },
-
     "Large_Orange_Cat": {
         "name": "Large Orange Cat",
         "key_words": ("cat", "orange", "large"),

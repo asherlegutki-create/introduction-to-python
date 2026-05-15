@@ -42,6 +42,13 @@ TEMPLATES: dict[str, dict] = {
         "room_description": "The Horn is on a table in an Israelite tent.",
         "description": "The Horn has been use to make loud noises while marching around the city of Jericho.",
     },
+    "Tunic": {
+        "spawn_as": Item,
+        "name": " Israelite Tunic",
+        "key_words": ("Tunic","Israelite"),
+        "room_description": "A Israelite Tunic is folden nicely on a bench.",
+        "description": "This tunic will disguise you to look like a Israelite because a tunic is what was mainly worn back in the day.",
+    },
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")

@@ -26,7 +26,7 @@ TEMPLATES: dict[str, dict] = {
         "stats": [60, 65, 60, 80, 70, 75],
         "aggro": False,
         "wander": True,
-    
+    },
     
     "Illrigger Mage": {
         "name": "Illrigger",
@@ -41,7 +41,7 @@ TEMPLATES: dict[str, dict] = {
         "stats": [75, 92, 53, 72, 85, 10],
         "aggro": True,
         "wander": True,
-
+    },
     "Illrigger": {
         "name": "Illrigger",
         "key_words": ("Illrigger"),
@@ -55,9 +55,7 @@ TEMPLATES: dict[str, dict] = {
         "stats": [45, 62, 53, 72, 38, 10],
         "aggro": True,
         "wander": True,
-        }
     }
-}
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")

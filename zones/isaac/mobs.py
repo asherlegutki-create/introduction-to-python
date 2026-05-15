@@ -12,25 +12,37 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    
-    "wandering_student": {
-        "name": "a wandering student",
-        "key_words": ("student", "wandering"),
-        "room_description": "&wA wandering student meanders about aimlessly.&N",
+    "escbaalion": {
+        "name": "&gEscbaalion&N",  # The c is silent
+        "key_words": ("Escbaalion"),
+        "room_description": "&gEscbaalion&N licks his eyeball.",
         "description": (
-            "A student with a faraway look, clearly lost in thought.\n"
-            "Or possibly just lost."
+            "(The 'c' is silent)\n"
+            "A humanoid lizard. He is &gdark-green&N, and has a short\n"
+            "&Ccyan sail&N that runs from the top of his head to the end of his tail.\n"
+            "He wears an almost &Xblack cloak&N, but wears &Rno&N pants.\n"
+            "A &ybrown leather satchel&N is slung over his shoulder.\n"
+            "Only &ghe&N knows what is inside his &ybag&N. . . .\n"
         ),
-        "race": "Human",
-        "class": "Student",
-        "level": 1,
-        "stats": [60, 65, 60, 80, 70, 75],
+        "race": "Lizaroid",
+        "class": "Sorcerer",
+        "level": 10,
+        "stats": [80, 50, 200, 90, 90, 70],
+        "aggro": True,
+        "wander": False,
+    },
+    "unicorn_blob": {
+        "name": "&MUnicorn Blob&N",
+        "key_words": ("unicorn", "blob"),
+        "room_description": "&MUnicorn Blob&N wanders without a care in the world.",
+        "description": ("Remind me to finish description."),
+        "race": "Slime",
+        "class": None,
+        "level": 7,
+        "stats": [70, 50, 160, 20, 20, 100],
         "aggro": False,
         "wander": True,
-    }
-
-    
+    },
 }
 
-# Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)
