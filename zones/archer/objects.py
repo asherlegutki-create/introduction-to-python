@@ -15,10 +15,10 @@ from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
     "Potion of Turtle Master": {
-        "spawn_as":         Object,
-        "name":             "a &wTurtle Master&N potion",
+        "spawn_as":         Item,
+        "name":             "a &wTurtle Master&N potion&N",
         "key_words":        ("Potion", "Turtle", "Master"),
-        "room_description": "a &wPotion of Turtle Master&N has been carelessly discarded here.",
+        "room_description": "a &wPotion of Turtle Master&N has been carelessly discarded here.&N",
         "description":      "A potion that grants defense and slowness, about half used.",
     },
     

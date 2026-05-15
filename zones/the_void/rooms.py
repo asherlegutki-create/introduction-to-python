@@ -75,6 +75,7 @@ ROOMS: dict[int, Room] = {
             "exits": [
                 {"direction": "north", "roomId": 1},
                 {"direction": "south", "roomId": 1},
+                {"direction": "west", "roomId": 5},
             ],
             "mobs": [
                 M.spawn("void_dragon"),
