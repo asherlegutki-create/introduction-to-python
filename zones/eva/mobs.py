@@ -28,7 +28,24 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     },
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "fanciful_bard": {
+=======
+=======
+>>>>>>> Stashed changes
+    
+    
+    
+    
+    
+    
+    
+    "fanciful_Bard": {
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
         "name": "Marloe the Bard",
         "key_words": ("Bard", "Marloe", "Siren"),
         "room_description": "A bard sits here, plucking at her &ylyre&N and wearing a mildly board expression",

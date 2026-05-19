@@ -1,7 +1,7 @@
 """
 zones.the_planes.objects
 ──────────────────────
-Object templates for The Void zone.
+Object templates for The Planes zone.
 
 Add an entry to TEMPLATES for every object that can appear in this zone.
 The "class" key picks the instantiation class (Object / Item / Weapon).
@@ -46,14 +46,7 @@ TEMPLATES: dict[str, dict] = {
 
 
 
-"Large_Orange_Cat": {
-        "spawn_as":         Object,
-        "name":             "Large Orange Cat",
-        "key_words":        ("cat", "orange", "large"),
-        "room_description": "A big &yorange cat&N sits here watching your movements with mild interest.",
-        "description":      "A fluffy &yorange tomcat&N of considerable size sits lazily on the floor.\nHis &Ggreen&N eyes follow you, seemingly out of boredom.",
-        #will probably change to a mob later
-    },
+
 
 "Assorted_Bottles__Full": {
         "spawn_as":         Item,
