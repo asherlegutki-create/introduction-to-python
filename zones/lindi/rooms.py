@@ -5,8 +5,8 @@ from . import mobs    as M
 ROOMS: dict[int, Room] = {
     1: Room({
         "number": 1,
-        "name": "room j",
-        "description": "the room is filled with tables and chairs.\n the interactive board glows softly in the front",
+        "name": "science room",
+        "description": "the room is filled with &ytables and chairs&N.\n the interactive board &Wglows&N softly in the front",
         "indoors": True,
         "terrain": "ground",
         "exits": [
