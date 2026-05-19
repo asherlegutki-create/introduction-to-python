@@ -12,10 +12,3 @@ ZONE = Zone(
     vnum_base        = ZONE_NUMBER,
     author           = ZONE_AUTHOR,
 )
-
-ZONE = Zone(
-    name             = "The &YC&N&yh&Y&Ne&ye&Ys&N&ye&N &BOasis&N",
-    rooms            = ROOMS,
-    object_templates = OBJECT_TEMPLATES,
-    mob_templates    = MOB_TEMPLATES,
-)

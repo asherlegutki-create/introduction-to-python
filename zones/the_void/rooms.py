@@ -30,7 +30,6 @@ ROOMS: dict[int, Room] = {
                 {"direction": "up", "roomId": 1},
                 {"direction": "down", "roomId": 1},
             ],
-            "mobs": [M.spawn("escbaalion")],  # two independent students
         }
     ),
     2: Room(
@@ -63,37 +62,6 @@ ROOMS: dict[int, Room] = {
             "terrain": "no ground",
             "exits": [],
             "objects": [O.spawn("red_marker"), O.spawn("green_marker")],
-        }
-    ),
-    4: Room(
-        {
-            "number": 4,
-            "name": "&MThe Great Gathering&N",
-            "description": "    All of our wonderful mobs are in this room\narern't they so pretty!",
-            "indoors": False,
-            "terrain": "no ground",
-            "exits": [
-                {"direction": "north", "roomId": 1},
-                {"direction": "south", "roomId": 1},
-                {"direction": "west", "roomId": 5},
-            ],
-            "mobs": [
-                M.spawn("void_dragon"),
-                M.spawn("Adam Sandler"),
-                M.spawn("Citadel Guard"),
-                M.spawn("void_guardian"),
-                M.spawn("my_friend"),
-                M.spawn("wandering_teacher"),
-                M.spawn("Nessie"),
-                M.spawn("weasel"),
-                M.spawn("Red kobold"),
-                M.spawn("Mr. Carlson"),
-                M.spawn("Lucas"),
-                M.spawn("escbaalion"),
-                M.spawn("wandering_student"),
-                M.spawn("the cheese monster"),
-                M.spawn("Sand_Puma")
-            ],
         }
     ),
 }

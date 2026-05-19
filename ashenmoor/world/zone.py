@@ -93,6 +93,12 @@ def apply_vnums(rooms: dict, zone_number: int) -> dict:
 
         for ex in room.exits:
             if not ex.get("external", False):
+                if "roomId" not in ex:
+                    direction = ex.get("direction", "?")
+                    raise KeyError(
+                        f"Zone {zone_number}, room {local_num}: exit '{direction}' "
+                        f"is missing 'roomId' (check for typos like 'roomid')"
+                    )
                 ex["roomId"] = base + ex["roomId"]
 
         new_dict[abs_vnum] = room

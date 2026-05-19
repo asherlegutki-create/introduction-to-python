@@ -59,12 +59,12 @@ ROOMS: dict[int, Room] = {
             ],
             "objects": [
                 O.spawn("The Horn"),
-                O.spawn("Israelite Tunic")
+                O.spawn("Tunic")
             ],
             "mobs": [  
                 M.spawn("Joshua") ,
                 M.spawn("Israelite"),
-                M.spawn("Trumpet PLayer")
+                M.spawn("Trumpet Player")
             ],  # two independent students
         }
     ),

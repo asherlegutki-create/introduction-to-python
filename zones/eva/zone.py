@@ -1,3 +1,7 @@
 number = 6
-name=""
-author=""
+name="The Plains"
+author="Eva"
+
+
+## HOW TO START GAME
+## python main.py

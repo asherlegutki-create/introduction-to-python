@@ -28,7 +28,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     },
-    "fanciful_bard": {
+    "fanciful_Bard": {
         "name": "Marloe the Bard",
         "key_words": ("Bard", "Marloe", "Siren"),
         "room_description": "A bard sits here, plucking at her &ylyre&N and wearing a mildly board expression",
