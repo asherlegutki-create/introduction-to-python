@@ -14,31 +14,29 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "green_marker": {
+    "whiteboard_marker": {
         "spawn_as":         Object,
-        "name":             "a &ggreen expo marker&N",
+        "name":             "a &gexpo marker&N",
         "key_words":        ("green", "expo", "marker"),
-        "room_description": "a {g&wgreen expo marker&N has been carelessly discarded here.",
-        "description":      "A forest green low-scent dry-erase marker, about half used.",
+        "room_description": "an &gexpo marker&N sits here&N.",
+        "description":      "A &gforest green&N low-scent dry-erase marker, about half used.",
     },
 
-    "silken_sack": {
+    "pencil": {
         "spawn_as":         Item,
-        "name":             "a &+rtattered &+csilken sack&N",
-        "key_words":        ("tattered", "silken", "sack"),
-        "room_description": "A &+rtattered &+csilken sack&N lies here, discarded.",
-        "description":      "This sack seems to be in an awful condition.",
-        "weight":           2,
+        "name":             "a &Ypencil&N",
+        "key_words":        ("pencil", "yellow"),
+        "room_description": "A &Yyellow pencil&N lies here.",
+        "description":      "the &Ypencil&N seems lightly used and decently sharp.",
+        "weight":           1,
     },
-    "windsong" : {
+    "Mrs.Allisons_syth" : {
         "spawn_as":         Weapon,
-        'name': "&+ga &wg&Wl&wi&Wtt&wer&Wi&wng &N&+gelven scimitar&N",
-        'key_words': ('scimitar', 'elven', 'glittering'),
-        'room_description': "&+gA glittering elven scimitar is lying on the ground here.&N",
-        'description': """&+gIts blade encrusted with diamond dust, this magically light
-&+gelven blade glitters in the sunlight and seems to hum softly
-&+gwhen wielded in battle.&N""",
-        "weight":           3,
+        'name': "an old &ysyth&N",
+        'key_words': ('old', 'syth'),
+        'room_description': "an &yold syth&N sits propped up against the wall.&N",
+        'description': """the blades are &yrusted&N and it seems to belong at least a century before your time""",
+        "weight":           4,
         "dice":             "2d8",
         "hitroll":          2,
         "damroll":          4,

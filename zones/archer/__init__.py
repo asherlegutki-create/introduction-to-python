@@ -5,7 +5,7 @@ from .mobs    import TEMPLATES as MOB_TEMPLATES
 from .rooms   import ROOMS
 
 ZONE = Zone(
-    name             = ZONE_NAME,
+    name             = ZONE_NAME if ZONE_NAME else "&xW&yo&xod&yl&xa&yn&xd&N Manor",
     rooms            = apply_vnums(ROOMS, ZONE_NUMBER),
     object_templates = OBJECT_TEMPLATES,
     mob_templates    = MOB_TEMPLATES,

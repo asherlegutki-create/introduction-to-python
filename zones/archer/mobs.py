@@ -12,26 +12,10 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "wandering_student": {
-        "name": "a wandering student",
-        "key_words": ("student", "wandering"),
-        "room_description": "&wA wandering student meanders about aimlessly.&N",
-        "description": (
-            "A student with a faraway look, clearly lost in thought.\n"
-            "Or possibly just lost."
-        ),
-        "race": "Human",
-        "class": "Student",
-        "level": 1,
-        "stats": [60, 65, 60, 80, 70, 75],
-        "aggro": False,
-        "wander": True,
-    
-    
-    "Illrigger Mage": {
+    "&MIllrigger Mage&N": {
         "name": "Illrigger",
         "key_words": ("Illrigger"),
-        "room_description": "&GIllriggers &Wwander these parts, searching for any intruders.&N",
+        "room_description": "&MIllriggers &Wwander these parts, searching for any intruders.&N",
         "description": (
             "&MIllrigger Mage, &Wit is clearly mastering the arts of &xDark Magic&N."
         ),
@@ -42,23 +26,24 @@ TEMPLATES: dict[str, dict] = {
         "aggro": True,
         "wander": True,
 
-    "Illrigger": {
-        "name": "Illrigger",
-        "key_words": ("Illrigger"),
-        "room_description": "&GIllriggers &Wwander these parts, searching for any intruders.&N",
+    },
+        
+        "&RIllrigger Rogue&N": {
+        "name": "Illrigger Rogue" ,
+        "key_words": ("Illrigger", "Rogue"),
+        "room_description": "&RIllriggers &Wwander these parts, searching for any intruders.&N",
         "description": (
-            "&wIllrigger Guard, &Wit is clearly trying to guard the Woodland Manor"
+            "&xIllrigger Rogue, &Wit's trying to guard the chest room&N",
         ),
         "race": "Illrigger",
         "class": "Rogue",
-        "level": 23,
-        "stats": [45, 62, 53, 72, 38, 10],
+        "level": 24,
+        "stats": [55, 79, 53, 62, 85, 10],
         "aggro": True,
         "wander": True,
-        }
+
+        },
     }
-}
-}
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)

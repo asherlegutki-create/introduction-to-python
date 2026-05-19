@@ -27,7 +27,6 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     },
-
     "Adam": {
         "name": "Adam",
         "key_words": ("Adam"),
@@ -52,7 +51,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
     },
-     "Slippery Serpant": {
+    "Slippery Serpant": {
         "name": "Slipery Serpent",
         "key_words": ("Slippery","Serpant"),
         "room_description": "The Serpant is resting on the end of the tree branch Tricking the woman.",
@@ -64,7 +63,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
     }, 
-     "Joshua": {
+    "Joshua": {
         "name": "Joshua",
         "key_words": ("Joshua"),
         "room_description": "Joshua is kneeling here praying to God.",
@@ -87,8 +86,8 @@ TEMPLATES: dict[str, dict] = {
         "stats": [70, 60, 70, 64, 70, 100],
         "aggro": False,
         "wander": False,
-},
- "Trumpet Player": { 
+    },
+    "Trumpet Player": { 
         "name": "Bob",
         "key_words": ("Bob","Trumpet","Player"),
         "room_description": "The Trumpet in his hand Bob stands here ready to play his trumpet for God.",
@@ -99,6 +98,7 @@ TEMPLATES: dict[str, dict] = {
         "stats": [80, 90, 80, 44, 60, 5],
         "aggro": False,
         "wander": False,
+    }
 }
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)

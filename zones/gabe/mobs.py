@@ -46,10 +46,10 @@ TEMPLATES: dict[str, dict] = {
      "the cheez sniffer": {
         "name": "the &yc&Yh&N&ye&Ye&N&ys&Ye&N sniffer",
         "key_words": ("cheese", "sniffer"),
-        "room_description": "&Wthe&N &yc&Yh&N&ye&N&ys&Ye&N &bsniffer &Wsniffs around here&N",
+        "room_description": "&Wthe&N &yc&Yh&N&ye&Ye&N&ys&Ye&N &bsniffer &Wsniffs around here&N",
         "description": (
             "a cheese sniffer sniffing around "
-            "most likely sniffing about &msleep..."
+            "most likely sniffing around for   crumbs to eat"
         ),
         "race": "cheese",
         "class": "sniffr guy",
@@ -61,10 +61,10 @@ TEMPLATES: dict[str, dict] = {
     "the cheese spirit": {
         "name": "the cheese spirit",
         "key_words": ("cheese", "spirit"),
-        "room_description": "&Wthe&N &yc&Yh&N&ye&N&ys&Ye&N &bspirit &Rhaunts&N &Wthis place&N",
+        "room_description": "&Wthe&N &yc&Yh&N&ye&Ye&N&ys&Ye&N &bspirit &Rhaunts&N &Wthis place&N",
         "description": (
             "a cheese spirit haunting this place "
-            "most likely haunting cheese monsters &msleep..."
+            "most likely &Rhaunting&N  The &YC&N&yh&Y&Ne&ye&Ys&N&ye&N monsters &msleep..."
         ),
         "race": "cheese",
         "class": "spirit guy",
@@ -72,7 +72,23 @@ TEMPLATES: dict[str, dict] = {
         "stats": [80, 80, 80, 80, 80, 80],
         "aggro": False,
         "wander": False,
-        }, 
+        },
+    "the cheesy bird": {
+        "name": "the &Yc&N&yh&Ye&N&ye&Ys&N&yy&Y&N &Bbird",
+        "key_words": ("cheesy", "bird"),
+        "room_description": "&Wthe&N &Yc&N&yh&Ye&N&ye&Ys&N&yy&Y&N &Bbird &Wchirps here&N",
+        "description": (
+            "a cheesy bird chirping around "
+            "seems like hes chirping around for fun but who knows maybe hes looking for cheese crumbs to eat"
+        ),
+        "race": "cheese",
+        "class": "bird guy",
+        "level": "7",
+        "stats": [10, 10, 10, 10, 10, 10],
+        "aggro": False,
+        "wander": True,
+        },
+        
 
 }
 

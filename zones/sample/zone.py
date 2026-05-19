@@ -1,3 +1,3 @@
-number = myNumber
-name=""
-author=""
+number = 0
+name = ""
+author = ""

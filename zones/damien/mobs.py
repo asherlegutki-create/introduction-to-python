@@ -26,19 +26,30 @@ TEMPLATES: dict[str, dict] = {
     },
         "void_dragon": {
         "name": "Inanis the Void Dragon",
-        "key_words": ("inanis"),
-        "room_description": "A large &Mdragon&N stands here looking around &Ragitated&N.",
-        "description": (
-            "This large purple and black dragon seems to have a shroud of darkness around it. Its eyes appear to be pits of blackness"
-        ),
+        "key_words": ("inanis", "void", "dragon"),
+        "room_description": "&mInanis&N the &XVoid&N &mDragon&N stands here looking &Ragitated&N.",
+        "description": ("This large purple and black dragon seems to have a shroud of darkness around it. Its eyes appear to be pits of blackness"),
         "race": "Dragon",
         "class": "Watcher",
         "level": 50,
         "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
         "wander": False,
-    }
+    },
+        "dark_mage": {
+            "name": "a dark mage",
+            "key_words": ("dark", "mage"),
+            "room_description": "A &bdark mage&N cloaked in &xblack&M stands here at attention. It looks angry, so you look away as to not anger it further.",
+            "description": ("This powerful looking being is a henchman of the &rGreat Darkness&N."),
+            "race": "Fallen Elf",
+            "class": "Mage",
+            "level": 30,
+            "stats": [90, 90, 90, 90, 90, 90],
+            "aggro": False,
+            "wander": False,
+        }
 }
+
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)

@@ -61,14 +61,14 @@ TEMPLATES: dict[str, dict] = {
         "race": "Human",
         "class": "none",
         "level": 1,
-        "stats": [5, 10, 60, 10, 10, 10],
+        "stats": [5, 10, 80, 10, 10, 10],
         "aggro": False,
         "wander": True,
     },
-     "Pale Seer": {
-        "name": "The Pale Seer",
-        "key_words": ("Pale", "Seer"),
-        "room_description": "&WThe Pale Seer seems to be in prayer.&N",
+     "Pale Shaman": {
+        "name": "The Pale Shaman",
+        "key_words": ("Pale", "Shaman"),
+        "room_description": "&WThe Pale Shaman seems to be in prayer.&N",
         "description": (
             "A pale bald grey cloaked woman .\n"
         ),

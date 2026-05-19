@@ -36,4 +36,29 @@ ROOMS: dict[int, Room] = {
             "mobs": [M.spawn("Green Nessie")],  # two independent students
         }
     ),
+    2: Room(
+        {
+            "number": 14,
+            "name": "Travelers Tavern",
+            "description": "&WA &rsmall &Wbuilding that says '&CT&Gr&Ya&Rv&Be&rl&ge&Wr&ws &CTavern'&N &Wright on the top\nIt seems old",
+            "indoors": True,
+            "terrain": "wood",
+            "exits": [
+                {"direction": "north", "roomId": 2},
+                {"direction": "south", "roomId": 3},
+                {"direction": "east", "roomId": 1},
+                {"direction": "west", "roomId": 2},
+                {"direction": "up", "roomId": 3},
+                {"direction": "down", "roomId": 2},
+            ],
+            "objects": [
+                O.spawn("Glass"),
+                O.spawn("Glass"),
+                O.spawn("Glass"),
+                O.spawn("Glass"),
+                O.spawn("Glass"),
+            ],
+            "mobs": [M.spawn("Alisa Macailnov")],  # two independent students
+        }
+    ),
 }
