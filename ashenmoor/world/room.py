@@ -43,7 +43,8 @@ class Room:
     def __init__(self, d):
         self.number      = d["number"]
         self.name        = d["name"]
-        self.description = d["description"]
+        desc = d.get("description", "")
+        self.description:      str   = "\n".join(desc) if isinstance(desc, (tuple, list)) else desc
         self.indoors     = d.get("indoors", False)
         self.terrain     = d.get("terrain", "plain")
         self.exits       = d.get("exits",   [])
