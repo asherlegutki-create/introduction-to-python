@@ -16,7 +16,8 @@ class Object:
         self.name:             str   = d.get("name",             "something")
         self.room_description: str   = d.get("room_description", "")
         self.key_words:        tuple = d.get("key_words",        ())
-        self.description:      str   = d.get("description",      "")
+        desc = d.get("description", "")
+        self.description:      str   = "\n".join(desc) if isinstance(desc, (tuple, list)) else desc
         self.take:             bool  = False
 
     def matches(self, keyword: str) -> bool:
