@@ -60,7 +60,7 @@ def main():
         }, races=RACES),
     }
 
-    locations = {"Moted": 99001, "Aleolas": 1}
+    locations = {"Moted": 99001, "Aleolas": 1+}
 
     state = GameState()
     state.load_world({}, characters, locations, player="Moted")
