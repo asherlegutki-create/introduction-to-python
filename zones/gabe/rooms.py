@@ -50,9 +50,9 @@ ROOMS: dict[int, Room] = {
             "indoors": False,
             "terrain": "no ground",
             "exits": [
-                {"direction": "north", "roomId": 1},
+                {"direction": "north", "roomId": 99003}, external
                 {"direction": "south", "roomId": 1},
-                {"direction": "east", "roomId": 2},
+                {"direction": "east", "roomId": 1},
                 {"direction": "west", "roomId": 3},
                 {"direction": "up", "roomId": 1},
                 {"direction": "down", "roomId": 1},

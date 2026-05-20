@@ -49,7 +49,7 @@ TEMPLATES: dict[str, dict] = {
         "room_description": "&Wthe&N &yc&Yh&N&ye&Ye&N&ys&Ye&N &bsniffer &Wsniffs around here&N",
         "description": (
             "a cheese sniffer sniffing around "
-            "most likely sniffing around for   crumbs to eat"
+            "most likely sniffing around for crumbs to eat"
         ),
         "race": "cheese",
         "class": "sniffr guy",
