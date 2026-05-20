@@ -45,9 +45,9 @@ TEMPLATES: dict[str, dict] = {
         "Alisa Macailnov": {
         "name": "Alisa Macailnov",
         "key_words": ("Alisa", "Macailnov"),
-        "room_description": "A woman that keeps &Rev&Ger&Cyt&Bhi&Yng &Cshiny&N",
+        "room_description": "Alisa keeps &Rev&Ger&Cyt&Bhi&Yng &Cshiny&N",
         "description": (
-            "Alisa cleans the counter and bartends simultaneously.\n"
+            "A woman that cleans and bartends simultaneously\n"
             "She talks to the customers swiftly; asking questions about them."
         ),
         "race": "human",

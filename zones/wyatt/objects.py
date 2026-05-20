@@ -39,8 +39,8 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as":         Item,
         "name":             "a &WGlass&N",
         "key_words":        ("Glass"),
-        "room_description": "&WA &wclear &Gglass",
-        "description":      "&W a &wclear &Gglass for &Cdrinking",
+        "room_description": "&W a &wclear &Gglass for &Cdrinking",
+        "description":      "&W a &wclear &Gglass",
         "weight":           .3,
     },
 
