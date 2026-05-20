@@ -79,21 +79,24 @@ class GameState:
         if verb in DIRECTIONS or verb == "go":
             return go(self.player, self.locations, self.rooms,
                       args[0] if verb == "go" and args else verb)
-        if verb in ("look","l"):            return self._cmd_look(args)
-        if verb in ("examine","ex","x"):    return self._cmd_examine(args)
-        if verb in ("get","take"):          return self._cmd_get(args)
-        if verb == "drop":                  return self._cmd_drop(args)
-        if verb in ("wear","wield","hold","equip","put"): return self._cmd_wear(args)
-        if verb in ("remove","rem","unequip"):            return self._cmd_remove(args)
-        if verb in ("inventory","inv","i"):               return self._cmd_inventory()
-        if verb in ("equipment","eq"):                    return self._cmd_equipment()
+
+        if verb in ("look","l"):              return self._cmd_look(args)
+        if verb in ("examine","ex","x"):      return self._cmd_examine(args)
+        if verb in ("get","take"):            return self._cmd_get(args)
+        if verb == "drop":                    return self._cmd_drop(args)
+        if verb == "put":                     return self._cmd_put(args)
+        if verb == "open":                    return self._cmd_open(args)
+        if verb == "close":                   return self._cmd_close(args)
+        if verb in ("wear","wield","hold","equip","put_on"): return self._cmd_wear(args)
+        if verb in ("remove","rem","unequip"):              return self._cmd_remove(args)
+        if verb in ("inventory","inv","i"):                 return self._cmd_inventory()
+        if verb in ("equipment","eq"):                      return self._cmd_equipment()
         if verb in ("powers","spells","skills","abilities"): return self._cmd_powers()
-        if verb == "who":                   return self._who()
+        if verb == "who":                     return self._who()
         if verb in ("score","stats","stat"):
             char = self.characters.get(self.player)
             return char.character_sheet() if char else "&RNo character found.&N"
 
-        # 3. Unknown
         return "&NPardon?"
 
     # ── Powers ────────────────────────────────────────────────────────────────
@@ -127,20 +130,57 @@ class GameState:
             lines.append(f"{p.get('name','?'):<20} &c{', '.join(p.get('keywords',()))}&N")
         return "\n".join(lines)
 
-    # ── get / drop ────────────────────────────────────────────────────────────
+    # ── get / drop / put ─────────────────────────────────────────────────────
 
     def _cmd_get(self, args):
+        """
+        get <item>                   — pick up from room
+        get <item> from <container>  — take from container (explicit)
+        get <item> <container>       — take from container (implicit: last word)
+        """
         if not args: return "&wGet what?&N"
+        char = self.characters.get(self.player)
         room = self.current_room
         if room is None: return "&RYou are nowhere.&N"
-        target_str = " ".join(args)
-        item = find_target(target_str, room, self.locations, self.characters)
+
+        # Resolve item_str / cont_str
+        if "from" in args:
+            sep      = args.index("from")
+            item_str = " ".join(args[:sep])
+            cont_str = " ".join(args[sep+1:])
+        elif len(args) >= 2 and _find_container(args[-1], char, room) is not None:
+            # last word matches a container — implicit "from"
+            item_str = " ".join(args[:-1])
+            cont_str = args[-1]
+        else:
+            item_str = None
+            cont_str = None
+
+        # ── container mode ────────────────────────────────────────────────────
+        if item_str is not None:
+            from ..world.objects import Container as ContClass
+            container = _find_container(cont_str, char, room)
+            if container is None:
+                return f"&wYou don't see any container called '&W{cont_str}&w'.&N"
+            if not isinstance(container, ContClass):
+                return f"&w{container.name}&w is not a container.&N"
+            if not container.is_open:
+                return f"&wThe &N{container.name}&w is closed.&N"
+            item = _find_in_container(item_str, container)
+            if item is None:
+                return f"&wYou don't see '&W{item_str}&w' in &N{container.name}&w.&N"
+            container.contents.remove(item)
+            char.inventory.append(item)
+            return f"&wYou take &N{item.name}&w from &N{container.name}&w.&N"
+
+        # ── room pickup ───────────────────────────────────────────────────────
+        item = find_target(" ".join(args), room, self.locations, self.characters)
         if item is None:
-            return f"&wYou don't see any '&W{target_str}&w' here.&N"
+            return f"&wYou don't see any '&W{' '.join(args)}&w' here.&N"
         if not getattr(item, "take", False):
             return "&wYou can't pick that up.&N"
         room.objects.remove(item)
-        self.characters[self.player].inventory.append(item)
+        char.inventory.append(item)
         return f"&wYou pick up &N{item.name}&w.&N"
 
     def _cmd_drop(self, args):
@@ -155,6 +195,118 @@ class GameState:
         char.inventory.remove(item)
         room.objects.append(item)
         return f"&wYou drop &N{item.name}&w.&N"
+
+    def _cmd_put(self, args):
+        """
+        put <item> in <container>  — explicit
+        put <item> <container>     — implicit: last word is container
+        """
+        if not args: return "&wPut what?&N"
+        char = self.characters.get(self.player)
+        if not char: return "&RNo character found.&N"
+        room = self.current_room
+
+        if len(args) < 2:
+            return "&wUsage: &Wput <item> <container>&N"
+
+        if "in" in args:
+            sep      = args.index("in")
+            item_str = " ".join(args[:sep])
+            cont_str = " ".join(args[sep+1:])
+        else:
+            # implicit: everything but the last word is the item
+            item_str = " ".join(args[:-1])
+            cont_str = args[-1]
+
+        item = _find_in_inventory(item_str, char)
+        if item is None:
+            return f"&wYou're not carrying '&W{item_str}&w'.&N"
+
+        container = _find_container(cont_str, char, room)
+        if container is None:
+            return f"&wYou don't see any container called '&W{cont_str}&w'.&N"
+
+        from ..world.objects import Container
+        if not isinstance(container, Container):
+            return f"&w{container.name}&w is not a container.&N"
+        if container is item:
+            return "&wYou can't put something inside itself.&N"
+        if not container.is_open:
+            return f"&wThe &N{container.name}&w is closed.&N"
+        if not container.can_fit(item):
+            return (f"&w{container.name}&w is too full — "
+                    f"only &W{container.available_capacity:.1f}&w lbs remaining.&N")
+
+        char.inventory.remove(item)
+        container.contents.append(item)
+        return f"&wYou put &N{item.name}&w into &N{container.name}&w.&N"
+
+    # ── open / close ──────────────────────────────────────────────────────────
+
+    def _cmd_open(self, args):
+        if not args: return "&wOpen what?&N"
+        char = self.characters.get(self.player)
+        room = self.current_room
+
+        from ..world.objects import Container
+        target_str = " ".join(args)
+        container  = _find_container(target_str, char, room)
+
+        if container is None:
+            return f"&wYou don't see any '&W{target_str}&w' here.&N"
+        if not isinstance(container, Container):
+            return f"&w{container.name}&w is not something you can open.&N"
+        if container.is_open:
+            return f"&w{container.name}&w is already open.&N"
+
+        container.is_open = True
+        return f"&wYou open &N{container.name}&w.&N"
+
+    def _cmd_close(self, args):
+        if not args: return "&wClose what?&N"
+        char = self.characters.get(self.player)
+        room = self.current_room
+
+        from ..world.objects import Container
+        target_str = " ".join(args)
+        container  = _find_container(target_str, char, room)
+
+        if container is None:
+            return f"&wYou don't see any '&W{target_str}&w' here.&N"
+        if not isinstance(container, Container):
+            return f"&w{container.name}&w is not something you can close.&N"
+        if not container.is_open:
+            return f"&w{container.name}&w is already closed.&N"
+
+        container.is_open = False
+        return f"&wYou close &N{container.name}&w.&N"
+
+    # ── examine ───────────────────────────────────────────────────────────────
+
+    def _cmd_examine(self, args):
+        """
+        examine <target>
+
+        Searches: room mobs/chars/objects, then player inventory.
+        Containers show description + capacity info + contents list.
+        """
+        if not args: return "&wExamine what?&N"
+
+        char       = self.characters.get(self.player)
+        room       = self.current_room
+        target_str = " ".join(args)
+
+        # search room first
+        instance = find_target(target_str, room, self.locations, self.characters) if room else None
+
+        # then player inventory
+        if instance is None and char:
+            instance = _find_in_inventory(target_str, char)
+
+        if instance is None:
+            return f"&wYou don't see any '&W{target_str}&w' here.&N"
+
+        return self._describe(instance, detailed=True)
 
     # ── wear / remove ─────────────────────────────────────────────────────────
 
@@ -175,33 +327,26 @@ class GameState:
             DUAL_SLOTS, WEAR_ON_ALIAS, SLOTS, is_blocking_secondary, actual_slot
         )
 
-        slot   = actual_slot(wear_on)          # resolve alias → real slot
-        two_h  = is_blocking_secondary(item)   # does this need both hands?
-        msgs   = []
-
+        slot  = actual_slot(wear_on)
+        two_h = is_blocking_secondary(item)
+        msgs  = []
         char.inventory.remove(item)
 
-        # ── Two-handed: goes to primary_hand, clears secondary ────────────────
         if two_h:
-            if "secondary_hand" in char.equipment:
-                old = char.equipment.pop("secondary_hand")
-                char.inventory.append(old)
-                msgs.append(f"&wYou must free your secondary hand — &N{old.name}&w goes to inventory.&N")
-            if "primary_hand" in char.equipment:
-                old = char.equipment.pop("primary_hand")
-                char.inventory.append(old)
-                msgs.append(f"&wYou remove &N{old.name}&w.&N")
+            for s in ("secondary_hand", "primary_hand"):
+                if s in char.equipment:
+                    old = char.equipment.pop(s)
+                    char.inventory.append(old)
+                    msgs.append(f"&wYou must free your secondary hand — &N{old.name}&w goes to inventory.&N")
             char.equipment["primary_hand"] = item
-            label = SLOTS.get("primary_hand", "primary hand")
             msgs.append(f"&wYou wield &N{item.name}&w with both hands.&N")
 
-        # ── Secondary hand: check primary isn't two-handed ────────────────────
         elif slot == "secondary_hand":
             primary = char.equipment.get("primary_hand")
             if primary and is_blocking_secondary(primary):
-                char.inventory.append(item)   # give it back
+                char.inventory.append(item)
                 return (f"&wYour primary hand is occupied with the two-handed "
-                        f"&N{primary.name}&w — you need both hands for that.&N")
+                        f"&N{primary.name}&w.&N")
             if "secondary_hand" in char.equipment:
                 old = char.equipment.pop("secondary_hand")
                 char.inventory.append(old)
@@ -210,7 +355,6 @@ class GameState:
             verb = "block with" if wear_on == "shield" else "hold in your off hand"
             msgs.append(f"&wYou {verb} &N{item.name}&w.&N")
 
-        # ── Dual slot (earring / neck / wrist / finger) ───────────────────────
         elif slot in DUAL_SLOTS:
             current = char.equipment.get(slot, [])
             if not isinstance(current, list): current = [current]
@@ -220,10 +364,8 @@ class GameState:
                 msgs.append(f"&wYou remove &N{bumped.name}&w to make room.&N")
             current.append(item)
             char.equipment[slot] = current
-            label = SLOTS.get(slot, slot).lower()
-            msgs.append(f"&wYou wear &N{item.name}&w on your {label}.&N")
+            msgs.append(f"&wYou wear &N{item.name}&w on your {SLOTS.get(slot,slot).lower()}.&N")
 
-        # ── Single slot ───────────────────────────────────────────────────────
         else:
             if slot in char.equipment:
                 old = char.equipment.pop(slot)
@@ -239,11 +381,9 @@ class GameState:
         if not args: return "&wRemove what?&N"
         char = self.characters.get(self.player)
         if not char: return "&RNo character found.&N"
-
         item, slot = _find_in_equipment(" ".join(args), char)
         if item is None:
             return f"&wYou're not wearing '&W{' '.join(args)}&w'.&N"
-
         from ..world.equipment import DUAL_SLOTS
         if slot in DUAL_SLOTS:
             lst = char.equipment[slot]
@@ -251,11 +391,10 @@ class GameState:
             if not lst: del char.equipment[slot]
         else:
             del char.equipment[slot]
-
         char.inventory.append(item)
         return f"&wYou remove &N{item.name}&w.&N"
 
-    # ── inventory / equipment display ─────────────────────────────────────────
+    # ── inventory / equipment ─────────────────────────────────────────────────
 
     def _cmd_inventory(self):
         char = self.characters.get(self.player)
@@ -269,38 +408,28 @@ class GameState:
     def _cmd_equipment(self):
         char = self.characters.get(self.player)
         if not char: return "&RNo character found.&N"
-
         from ..world.equipment import SLOTS, DUAL_SLOTS, is_blocking_secondary
-
-        primary = char.equipment.get("primary_hand")
-        secondary_blocked = primary and is_blocking_secondary(primary)
-
-        lines = ["&+WYou are wearing:&N"]
+        primary  = char.equipment.get("primary_hand")
+        sec_blocked = primary and is_blocking_secondary(primary)
+        lines    = ["&+WYou are wearing:&N"]
         anything = False
-
         for slot, label in SLOTS.items():
             equipped = char.equipment.get(slot)
-
-            if slot == "secondary_hand" and secondary_blocked and not equipped:
+            if slot == "secondary_hand" and sec_blocked and not equipped:
                 lines.append(f"  &w{label:<16}&N &x(both hands in use)&N")
                 anything = True
                 continue
-
             if not equipped: continue
             anything = True
-
             if slot in DUAL_SLOTS:
-                items = equipped if isinstance(equipped, list) else [equipped]
-                for it in items:
+                for it in (equipped if isinstance(equipped, list) else [equipped]):
                     lines.append(f"  &w{label:<16}&N {it.name}")
             else:
                 lines.append(f"  &w{label:<16}&N {equipped.name}")
-
-        if not anything:
-            return "&wYou are wearing nothing.&N"
+        if not anything: return "&wYou are wearing nothing.&N"
         return "\n".join(lines)
 
-    # ── look / examine ────────────────────────────────────────────────────────
+    # ── look ─────────────────────────────────────────────────────────────────
 
     _ALL_DIRS = frozenset({
         "north","south","east","west","up","down",
@@ -324,27 +453,26 @@ class GameState:
             return f"&wYou don't see any '&W{target_str}&w' here.&N"
         return self._describe(instance)
 
-    def _cmd_examine(self, args):
-        if not args: return "&wExamine what?&N"
-        room = self.current_room
-        if room is None: return "&RYou are nowhere.&N"
-        target_str = " ".join(args)
-        instance = find_target(target_str, room, self.locations, self.characters)
-        if instance is None:
-            return f"&wYou don't see any '&W{target_str}&w' here.&N"
-        return self._describe(instance)
+    # ── describe ──────────────────────────────────────────────────────────────
 
-    def _describe(self, instance):
+    def _describe(self, instance, detailed=False) -> str:
+        from ..world.objects import Container, Object
         from ..world.mob import Mob
         from ..core.character import Character
-        from ..world.objects import Object
+
+        if isinstance(instance, Container):
+            return _describe_container(instance)
+
         if isinstance(instance, Mob):
             return instance.description or f"You see nothing special about {instance.name}."
+
         if isinstance(instance, Character):
             return instance.character_sheet()
+
         if isinstance(instance, Object):
             desc = getattr(instance, "description", "")
             return desc if desc else f"You see nothing special about {target_name(instance)}."
+
         return str(instance)
 
     def _who(self):
@@ -358,7 +486,74 @@ class GameState:
     def character_list(self): return self._who()
 
 
-# ── Inventory / equipment search helpers ──────────────────────────────────────
+# ── Container description ─────────────────────────────────────────────────────
+
+def _describe_container(c) -> str:
+    """Full examine output for a Container."""
+    lines = []
+
+    # Description
+    if c.description:
+        lines.append(c.description)
+
+    # Capacity line
+    avail    = c.available_capacity
+    avail_wl = c.available_weightless
+    lines.append(
+        f"&wCapacity:&N  &W{avail:.1f}&w lbs remaining  "
+        f"(&W{avail_wl:.1f}&w lbs weightless remaining)&N"
+    )
+
+    # State
+    state = "&gopen&N" if c.is_open else "&rclosed&N"
+    lines.append(f"&wState:&N     {state}")
+
+    # Contents
+    if not c.is_open:
+        lines.append("&wThe container is closed — you cannot see inside.&N")
+    elif not c.contents:
+        lines.append("&wIt is empty.&N")
+    else:
+        lines.append("&wContents:&N")
+        for item in c.contents:
+            weight = getattr(item, "weight", 0)
+            lines.append(f"  {item.name}  &w({weight} lbs)&N")
+
+    return "\n".join(lines)
+
+
+# ── Search helpers ────────────────────────────────────────────────────────────
+
+def _find_container(target_str: str, char, room) -> object | None:
+    """
+    Find a container by keyword.  Searches:
+      1. Room objects (so chests/vaults in rooms work without picking them up)
+      2. Player inventory
+    """
+    _, keyword = parse_target(target_str)
+
+    if room is not None:
+        for obj in room.objects:
+            if _item_matches(obj, keyword):
+                return obj
+
+    if char is not None:
+        for item in char.inventory:
+            if _item_matches(item, keyword):
+                return item
+
+    return None
+
+
+def _find_in_container(target_str: str, container) -> object | None:
+    idx, keyword = parse_target(target_str)
+    matches = 0
+    for item in container.contents:
+        if _item_matches(item, keyword):
+            matches += 1
+            if matches == idx: return item
+    return None
+
 
 def _find_in_inventory(target_str: str, char) -> object | None:
     idx, keyword = parse_target(target_str)
@@ -375,8 +570,7 @@ def _find_in_equipment(target_str: str, char) -> tuple:
     _, keyword = parse_target(target_str)
     for slot, equipped in char.equipment.items():
         if slot in DUAL_SLOTS:
-            items = equipped if isinstance(equipped, list) else [equipped]
-            for item in items:
+            for item in (equipped if isinstance(equipped, list) else [equipped]):
                 if _item_matches(item, keyword): return item, slot
         else:
             if _item_matches(equipped, keyword): return equipped, slot
