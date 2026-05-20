@@ -8,7 +8,7 @@ from . import mobs    as M
 
 ROOMS: dict[int, Room] = {
     123: Room({
-        "number": 1,
+        "number": 123,
         "name": "Room_template",
         "description": "its a room!",
         "indoors": True,
@@ -24,7 +24,7 @@ ROOMS: dict[int, Room] = {
         "mobs": [M.spawn("mob_template")],
     }),
     1: Room({
-        "number": 2,
+        "number": 1,
         "name": "The Withered-Rose Tavern",
         "description": "An average &yroadside tavern&N, it sits at the edge of a &gconiferous forest&N.\nThe interior is warmed by a large &rfireplace&N on the left wall and the scents of &mvarious&N &Yalcohols&N waft about the room.&N",
         "indoors": True,
