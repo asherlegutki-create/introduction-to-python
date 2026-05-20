@@ -28,7 +28,7 @@ TEMPLATES: dict[str, dict] = {
         "name": "Inanis the Void Dragon",
         "key_words": ("inanis", "void", "dragon"),
         "room_description": "&mInanis&N the &XVoid&N &mDragon&N stands here looking &Ragitated&N.",
-        "description": ("This large purple and black dragon seems to have a shroud of darkness around it. Its eyes appear to be pits of blackness"),
+        "description": ("This large &Mpurple and black dragon seems to have a shroud of &Xdarkness around it. Its eyes appear to be pits of &Xblackness"),
         "race": "Dragon",
         "class": "Watcher",
         "level": 50,
@@ -39,7 +39,7 @@ TEMPLATES: dict[str, dict] = {
         "dark_mage": {
             "name": "a dark mage",
             "key_words": ("dark", "mage"),
-            "room_description": "A &bdark mage&N cloaked in &xblack&M&N stands here at attention. It looks angry, so you look away as to not anger it further.",
+            "room_description": "A &bdark mage&N cloaked in &Xblack&N stands here at attention. It looks angry, so you look away as to not anger it further.",
             "description": ("This powerful looking being is a henchman of the &rGreat Darkness&N."),
             "race": "Fallen Elf",
             "class": "Mage",
