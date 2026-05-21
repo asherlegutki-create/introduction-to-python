@@ -13,10 +13,8 @@ ROOMS: dict[int, Room] = {
             {"direction": "west", "roomId": 8},
         ],
         "objects": [
-            O.spawn(""),
-            O.spawn(""),
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
     2: Room({
         "number": 2,
@@ -28,9 +26,9 @@ ROOMS: dict[int, Room] = {
             {"direction": "west", "roomId": 9},
         ],
         "objects": [
-            O.spawn(""),
+            
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
     3: Room({
         "number": 3,
@@ -42,9 +40,9 @@ ROOMS: dict[int, Room] = {
             {"direction": "north", "roomId": 10},
         ],
         "objects": [
-            O.spawn(""),
+            
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
     4: Room({
         "number": 4,
@@ -56,9 +54,9 @@ ROOMS: dict[int, Room] = {
             {"direction": "west", "roomId": 11},
         ],
         "objects": [
-            O.spawn(""),
+            
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
     5: Room({
         "number": 5,
@@ -70,9 +68,9 @@ ROOMS: dict[int, Room] = {
             {"direction": "east", "roomId": 8},
         ],
         "objects": [
-            O.spawn(""),
+            
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
     6: Room({
         "number": 6,
@@ -84,9 +82,9 @@ ROOMS: dict[int, Room] = {
             {"direction": "east", "roomId": 9},
         ],
         "objects": [
-            O.spawn(""),
+            
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
     7: Room({
         "number": 7,
@@ -98,9 +96,9 @@ ROOMS: dict[int, Room] = {
             {"direction": "east", "roomId": 10},
         ],
         "objects": [
-            O.spawn(""),
+            
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
     8: Room({
         "number": 8,
@@ -115,9 +113,9 @@ ROOMS: dict[int, Room] = {
             {"direction": "north", "roomId": 99004},
         ],
         "objects": [
-            O.spawn(""),
+            
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
     9: Room({
         "number": 9,
@@ -132,9 +130,9 @@ ROOMS: dict[int, Room] = {
             {"direction": "north", "roomId": 8},
         ],
         "objects": [
-            O.spawn(""),
+            
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
     10: Room({
         "number": 10,
@@ -149,9 +147,9 @@ ROOMS: dict[int, Room] = {
             {"direction": "north", "roomId": 9},
         ],
         "objects": [
-            O.spawn(""),
+            
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
     11: Room({
         "number": 11,
@@ -164,9 +162,9 @@ ROOMS: dict[int, Room] = {
             {"direction": "north", "roomId": 10},
         ],
         "objects": [
-            O.spawn(""),
+            
         ],
-        "mobs": [M.spawn("")],
+        "mobs": [],
     }),
 
 }

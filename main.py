@@ -60,11 +60,7 @@ def main():
         }, races=RACES),
     }
 
-<<<<<<< HEAD
-    locations = {"Moted": 100001, "Aleolas": 1}
-=======
     locations = {"Moted": 99001, "Aleolas": 1}
->>>>>>> 83f238b6cc9690d50fbfaff206195dd35a42f939
 
     state = GameState()
     state.load_world({}, characters, locations, player="Moted")
