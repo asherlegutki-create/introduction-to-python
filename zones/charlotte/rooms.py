@@ -30,7 +30,7 @@ ROOMS: dict[int, Room] = {
             ],
             "objects": [
                 O.spawn("Banana"),
-                O.spawn("green Leaf"),
+                O.spawn("green leaf"),
                 O.spawn("The Fruit"),
             ],
             "mobs": [
@@ -74,23 +74,21 @@ ROOMS: dict[int, Room] = {
                 {"direction": "north", "roomId": 4},
             ],
             "objects": [
-                O.spawn("The Holy Grail"),
+                O.spawn("Holy Grail"),
                 O.spawn("Bread"),
                 O.spawn("Wine")
             ],
             "mobs": [  
-                M.spawn("Jesus") ,
-                M.spawn("Peter"),
-                M.spawn("Matthew"),
-                M.spawn("Judas"),
-                M.spawn("John 1"),
-                M.spawn("John 2"),
-                M.spawn("Andrew"),
-                M.spawn("James"),
-                M.spawn("Philip"),
-                M.spawn("Bartholomew"),
-                M.spawn(""),
-                M.spawn(""),
+#                M.spawn("Jesus") ,
+#                M.spawn("Peter"),
+#                M.spawn("Matthew"),
+#                M.spawn("Judas"),
+#                M.spawn("John 1"),
+#                M.spawn("John 2"),
+#                M.spawn("Andrew"),
+#                M.spawn("James"),
+#                M.spawn("Philip"),
+#                M.spawn("Bartholomew"),
             ],
         }
     ),

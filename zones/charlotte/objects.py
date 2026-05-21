@@ -70,7 +70,7 @@ TEMPLATES: dict[str, dict] = {
         "description": "The bread was broken and given to Judas. Judas than ran away to the temple to help the pharasees capture Jesus Christ./n The bread represents the body of Jesus. ",
     },
 
-     "Wine ": {
+     "Wine": {
         "spawn_as": Object,
         "name": "Wine",
         "key_words": ("Wine"),
