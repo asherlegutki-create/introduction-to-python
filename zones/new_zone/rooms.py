@@ -65,7 +65,7 @@ ROOMS: dict[int, Room] = {
         "terrain": "forest",
         "exits": [
             {"direction": "north", "roomId": 8001, "external": True},
-            {"direction": "west",  "roomId": 1, "external": True},
+            {"direction": "west",  "roomId": 1, "external": True}, # external value being True is directing to external room 1 (The Void) instead of local room 1 (The Beginning of the World!)
             {"direction": "east",  "roomId": 10001, "external": True},
             {"direction": "south", "roomId": 9001, "external": True},
             {"direction": "down", "roomId": 11001, "external": True},
