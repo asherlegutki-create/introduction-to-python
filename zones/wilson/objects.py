@@ -18,14 +18,14 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as":         Object,
         "name":             "a &WNuke&N &RShot&N",
         "key_words":        ("Nuke", "Shot",),
-        "room_description": "a {&WNuke&N &RShot&N has been carelessly discarded here.",
+        "room_description": "a &WN&N&Ru&N&Wk&N&Re&N &RS&N&Wh&N&Ro&N&Wt&N has been carelessly discarded here.",
         "description":      "A fishing rod that seems to be ready to pull.",
     }, 
      "Stab Shot": {
         "spawn_as":         Object,
         "name":             "a &RStab&N &WShot&N",
         "key_words":        ("Stab", "Shot"),
-        "room_description": "a {&RStab Shot&N has been carelessly discarded here.",
+        "room_description": "a &RStab Shot&N has been carelessly discarded here.",
         "description":      "Pull it and you go boom.",
     },   
     "green_marker": {

@@ -28,7 +28,7 @@ TEMPLATES: dict[str, dict] = {
         "wander": True
     },
     "fellow_student": {
-        "name": "aqquainted peer",
+        "name": "fellow student",
         "key_words": ("fellow", "student"),
         "room_description": "&wa friend of yours sits nearby.&N",
         "description": (

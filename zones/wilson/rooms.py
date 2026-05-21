@@ -15,9 +15,9 @@ from . import objects as O
 from . import mobs as M
 
 ROOMS: dict[int, Room] = {
-    13001: Room(
+    1: Room(
         {
-            "number": 13001,
+            "number": 1,
             "name": "&BThe Farlands&N",
             "description": "Lots of repeating glitched terrian.",
             "indoors": True,
