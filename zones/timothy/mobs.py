@@ -56,7 +56,7 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("Acursed", "Man"),
         "room_description": "&wAn Acursed Man stares blankly.&N",
         "description": (
-            "A starved man with an empty look in his eyes.\n"
+            "A thin man with an empty look in his eyes.\n"
         ),
         "race": "Human",
         "class": "none",
@@ -76,6 +76,34 @@ TEMPLATES: dict[str, dict] = {
         "class": "shaman",
         "level": 60,
         "stats": [30, 30, 60, 80, 70, 40],
+        "aggro": True,
+        "wander": False,
+    },
+     "Magnea": {
+        "name": "Magnea",
+        "key_words": ("Magnea"),
+        "room_description": "&rA Magnea &Xscuddles around.&N",
+        "description": (
+            "A large spider with rocks protruding from its back.\n"
+        ),
+        "race": "Monster spider",
+        "class": "mob",
+        "level": 40,
+        "stats": [80, 90, 80, 10, 10, 0],
+        "aggro": True,
+        "wander": True,
+    },
+     "Terramagnea The Earthen Arachnid": {
+        "name": "&rTerramagnea The Earthen Arachnid",
+        "key_words": ("Terramagnea"),
+        "room_description": "&rTerramagnea The Earthen Arachnid &Xwatches silently.&N",
+        "description": (
+            "A massive spider with jagged black rocks protruding from all angles.\n"
+        ),
+        "race": "Monster spider",
+        "class": "boss",
+        "level": 60,
+        "stats": [90, 90, 90, 10, 10, 0],
         "aggro": True,
         "wander": False,
     },
