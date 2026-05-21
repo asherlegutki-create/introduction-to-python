@@ -134,6 +134,15 @@ POWERS: dict[str, dict] = {
         "cost":     6,
     },
 
+    "Rockstab": {
+        "keywords": ("Rockstab", "Rock"),
+        "name":     "Rockstab",
+        "user_msg": "&GYou launch &xRock&N&WSpikes&N out of the &yground&N",
+        "room_msg": "&G{name} launches &xRock&N&WSpikes&N out of the &yground&N",
+        "target":   "none",
+        "cost":     10,
+    },
+
     # ── Shadow ────────────────────────────────────────────────────────────────
 
     "shadowstep": {

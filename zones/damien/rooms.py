@@ -27,6 +27,7 @@ ROOMS: dict[int, Room] = {
                 {"direction": "south", "roomId": 1},
                 {"direction": "east", "roomId": 1},
                 {"direction": "west", "roomId": 1},
+                {"direction": "down", "roomId": 99002, "external": True}
             ],
             "objects": [
                 O.spawn("sack_of_darkness"),
@@ -36,7 +37,7 @@ ROOMS: dict[int, Room] = {
                 M.spawn("void_dragon"),
                 M.spawn("shadow_gremlin"),
                 M.spawn("dark_mage"),
-            ],  # two independent students
+            ],
         }
     ),
 }

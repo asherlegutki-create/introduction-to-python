@@ -13,8 +13,8 @@ from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
     "George_Washington": {
-        "name": "George Washington",
-        "key_words": ("washington", "george"),
+        "name": "George_Washington",
+        "key_words": ("Washington", "George"),
         "room_description": "&wA He stands forever in the position he was in crossing the Deleware.&N",
         "description": (
             "A man lost in the past.\n"
@@ -25,6 +25,20 @@ TEMPLATES: dict[str, dict] = {
         "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
         "wander": False,
+    },
+        "Wemmbu": {
+        "name": "Wemmbu",
+        "key_words": ("&mWemmbu&N"),
+        "room_description": "He stands there holding &mGambit&N menacingly.",
+        "description": (
+            ".\n"
+        ),
+        "race": "Minecraft",
+        "class": "Protaginist",
+        "level": 1,
+        "stats": [100, 100, 100, 100, 100, 0],
+        "aggro": True,
+        "wander": True,
     }
 }
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")

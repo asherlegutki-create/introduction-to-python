@@ -44,12 +44,7 @@ ROOMS: dict[int, Room] = {
             "indoors": True,
             "terrain": "wood",
             "exits": [
-                {"direction": "north", "roomId": 2},
-                {"direction": "south", "roomId": 3},
-                {"direction": "east", "roomId": 1},
-                {"direction": "west", "roomId": 2},
-                {"direction": "up", "roomId": 3},
-                {"direction": "down", "roomId": 2},
+                {"direction": "north", "roomId": 99005},
             ],
             "objects": [
                 O.spawn("Glass"),

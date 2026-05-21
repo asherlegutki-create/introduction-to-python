@@ -24,7 +24,7 @@ TEMPLATES: dict[str, dict] = {
     },
     "Raptors claw" : {
         "spawn_as":         Weapon,
-        'name': "&+ga &ws&Wh&wa&Wrp&we&Ws&wt &N&+grusty karambit knife&N",
+        'name': "&Ga &Cs&Wh&Ca&Wrp&Ce&Ws&Ct &N&Rrusty&N karambit knife&N",
         'key_words': ('Raptors', 'Claw', 'knife'),
         'room_description': "&WA rusty&N &Ckarambit knife&N &Wthat is a&N &Rreddish&N color and &Gfolds.&N",
         'description': """&+gIts blade is made of a crystalline structure that has been carefully molded
@@ -39,8 +39,8 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as":         Item,
         "name":             "a &WGlass&N",
         "key_words":        ("Glass"),
-        "room_description": "&WA &wclear &Gglass",
-        "description":      "&W a &wclear &Gglass for &Cdrinking",
+        "room_description": "&W a &wclear &Gglass for &Cdrinking",
+        "description":      "&W a &wclear &Gglass",
         "weight":           .3,
     },
 

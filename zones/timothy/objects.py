@@ -47,7 +47,7 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as":         Object,
         "name":             "Brumplin husk",
         "key_words":        ("Brumplin", "husk"),
-        "room_description": "A ball of brambles",
+        "room_description": "A &gball of brambles&n sticking out of the mud",
         "description":      "A light ball of brambles",
     },
      "Acursed Elk Stake": {

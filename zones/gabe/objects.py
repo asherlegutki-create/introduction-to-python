@@ -47,6 +47,14 @@ TEMPLATES: dict[str, dict] = {
         "description":      "A sack made of cheese. It looks like it would be fun to carry things in, may also be fun to eat.",
         "weight":           3,
     },
+    "cheese bucket": {
+        "spawn_as":         Object,
+        "name":             "a cheese bucket",
+        "key_words":        ("cheese", "bucket"),
+        "room_description": "a &Ycheese bucket&N is sitting here, filled with something that looks like more guess what? &Yc&N&yh&Ye&N&ye&Ys&N&ye&Y&N       .",
+        "description":      "A bucket made of cheese. It looks like it would be fun to carry things in, may also be fun to eat.",
+        "weight":           4,
+    },
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")
