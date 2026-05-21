@@ -34,8 +34,8 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as": Object,
         "name": "&RT&N&Yh&N&Ge&N &CF&N&Rr&N&Yu&N&Gi&N&Ct&N",
         "key_words": ("Fruit"),
-        "room_description": "The Fruit is hanging from a branch on a tree.",
-        "description": "This is the Fruit that adam and eve ate. THis fruit caused the first sin.",
+        "room_description": "The &CF&N&Rr&N&Yu&N&Gi&N&Ct&N is hanging from a branch on a tree.",
+        "description": "This is the &CF&N&Rr&N&Yu&N&Gi&N&Ct&N that Adam and Eve ate. This &CF&N&Rr&N&Yu&N&Gi&N&Ct&N caused the first sin.",
     },
 
     "The Horn": {
