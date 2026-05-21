@@ -149,7 +149,6 @@ class GameState:
             item_str = " ".join(args[:sep])
             cont_str = " ".join(args[sep+1:])
         elif len(args) >= 2 and _find_container(args[-1], char, room) is not None:
-            # last word matches a container — implicit "from"
             item_str = " ".join(args[:-1])
             cont_str = args[-1]
         else:
@@ -214,7 +213,6 @@ class GameState:
             item_str = " ".join(args[:sep])
             cont_str = " ".join(args[sep+1:])
         else:
-            # implicit: everything but the last word is the item
             item_str = " ".join(args[:-1])
             cont_str = args[-1]
 
@@ -235,7 +233,7 @@ class GameState:
             return f"&wThe &N{container.name}&w is closed.&N"
         if not container.can_fit(item):
             return (f"&w{container.name}&w is too full — "
-                    f"only &W{container.available_capacity:.1f}&w lbs remaining.&N")
+                    f"only &W{int(container.available_capacity)}&w lbs remaining.&N")
 
         char.inventory.remove(item)
         container.contents.append(item)
@@ -296,10 +294,8 @@ class GameState:
         room       = self.current_room
         target_str = " ".join(args)
 
-        # search room first
         instance = find_target(target_str, room, self.locations, self.characters) if room else None
 
-        # then player inventory
         if instance is None and char:
             instance = _find_in_inventory(target_str, char)
 
@@ -440,18 +436,42 @@ class GameState:
     def _cmd_look(self, args):
         room = self.current_room
         if room is None: return "&RYou are nowhere.&N"
-        if not args: return room.render(self.locations, self.characters)
+
+        # bare look — render the room
+        if not args:
+            return room.render(self.locations, self.characters)
+
+        # look <direction>
         token = args[0].lower()
         if token in self._ALL_DIRS:
             direction = _expand_direction(token)
             dest, blocked, msg = room.peek(direction, self.rooms)
             if msg: return msg
             return dest.render(self.locations, self.characters)
+
+        # look in <container>  — show contents
+        if token == "in" and len(args) >= 2:
+            char       = self.characters.get(self.player)
+            target_str = " ".join(args[1:])
+            container  = _find_container(target_str, char, room)
+            if container is None:
+                return f"&wYou don't see any '&W{target_str}&w' here.&N"
+            from ..world.objects import Container
+            if not isinstance(container, Container):
+                return f"&w{container.name}&w is not a container.&N"
+            return _look_in_container(container)
+
+        # look <target>  — show description of the thing
         target_str = " ".join(args)
-        instance = find_target(target_str, room, self.locations, self.characters)
+        instance   = find_target(target_str, room, self.locations, self.characters)
+        if instance is None:
+            # also check inventory
+            char = self.characters.get(self.player)
+            if char:
+                instance = _find_in_inventory(target_str, char)
         if instance is None:
             return f"&wYou don't see any '&W{target_str}&w' here.&N"
-        return self._describe(instance)
+        return self._describe(instance, detailed=False)
 
     # ── describe ──────────────────────────────────────────────────────────────
 
@@ -461,7 +481,11 @@ class GameState:
         from ..core.character import Character
 
         if isinstance(instance, Container):
-            return _describe_container(instance)
+            if detailed:
+                return _examine_container(instance)
+            # look <container> — just the description
+            desc = getattr(instance, "description", "")
+            return desc if desc else f"You see nothing special about {target_name(instance)}."
 
         if isinstance(instance, Mob):
             return instance.description or f"You see nothing special about {instance.name}."
@@ -486,38 +510,42 @@ class GameState:
     def character_list(self): return self._who()
 
 
-# ── Container description ─────────────────────────────────────────────────────
+# ── Container helpers ─────────────────────────────────────────────────────────
 
-def _describe_container(c) -> str:
-    """Full examine output for a Container."""
+def _look_in_container(c) -> str:
+    """
+    'look in sack' — show what is inside the container.
+
+    Output:
+        You look in a tattered silken sack, it contains:
+          <item name>
+          <item name>
+        OR
+        A tattered silken sack is closed.
+    """
+    if not c.is_open:
+        return f"&N{c.name}&w is closed.&N"
+    if not c.contents:
+        return f"&wYou look in &N{c.name}&w, it is empty.&N"
+    lines = [f"&wYou look in &N{c.name}&w, it contains:&N"]
+    for item in c.contents:
+        lines.append(f"  {item.name}")
+    return "\n".join(lines)
+
+
+def _examine_container(c) -> str:
+    """
+    'examine sack' — description, capacity remaining, then the look-in view.
+    """
     lines = []
 
-    # Description
     if c.description:
         lines.append(c.description)
 
-    # Capacity line
-    avail    = c.available_capacity
-    avail_wl = c.available_weightless
-    lines.append(
-        f"&wCapacity:&N  &W{avail:.1f}&w lbs remaining  "
-        f"(&W{avail_wl:.1f}&w lbs weightless remaining)&N"
-    )
+    avail = int(c.available_capacity)
+    lines.append(f"&wIt can hold about &W{avail}&w more lbs.&N")
 
-    # State
-    state = "&gopen&N" if c.is_open else "&rclosed&N"
-    lines.append(f"&wState:&N     {state}")
-
-    # Contents
-    if not c.is_open:
-        lines.append("&wThe container is closed — you cannot see inside.&N")
-    elif not c.contents:
-        lines.append("&wIt is empty.&N")
-    else:
-        lines.append("&wContents:&N")
-        for item in c.contents:
-            weight = getattr(item, "weight", 0)
-            lines.append(f"  {item.name}  &w({weight} lbs)&N")
+    lines.append(_look_in_container(c))
 
     return "\n".join(lines)
 
@@ -527,7 +555,7 @@ def _describe_container(c) -> str:
 def _find_container(target_str: str, char, room) -> object | None:
     """
     Find a container by keyword.  Searches:
-      1. Room objects (so chests/vaults in rooms work without picking them up)
+      1. Room objects
       2. Player inventory
     """
     _, keyword = parse_target(target_str)
