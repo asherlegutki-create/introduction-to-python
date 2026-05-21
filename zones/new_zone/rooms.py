@@ -8,7 +8,7 @@ ROOMS: dict[int, Room] = {
         "name": "&CThe Beginning of the World!&N",
         "description": (
             "   A vast open area in the wood with paths leading to the &cNorth&N, &cEast&N, &cSouth&N, and &cWest&N.",
-            "As you look to the &cNorth&N you can't help but think of &RAsher&N, &GArcher&N, &CCharlotte&N and &mDamien&n.",
+            "As you look to the &cNorth&N you can't help but think of &GArcher&N, &RAsher&N, &CCharlotte&N and &mDamien&n.",
             "Looking down the path that leads to the &cWest&N your mind is filled with thoughts of &XDrew&N, &YEva&N, &cGabe&N",
             "and &rIsaac&N. Looking further to the &cEast&N you are overwhelmed with the impression of &MJordan&N, &BJoshua&N",
             "&CLindi&N and &gReese&N. Your thoughts drift to &yTimothy&N, &bWilson&N, and &WWyatt&N to the &cSouth&N."),
@@ -30,6 +30,8 @@ ROOMS: dict[int, Room] = {
         "number": 2,
         "name": "&MOne North&N",
         "description": (
+            "    A convergance of &Gw&No&Rr&Wl&Cd&N&ms&N spin around you, &Wt&Nh&Wr&Nu&Wm&nm&Wi&Nn&Wg&N with excited energy.",
+            "Your mind is filled with more thoughts and impressions of things to come. "
         ),
         "indoors": False,
         "terrain": "forest",

@@ -14,9 +14,9 @@ from ashenmoor.world.zone import make_spawner
 TEMPLATES: dict[str, dict] = {
     "shadow_gremlin": {
         "name": "a shadow gremlin",
-        "key_words": ("shadow", "gremlin"),
+        "key_words": ("shadow", "gremlin", "thing"),
         "room_description": "a small black thing scurries about",
-        "description": ("A small creature. It is almost completely black except for its tiny white eyes"),
+        "description": ("This small creature is called a &Xshadow gremlin&N. It is almost completely black except for its tiny white eyes"),
         "race": "Gremlin",
         "class": "",
         "level": 15,
@@ -28,7 +28,7 @@ TEMPLATES: dict[str, dict] = {
         "name": "Inanis the Void Dragon",
         "key_words": ("inanis", "void", "dragon"),
         "room_description": "&mInanis&N the &XVoid&N &mDragon&N stands here looking &Ragitated&N.",
-        "description": ("This large purple and black dragon seems to have a shroud of darkness around it. Its eyes appear to be pits of blackness"),
+        "description": ("This large &Mpurple&N and &Xblack&N dragon seems to have a shroud of &Xdarkness around it. Its eyes appear to be pits of &Xblackness"),
         "race": "Dragon",
         "class": "Watcher",
         "level": 50,
@@ -39,7 +39,7 @@ TEMPLATES: dict[str, dict] = {
         "dark_mage": {
             "name": "a dark mage",
             "key_words": ("dark", "mage"),
-            "room_description": "A &bdark mage&N cloaked in &xblack&M stands here at attention. It looks angry, so you look away as to not anger it further.",
+            "room_description": "A &bdark mage&N cloaked in &Xblack&N stands here at attention. It looks angry, so you look away as to not anger it further.",
             "description": ("This powerful looking being is a henchman of the &rGreat Darkness&N."),
             "race": "Fallen Elf",
             "class": "Mage",

@@ -1,3 +1,3 @@
 number = 3
-name=""
-author=""
+name="The bible"
+author="charlotte"

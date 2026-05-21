@@ -21,7 +21,7 @@ TEMPLATES: dict[str, dict] = {
         "room_description": "a {&WNuke&N &RShot&N has been carelessly discarded here.",
         "description":      "A fishing rod that seems to be ready to pull.",
     }, 
-     "Stab_Shot": {
+     "Stab Shot": {
         "spawn_as":         Object,
         "name":             "a &RStab&N &WShot&N",
         "key_words":        ("Stab", "Shot"),

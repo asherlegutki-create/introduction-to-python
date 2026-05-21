@@ -18,7 +18,7 @@ ROOMS: dict[int, Room] = {
     1: Room(
         {
             "number": 21,
-            "name": "&cfih_land&N",
+            "name": "&cfih land&N",
             "description": "It is a land of wonderful fih",
             "indoors": False,
             "terrain": "water",
@@ -28,7 +28,7 @@ ROOMS: dict[int, Room] = {
                 {"direction": "east", "roomId": 3},
                 {"direction": "west", "roomId": 2},
                 {"direction": "up", "roomId": 2},
-                {"direction": "down", "roomId": 1},
+                {"direction": "down", "roomId": 99002, "external": True},
             ],
             "objects": [
                 O.spawn("tennis_racket"),
