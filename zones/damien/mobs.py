@@ -14,9 +14,9 @@ from ashenmoor.world.zone import make_spawner
 TEMPLATES: dict[str, dict] = {
     "shadow_gremlin": {
         "name": "a shadow gremlin",
-        "key_words": ("shadow", "gremlin"),
+        "key_words": ("shadow", "gremlin", "thing"),
         "room_description": "a small black thing scurries about",
-        "description": ("A small creature. It is almost completely black except for its tiny white eyes"),
+        "description": ("This small creature is called a &Xshadow gremlin&N. It is almost completely black except for its tiny white eyes"),
         "race": "Gremlin",
         "class": "",
         "level": 15,
@@ -28,7 +28,7 @@ TEMPLATES: dict[str, dict] = {
         "name": "Inanis the Void Dragon",
         "key_words": ("inanis", "void", "dragon"),
         "room_description": "&mInanis&N the &XVoid&N &mDragon&N stands here looking &Ragitated&N.",
-        "description": ("This large &Mpurple and black dragon seems to have a shroud of &Xdarkness around it. Its eyes appear to be pits of &Xblackness"),
+        "description": ("This large &Mpurple&N and &Xblack&N dragon seems to have a shroud of &Xdarkness around it. Its eyes appear to be pits of &Xblackness"),
         "race": "Dragon",
         "class": "Watcher",
         "level": 50,
