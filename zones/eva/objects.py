@@ -1,7 +1,7 @@
 """
-zones.the_void.objects
+zones.the_planes.objects
 ──────────────────────
-Object templates for The Void zone.
+Object templates for The Planes zone.
 
 Add an entry to TEMPLATES for every object that can appear in this zone.
 The "class" key picks the instantiation class (Object / Item / Weapon).
@@ -14,36 +14,42 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "green_marker": {
+    "object_template": {
         "spawn_as":         Object,
-        "name":             "a &ggreen expo marker&N",
-        "key_words":        ("green", "expo", "marker"),
-        "room_description": "a {g&wgreen expo marker&N has been carelessly discarded here.",
-        "description":      "A forest green low-scent dry-erase marker, about half used.",
+        "name":             "object",
+        "key_words":        ("1", "2",),
+        "room_description": "object is here.",
+        "description":      "can't interact with.",
     },
-
-    "silken_sack": {
+    "Item_template": {
         "spawn_as":         Item,
-        "name":             "a &+rtattered &+csilken sack&N",
-        "key_words":        ("tattered", "silken", "sack"),
-        "room_description": "A &+rtattered &+csilken sack&N lies here, discarded.",
-        "description":      "This sack seems to be in an awful condition.",
-        "weight":           2,
+        "name":             "item",
+        "key_words":        ("1", "2",),
+        "room_description": "item sets here.",
+        "description":      "can interact with.",
     },
-    "windsong" : {
+    "Weapon_template" : {
         "spawn_as":         Weapon,
-        'name': "&+ga &wg&Wl&wi&Wtt&wer&Wi&wng &N&+gelven scimitar&N",
-        'key_words': ('scimitar', 'elven', 'glittering'),
-        'room_description': "&+gA glittering elven scimitar is lying on the ground here.&N",
-        'description': """&+gIts blade encrusted with diamond dust, this magically light
-&+gelven blade glitters in the sunlight and seems to hum softly
-&+gwhen wielded in battle.&N""",
+        'name': "thing",
+        'key_words': ("1", "2"),
+        'room_description': "a weapon sets here.",
+        'description': "bonk",
         "weight":           3,
         "dice":             "2d8",
         "hitroll":          2,
         "damroll":          4,
     },
+    "Assorted_Bottles__Full": {
+        "spawn_as":         Item,
+        "name":             "Assorted bottles",
+        "key_words":        ("bottles"),
+        "room_description": "A few &gc&Bo&Yl&Co&Mr&Rf&Gu&bl&N &Wglass&N &Yb&co&mt&rt&gl&Be&Ms&N are on the &ycounter&N of the bar, they are all filled with different kinds of liquids.",
+        "description":      "Five assorted &gc&Bo&Yl&Co&Mr&Rf&Gu&bl&N and &yunlabeled&N &Wglass bottles&N are siting on the counter.\nIt might &rnot&N be the best idea to drink these,as you don't know what is in them, but you do you.",
+    },
 
+    
+
+    
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")

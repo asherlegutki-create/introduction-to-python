@@ -10,37 +10,30 @@ Omitting "class" defaults to Object.
 Call spawn(key) to get a fresh independent instance.
 """
 
-from ashenmoor.world import Object, Item, Weapon
+from ashenmoor.world import Object, Container, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "green_marker": {
-        "spawn_as":         Object,
-        "name":             "a &ggreen expo marker&N",
-        "key_words":        ("green", "expo", "marker"),
-        "room_description": "a {g&wgreen expo marker&N has been carelessly discarded here.",
-        "description":      "A forest green low-scent dry-erase marker, about half used.",
+    "sack_of_darkness": {
+        "spawn_as":         Container,
+        "name":             "a sack of &Xdarkness&N",
+        "key_words":        ("darkness", "sack"),
+        "room_description": "A plain looking sack lies on the ground.",
+        "description":      "The bag looks simple. It is a brown canvas. When you look inside you see a &xblack void&N.",
+        "capacity":            1000.0,
+        "weightless_capacity": 1000.0,
+        "weight":              0,
+        "is_open":             True,
     },
-
-    "silken_sack": {
-        "spawn_as":         Item,
-        "name":             "a &+rtattered &+csilken sack&N",
-        "key_words":        ("tattered", "silken", "sack"),
-        "room_description": "A &+rtattered &+csilken sack&N lies here, discarded.",
-        "description":      "This sack seems to be in an awful condition.",
-        "weight":           2,
-    },
-    "windsong" : {
+    "sword_that_seals_the_darkness" : {
         "spawn_as":         Weapon,
-        'name': "&+ga &wg&Wl&wi&Wtt&wer&Wi&wng &N&+gelven scimitar&N",
-        'key_words': ('scimitar', 'elven', 'glittering'),
-        'room_description': "&+gA glittering elven scimitar is lying on the ground here.&N",
-        'description': """&+gIts blade encrusted with diamond dust, this magically light
-&+gelven blade glitters in the sunlight and seems to hum softly
-&+gwhen wielded in battle.&N""",
-        "weight":           3,
-        "dice":             "2d8",
-        "hitroll":          2,
+        'name': "&yThe Sword that Seals the Darkness&N",
+        'key_words': ('sword', 'seals', 'darkness'),
+        'room_description': "&yThe Sword that Seals the Darkness&N lies here. Its light &Willuminates&N the ground around it.",
+        'description': "The sword is beautiful. It was forged by the Elves as a tool against the &rGreat Darkness&N. It glows softly with &ydivine&N &Wlight&N",
+        "weight":           5,
+        "dice":             "6d8",
+        "hitroll":          4,
         "damroll":          4,
     },
 

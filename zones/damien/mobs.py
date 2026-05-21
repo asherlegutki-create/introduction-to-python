@@ -12,22 +12,44 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "wandering_student": {
-        "name": "a wandering student",
-        "key_words": ("student", "wandering"),
-        "room_description": "&wA wandering student meanders about aimlessly.&N",
-        "description": (
-            "A student with a faraway look, clearly lost in thought.\n"
-            "Or possibly just lost."
-        ),
-        "race": "Human",
-        "class": "Student",
-        "level": 1,
-        "stats": [60, 65, 60, 80, 70, 75],
-        "aggro": False,
+    "shadow_gremlin": {
+        "name": "a shadow gremlin",
+        "key_words": ("shadow", "gremlin", "thing"),
+        "room_description": "a small black thing scurries about",
+        "description": ("This small creature is called a &Xshadow gremlin&N. It is almost completely black except for its tiny white eyes"),
+        "race": "Gremlin",
+        "class": "",
+        "level": 15,
+        "stats": [75, 75, 75, 75, 75, 75],
+        "aggro": True,
         "wander": True,
-    }
+    },
+        "void_dragon": {
+        "name": "Inanis the Void Dragon",
+        "key_words": ("inanis", "void", "dragon"),
+        "room_description": "&mInanis&N the &XVoid&N &mDragon&N stands here looking &Ragitated&N.",
+        "description": ("This large &Mpurple&N and &Xblack&N dragon seems to have a shroud of &Xdarkness around it. Its eyes appear to be pits of &Xblackness"),
+        "race": "Dragon",
+        "class": "Watcher",
+        "level": 50,
+        "stats": [100, 100, 100, 100, 100, 100],
+        "aggro": False,
+        "wander": False,
+    },
+        "dark_mage": {
+            "name": "a dark mage",
+            "key_words": ("dark", "mage"),
+            "room_description": "A &bdark mage&N cloaked in &Xblack&N stands here at attention. It looks angry, so you look away as to not anger it further.",
+            "description": ("This powerful looking being is a henchman of the &rGreat Darkness&N."),
+            "race": "Fallen Elf",
+            "class": "Mage",
+            "level": 30,
+            "stats": [90, 90, 90, 90, 90, 90],
+            "aggro": False,
+            "wander": False,
+        }
 }
+
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)

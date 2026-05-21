@@ -1,1 +1,3 @@
-number = myNumber
+number = 10
+name=""
+author=""

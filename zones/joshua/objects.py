@@ -14,6 +14,14 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
+    "mr_mob_sword": {
+        "spawn_as":         Object,
+        "name":             "a &RMr Mob's Sword&N",
+        "key_words":        ("mr", "mob", "sword"),
+        "room_description": "Mr Mob's Sword lays here, seeming to long for him.",
+        "description":      "The great sword once wielded by Mr Mob.",
+    },
+
     "green_marker": {
         "spawn_as":         Object,
         "name":             "a &ggreen expo marker&N",

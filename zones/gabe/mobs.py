@@ -26,8 +26,72 @@ TEMPLATES: dict[str, dict] = {
         "stats": [60, 65, 60, 80, 70, 75],
         "aggro": False,
         "wander": True,
-    }
+    },
+            "the cheese monster": {
+        "name": "the cheese monster",
+        "key_words": ("cheese", "monster"),
+        "room_description": "&Wthe&N &yc&Yh&N&ye&Ye&N&ys&Ye&N &bmonster &Wsleeps here&N",
+        "description": (
+            "a cheese monster thinking into space "
+            "most likely thinking about &msleep..."
+        ),
+        "race": "cheese",
+        "class": "scary guy",
+        "level": "29",
+        "stats": [46, 59, 65, 55, 75, 80],
+        "aggro": False,
+        "wander": False,
+    },
+
+     "the cheez sniffer": {
+        "name": "the &yc&Yh&N&ye&Ye&N&ys&Ye&N sniffer",
+        "key_words": ("cheese", "sniffer"),
+        "room_description": "&Wthe&N &yc&Yh&N&ye&Ye&N&ys&Ye&N &bsniffer &Wsniffs around here&N",
+        "description": (
+            "a cheese sniffer sniffing around "
+            "most likely sniffing around for crumbs to eat"
+        ),
+        "race": "cheese",
+        "class": "sniffr guy",
+        "level": "14",
+        "stats": [10 ,48 ,23 ,92 ,16 ,82 ],
+        "aggro": False,
+        "wander": False,
+        },
+    "the cheese spirit": {
+        "name": "the cheese spirit",
+        "key_words": ("cheese", "spirit"),
+        "room_description": "&Wthe&N &yc&Yh&N&ye&Ye&N&ys&Ye&N &bspirit &Rhaunts&N &Wthis place&N",
+        "description": (
+            "a cheese spirit haunting this place "
+            "most likely &Rhaunting&N  The &YC&N&yh&Y&Ne&ye&Ys&N&ye&N monsters &msleep..."
+        ),
+        "race": "cheese",
+        "class": "spirit guy",
+        "level": "42",
+        "stats": [80, 80, 80, 80, 80, 80],
+        "aggro": False,
+        "wander": False,
+        },
+    "the cheesy bird": {
+        "name": "the &Yc&N&yh&Ye&N&ye&Ys&N&yy&Y&N &Bbird",
+        "key_words": ("cheesy", "bird"),
+        "room_description": "&Wthe&N &Yc&N&yh&Ye&N&ye&Ys&N&yy&Y&N &Bbird &Wchirps here&N",
+        "description": (
+            "a cheesy bird chirping around "
+            "seems like hes chirping around for fun but who knows maybe hes looking for cheese crumbs to eat"
+        ),
+        "race": "cheese",
+        "class": "bird guy",
+        "level": "7",
+        "stats": [10, 10, 10, 10, 10, 10],
+        "aggro": False,
+        "wander": True,
+        },
+        
+
 }
+
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)

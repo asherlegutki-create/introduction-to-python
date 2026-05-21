@@ -14,36 +14,47 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "green_marker": {
-        "spawn_as":         Object,
-        "name":             "a &ggreen expo marker&N",
-        "key_words":        ("green", "expo", "marker"),
-        "room_description": "a {g&wgreen expo marker&N has been carelessly discarded here.",
-        "description":      "A forest green low-scent dry-erase marker, about half used.",
+    "cheese wheel": {
+        "spawn_as":         Item,
+        "name":             "a &Ya cheese wheel&N",
+        "key_words":        ("cheese", "wheel"),
+        "room_description": "a &Ya cheese wheel&N is laid here, looking very delicious.",
+        "description":      "a delicious-looking wheel of cheese.",
+        "weight":           5,
     },
 
-    "silken_sack": {
-        "spawn_as":         Item,
-        "name":             "a &+rtattered &+csilken sack&N",
-        "key_words":        ("tattered", "silken", "sack"),
-        "room_description": "A &+rtattered &+csilken sack&N lies here, discarded.",
-        "description":      "This sack seems to be in an awful condition.",
+    "toy cheese": {
+        "spawn_as":         Object,
+        "name":             "a toy cheese",
+        "key_words":        ("toy", "cheese"),
+        "room_description": "a &mtoy &Ycheese&N is lying on the ground here.",
+        "description":      "A cheese-shaped toy, made of wood and painted yellow.\n It looks like it would be fun to throw.",
         "weight":           2,
     },
-    "windsong" : {
-        "spawn_as":         Weapon,
-        'name': "&+ga &wg&Wl&wi&Wtt&wer&Wi&wng &N&+gelven scimitar&N",
-        'key_words': ('scimitar', 'elven', 'glittering'),
-        'room_description': "&+gA glittering elven scimitar is lying on the ground here.&N",
-        'description': """&+gIts blade encrusted with diamond dust, this magically light
-&+gelven blade glitters in the sunlight and seems to hum softly
-&+gwhen wielded in battle.&N""",
-        "weight":           3,
-        "dice":             "2d8",
-        "hitroll":          2,
-        "damroll":          4,
+    "cheese surfboard": {
+        "spawn_as":         Object,
+        "name":             "a cheese surfboard",
+        "key_words":        ("cheese", "surfboard"),
+        "room_description": "a &Ycheese&N &Bsurf&N&yboard &Wis propped up against the wall here.&N",
+        "description":      "A surfboard made of cheese. It looks like it would be fun to ride, but also like it would be very messy.",
+        "weight":           10,
     },
-
+    "cheese sack": {
+        "spawn_as":         Object,
+        "name":             "a cheese sack",
+        "key_words":        ("cheese", "sack"),
+        "room_description": "a &Ycheese sack&N is lying on the ground here.",
+        "description":      "A sack made of cheese. It looks like it would be fun to carry things in, may also be fun to eat.",
+        "weight":           3,
+    },
+    "cheese bucket": {
+        "spawn_as":         Object,
+        "name":             "a cheese bucket",
+        "key_words":        ("cheese", "bucket"),
+        "room_description": "a &Ycheese bucket&N is sitting here, filled with something that looks like more guess what? &Yc&N&yh&Ye&N&ye&Ys&N&ye&Y&N       .",
+        "description":      "A bucket made of cheese. It looks like it would be fun to carry things in, may also be fun to eat.",
+        "weight":           4,
+    },
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")

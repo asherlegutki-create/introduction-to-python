@@ -20,13 +20,43 @@ TEMPLATES: dict[str, dict] = {
             "It sits there... menacingly.\n"
             "Or it is just sitting there without a single thought in that head."
         ),
-        "race": "nonhuman",
-        "class": "Nessie",
-        "level": 1,
+        "race": "Nessie",
+        "class": "Animal",
+        "level": 50,
         "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
         "wander": False,
-    }
+    },
+        "Green Nessie": {
+        "name": "Green Nessie",
+        "key_words": ("Green", "Nessie"),
+        "room_description": "&CThe Nessie. It wades in the shallow water staring into space&N",
+        "description": (
+            "It is a very strange creature and sits there wisely\n"
+            "Or it is just sitting there without a single thought in that head."
+        ),
+        "race": "Nessie",
+        "class": "Animal",
+        "level": 50,
+        "stats": [100, 100, 100, 100, 100, 100],
+        "aggro": False,
+        "wander": False,
+    },
+        "Alisa Macailnov": {
+        "name": "Alisa Macailnov",
+        "key_words": ("Alisa", "Macailnov"),
+        "room_description": "Alisa keeps &Rev&Ger&Cyt&Bhi&Yng &Cshiny&N",
+        "description": (
+            "A woman that cleans and bartends simultaneously\n"
+            "She talks to the customers swiftly; asking questions about them."
+        ),
+        "race": "human",
+        "class": "Bartender",
+        "level": 25,
+        "stats": [73, 80, 78, 84, 65, 70],
+        "aggro": False,
+        "wander": False,
+    },
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")

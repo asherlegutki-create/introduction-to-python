@@ -14,6 +14,24 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
+    "object_template": {
+        "spawn_as":         Object,
+        "name":             "",
+        "key_words":        (),
+        "room_description": "",
+        "description":      "",
+    },
+
+        "tennis_racket": {
+        "spawn_as":         Object,
+        "name":             "&Gtennis racket&N",
+        "key_words":        ("tennis", "racket"),
+        "room_description": "A tennis racket lies here",
+        "description":      "Its just a tennis racket what could you do with it \n maybe wack someone with it?",
+    },
+        
+    
+
     "green_marker": {
         "spawn_as":         Object,
         "name":             "a &ggreen expo marker&N",

@@ -14,12 +14,12 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "green_marker": {
+    "OBJ template": {
         "spawn_as":         Object,
-        "name":             "a &ggreen expo marker&N",
-        "key_words":        ("green", "expo", "marker"),
-        "room_description": "a {g&wgreen expo marker&N has been carelessly discarded here.",
-        "description":      "A forest green low-scent dry-erase marker, about half used.",
+        "name":             "a thing",
+        "key_words":        ("stuff"),
+        "room_description": "",
+        "description":      "",
     },
 
     "silken_sack": {
@@ -42,6 +42,21 @@ TEMPLATES: dict[str, dict] = {
         "dice":             "2d8",
         "hitroll":          2,
         "damroll":          4,
+    },
+    "Brumplin husk": {
+        "spawn_as":         Object,
+        "name":             "Brumplin husk",
+        "key_words":        ("Brumplin", "husk"),
+        "room_description": "A &gball of brambles&n sticking out of the mud",
+        "description":      "A light ball of brambles",
+    },
+     "Acursed Elk Stake": {
+        "spawn_as":         Object,
+        "name":             "Acursed Elk Stake",
+        "key_words":        ("Acursed", "Elk", "Stake"),
+        "room_description": "a slab of &mpurpleish meat",
+        "description":      "an unappealing stake"
+                                "&Wthe key to immortality, &Xbut not a good one",
     },
 
 }

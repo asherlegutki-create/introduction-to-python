@@ -1,34 +1,41 @@
 """
 ashenmoor.world.zone
 ────────────────────
-Zone class — the container for a self-contained area of the world.
+Zone class and vnum utilities.
 
-A Zone owns:
-  object_templates   dict[str, dict]   prototype dicts keyed by a short id
-  mob_templates      dict[str, dict]   prototype dicts keyed by a short id
-  rooms              dict[int, Room]   fully built rooms (objects+mobs already
-                                       instantiated inside them)
+Vnum scheme
+───────────
+Every zone has a number (from zones/<name>/zone.py).
+Local room numbers in rooms.py use small integers (1, 2, 3 …).
+apply_vnums() converts them to absolute vnums before the Zone is built:
 
-Template dicts use the same keys as the Object / Item / Weapon / Mob
-constructors, plus one extra key:
+    absolute_vnum = zone_number * 1000 + local_room_number
 
-  "class"   the class to instantiate — Object, Item, Weapon, or Mob
-            defaults to Object for object templates, Mob for mob templates
+    zone 1,  room 1   →   1001
+    zone 1,  room 999 →   1999
+    zone 99, room 1   →  99001
+    zone 99, room 999 →  99999
 
-Usage inside a zone's rooms.py
-───────────────────────────────
-    from . import objects as O, mobs as M
+This gives each zone a private range of 999 rooms with no collisions.
 
-    ROOMS = {
-        1: Room({
-            ...
-            "objects": [O.spawn("red_marker"), O.spawn("sword")],
-            "mobs":    [M.spawn("guard"), M.spawn("guard")],   # two guards
-        })
-    }
+External exits
+──────────────
+Exits that connect to a different zone carry  "external": True.
+apply_vnums() leaves those roomIds untouched — they are already absolute.
 
-Two calls to spawn("guard") create two independent Mob instances — mutations
-to one (hp loss, loot) do not affect the other.
+    # rooms.py — connecting from zone 99 to zone 1, room 1
+    {"direction": "west", "roomId": 1001, "external": True}
+
+Zone template pattern
+─────────────────────
+Every zone package should follow this layout:
+
+    zones/my_zone/
+        zone.py      →  number = 7          # zone number, unique per zone
+        objects.py   →  TEMPLATES, spawn
+        mobs.py      →  TEMPLATES, spawn
+        rooms.py     →  ROOMS  (local vnums 1-999)
+        __init__.py  →  imports all, calls apply_vnums, builds ZONE
 """
 
 from __future__ import annotations
@@ -38,16 +45,81 @@ if TYPE_CHECKING:
     from .room import Room
 
 
+# ── apply_vnums ───────────────────────────────────────────────────────────────
+
+def apply_vnums(rooms: dict, zone_number: int) -> dict:
+    """
+    Convert a rooms dict using local vnums into one using absolute vnums.
+
+    Parameters
+    ----------
+    rooms       : dict[int, Room]   keyed by local vnum (1, 2, 3 …)
+    zone_number : int               from zones/<name>/zone.py
+
+    zone_number = 0  (special)
+        No prefix is applied.  Room numbers stay exactly as written.
+        Use this for a default / limbo zone whose vnums are canonical.
+        Exit roomIds are also left untouched (no offset added).
+        Exits to prefixed zones still need  "external": True.
+
+    zone_number > 0
+        absolute_vnum = zone_number * 1000 + local_room_number
+        Exit roomIds receive the same offset unless  "external": True.
+
+    Returns
+    -------
+    dict[int, Room]   keyed by absolute vnum
+
+    Side effects
+    ------------
+    Each Room's .number attribute is updated to the absolute vnum.
+    Exit roomIds are updated in place UNLESS the exit has "external": True.
+    """
+    if zone_number < 0:
+        raise ValueError(f"zone_number must be >= 0, got {zone_number!r}")
+
+    # zone 0 — no prefix, rooms are their own absolute vnums
+    if zone_number == 0:
+        for local_num, room in rooms.items():
+            room.number = local_num   # already absolute, just confirm
+        return dict(rooms)
+
+    base     = zone_number * 1000
+    new_dict = {}
+
+    for local_num, room in rooms.items():
+        abs_vnum    = base + local_num
+        room.number = abs_vnum
+
+        for ex in room.exits:
+            if not ex.get("external", False):
+                if "roomId" not in ex:
+                    direction = ex.get("direction", "?")
+                    raise KeyError(
+                        f"Zone {zone_number}, room {local_num}: exit '{direction}' "
+                        f"is missing 'roomId' (check for typos like 'roomid')"
+                    )
+                ex["roomId"] = base + ex["roomId"]
+
+        new_dict[abs_vnum] = room
+
+    return new_dict
+
+
+# ── Zone ──────────────────────────────────────────────────────────────────────
+
 class Zone:
     """
-    A self-contained area: templates + pre-built rooms.
+    A self-contained area of the world.
 
     Parameters
     ----------
     name             str
-    rooms            dict[int, Room]
-    object_templates dict[str, dict]   optional, default {}
-    mob_templates    dict[str, dict]   optional, default {}
+    rooms            dict[int, Room]   keyed by ABSOLUTE vnums (after apply_vnums)
+    object_templates dict[str, dict]   optional
+    mob_templates    dict[str, dict]   optional
+    vnum_base        int               zone_number, stored for reference
+    author           str               zone author name, available to game logic
     """
 
     def __init__(
@@ -56,38 +128,31 @@ class Zone:
         rooms:            dict,
         object_templates: dict | None = None,
         mob_templates:    dict | None = None,
+        vnum_base:        int         = 0,
+        author:           str         = "",
     ):
         self.name             = name
         self.rooms            = rooms
         self.object_templates = object_templates or {}
         self.mob_templates    = mob_templates    or {}
-
-    # ── Spawn helpers ─────────────────────────────────────────────────────────
+        self.vnum_base        = vnum_base
+        self.author           = author
 
     def spawn_object(self, key: str):
-        """
-        Create a fresh Object / Item / Weapon instance from a template.
-
-        Raises KeyError if *key* is not in object_templates.
-        """
         return _spawn(key, self.object_templates, _default_object_class)
 
     def spawn_mob(self, key: str):
-        """
-        Create a fresh Mob instance from a template.
-
-        Raises KeyError if *key* is not in mob_templates.
-        """
         return _spawn(key, self.mob_templates, _default_mob_class)
 
     def __repr__(self) -> str:
-        return (f"Zone({self.name!r}, "
+        author = f", author={self.author!r}" if self.author else ""
+        return (f"Zone({self.name!r}, vnum_base={self.vnum_base}, "
                 f"{len(self.rooms)} rooms, "
                 f"{len(self.object_templates)} obj templates, "
-                f"{len(self.mob_templates)} mob templates)")
+                f"{len(self.mob_templates)} mob templates{author})")
 
 
-# ── Internal spawn machinery ──────────────────────────────────────────────────
+# ── Spawn machinery ───────────────────────────────────────────────────────────
 
 def _default_object_class():
     from .objects import Object
@@ -98,30 +163,20 @@ def _default_mob_class():
     return Mob
 
 def _spawn(key: str, templates: dict, default_class_fn):
-    """
-    Look up *key* in *templates*, pick the class (or fall back to default),
-    and return a new instance built from the remaining dict keys.
-
-    Uses "spawn_as" (not "class") as the Python-class selector so it never
-    collides with the character/mob "class" field (Warrior, Shaman, etc.).
-    """
     if key not in templates:
-        raise KeyError(f"No template named {key!r} in zone templates. "
-                       f"Available: {list(templates)}")
-    template = dict(templates[key])          # shallow copy — don't mutate original
+        raise KeyError(
+            f"No template named {key!r}. Available: {list(templates)}"
+        )
+    template = dict(templates[key])
     cls      = template.pop("spawn_as", None) or default_class_fn()
     return cls(template)
 
-
-# ── Convenience: module-level spawn functions ─────────────────────────────────
-# Each zone's objects.py and mobs.py exposes a module-level spawn() so rooms.py
-# can call  O.spawn("key")  without needing a Zone instance at import time.
 
 def make_spawner(templates: dict, default_class_fn):
     """
     Return a spawn(key) function bound to *templates*.
 
-    Use this at the bottom of a zone's objects.py and mobs.py:
+    Use at the bottom of a zone's objects.py and mobs.py:
 
         from ashenmoor.world.zone import make_spawner
         spawn = make_spawner(TEMPLATES, lambda: Object)
