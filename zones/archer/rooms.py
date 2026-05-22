@@ -19,15 +19,14 @@ ROOMS: dict[int, Room] = {
         {
             "number": 1,
             "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor",
-            "description": "A heavily fortified mansion, your currently surrounded by Illriggers",
+            "description": "A heavily fortified mansion, your currently surrounded by Illriggers, the exit is due &Yeast&N",
             "indoors": True,
             "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
             "exits": [
                 {"direction": "north", "roomId": 2},
                 {"direction": "south", "roomId": 3},
-                {"direction": "east", "roomId": 1},
+                {"direction": "east", "roomId": 99002, "external": "True"},
                 {"direction": "west", "roomId": 4},
-                {"direction": "down", "roomId": 99002, "external": "True"},
             ],
             "objects": [
                 O.spawn("Potion of Turtle Master"),
@@ -70,14 +69,14 @@ ROOMS: dict[int, Room] = {
             {
                 "number": 3,
                 "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Prison Room",
-                "description": "a room full of empty cells except one, the one with the &yimprisoned Illrigger&N inside",
+                "description": "a room full of empty cells except one, the one with the &yprisoner&N inside",
                 "indoors": True,
                 "terrain": "floors, cells, ceiling, and walls",
                 "exits": [
                     {"direction": "north", "roomId": 1}
                 ],
                 "mobs": [ 
-                    M.spawn("&RIllrigger Rogue&N"),
+                    M.spawn("&yImprisoned Illrigger&N"),
                 ],
             }
         ),
