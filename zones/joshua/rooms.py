@@ -26,8 +26,6 @@ ROOMS: dict[int, Room] = {
                 {"direction": "north", "roomId": 99004, "external": True},
             ],
             "objects": [
-                O.spawn("silken_sack"),
-                O.spawn("windsong"),
                 O.spawn("mr_mob_sword"),
             ],
             "mobs": [M.spawn("mr_mob")],  # two independent students

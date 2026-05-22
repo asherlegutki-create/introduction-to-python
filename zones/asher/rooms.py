@@ -17,18 +17,13 @@ from . import mobs as M
 ROOMS: dict[int, Room] = {
     1: Room(
         {
-            "number": 21,
+            "number": 1,
             "name": "&cfih land&N",
             "description": "It is a land of wonderful fih",
             "indoors": False,
             "terrain": "water",
             "exits": [
-                {"direction": "north", "roomId": 2},
-                {"direction": "south", "roomId": 1},
-                {"direction": "east", "roomId": 3},
-                {"direction": "west", "roomId": 2},
-                {"direction": "up", "roomId": 2},
-                {"direction": "down", "roomId": 99002, "external": True},
+                {"direction": "east", "roomId": 99002, "external": True},
             ],
             "objects": [
                 O.spawn("tennis_racket"),
