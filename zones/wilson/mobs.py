@@ -29,7 +29,7 @@ TEMPLATES: dict[str, dict] = {
         "Wemmbu": {
         "name": "Wemmbu",
         "key_words": ("&mWemmbu&N"),
-        "room_description": "He stands there holding &mGambit&N menacingly.",
+        "room_description": "Wemmbu stands here holding &mGambit&N menacingly.",
         "description": (
             ".\n"
         ),

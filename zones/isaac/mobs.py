@@ -14,7 +14,7 @@ from ashenmoor.world.zone import make_spawner
 TEMPLATES: dict[str, dict] = {
     "escbaalion": {
         "name": "&gEscbaalion&N",  # The c is silent
-        "key_words": ("Escbaalion"),
+        "key_words": ("Escbaalion", "lizard man"),
         "room_description": "&gEscbaalion&N licks his eyeball.",
         "description": (
             "(The 'c' is silent)\n"
@@ -35,7 +35,15 @@ TEMPLATES: dict[str, dict] = {
         "name": "&MUnicorn Blob&N",
         "key_words": ("unicorn", "blob"),
         "room_description": "&MUnicorn Blob&N wanders without a care in the world.",
-        "description": ("Remind me to finish description."),
+        "description": (
+            "It is a &Mpurple blob of&N &mjelly&N."
+            "A &Ygolden unicorn horn&N protrudes from its forehead."
+            "Its eyes are cute and sparkly and &Xsouless&N."
+            " "
+            " "
+            " "
+            "I wonder what it tastes like...?"
+        ),
         "race": "Slime",
         "class": None,
         "level": 7,
