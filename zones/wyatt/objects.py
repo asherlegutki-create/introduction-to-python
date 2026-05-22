@@ -56,6 +56,14 @@ TEMPLATES: dict[str, dict] = {
         "hitroll": 4,
         "damroll": 8,
     },
+    "Uranium Rod": {
+        "spawn_as": Item,
+        "name": "&GRadioactive Uranium&N rod",
+        "key_words": ("Radioactive", "Uranium", "rod"),
+        "room_description": "&WA &GRadioactive Uranium&N rod &Wlies here. please do not go near it.",
+        "description": "A &GRadioactive Uranium&N rod&W. what else to explain&N",
+        "weight": 2,
+    },
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")

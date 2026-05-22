@@ -29,6 +29,7 @@ ROOMS: dict[int, Room] = {
             "objects": [
                 O.spawn("Dragons Talon"),
                 O.spawn("Arm canon"),
+                O.spawn("Uranium Rod"),
             ],
             "mobs": [M.spawn("Green Nessie")],  # two independent students
         }
