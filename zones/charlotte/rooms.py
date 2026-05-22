@@ -19,36 +19,35 @@ ROOMS: dict[int, Room] = {
 1: Room(
         {
             "number": 1,
-            "name": "&GGarden&N of &gEden&N",
-            "description": "&GThere&N &gis&N &Ga huge garden&N streching for miles.There is a &Gtree&N in the &gmiddle of the Garden&N.\n &YG&N&yo&N&Yd&N is watching over his creation.",
-            "indoors": False,
-            "terrain": "rolling grass hills",
+            "name": "The &CO&N&Bf&N&Cf&N&Bi&N&Cc&N&Be&N",#this is the office
+            "description": "The office is where &BM&N&R&R&N&BS&N&R.S&N&Bt&N&Ra&N&Bc&N&Re&N&By&N stays during the day. The Office is at the front of the school./n To the left is Mr. Carlson's Office. To the right is a wall with pictures of all the teachers. Up is the celling with lose tiles that might be moveable./n Down is the carpet floor not for much use. Forward is a pack hall way.",
+            "indoors": True,                        #Mrs.Stacey^
+            "terrain": "carpet floor",
             "exits": [
-                {"direction": "north", "roomId": 2},
+                {"direction": "west", "roomId": 2},
                 {"direction": "down", "roomId": 99002, "external": True}
                 
             ],
             "objects": [
-                O.spawn("Banana"),
-                O.spawn("green leaf"),
-                O.spawn("The Fruit"),
+              #  O.spawn("Pencil"),
+            #    O.spawn("Key"),
+              #  O.spawn("Computer"),
             ],
             "mobs": [
-                M.spawn("Adam") ,
-                M.spawn("Eve"),
-                M.spawn("Slippery Serpant")],  # two independent students
+               # M.spawn("MRS.Stacey") ,
+               # M.spawn("MRS.Stublefield"),],  # two independent students
 
         }
     ),
 2: Room(
         {
             "number": 2,
-            "name": "&CJ&N&ce&N&Cr&N&ci&N&Cc&N&ch&N&Co&N",
+            "name": "",
             "description": "&wThis is a city with a huge wall going around it to protect it.&N",
             "indoors": False,
             "terrain": "grass plane",
             "exits": [
-                {"direction": "south", "roomId": 1},
+                {"direction": "east", "roomId": 1},
                 {"direction": "north", "roomId": 3},
             ],
             "objects": [
