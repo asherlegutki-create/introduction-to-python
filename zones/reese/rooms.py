@@ -15,20 +15,15 @@ from . import objects as O
 from . import mobs as M
 
 ROOMS: dict[int, Room] = {
-    5: Room(
+    1: Room(
         {
-            "number": 5,
+            "number": 1,
             "name": "&yT&bh&re &yI&bn&rn&N",
             "description": "The local inn of your childhood town",
             "indoors": True,
             "terrain": "wooden",
             "exits": [
-                {"direction": "north", "roomId": 13001},
-                {"direction": "south", "roomId": 1},
-                {"direction": "east", "roomId": 13001},
-                {"direction": "west", "roomId": 3},
-                {"direction": "up", "roomId": 1},
-                {"direction": "down", "roomId": 1},
+                {"direction": "up", "roomId": 99004, "external": True},
             ],
             "objects": [
                 O.spawn("wallet"),
