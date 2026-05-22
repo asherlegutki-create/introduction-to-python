@@ -14,6 +14,14 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
+    "wallet":{
+        "spawn_as":         Item,
+        "name":             "a &Bwallet&N",
+        "key_words":        ("wallet"),
+        "room_description": "a {g&wwallet&N has been carelessly discarded here.",
+        "description":      "A brown leather wallet with the name Xavier imprinted on it.",
+    },
+
     "green_marker": {
         "spawn_as":         Object,
         "name":             "a &ggreen expo marker&N",
