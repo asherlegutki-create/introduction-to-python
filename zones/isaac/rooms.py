@@ -21,15 +21,14 @@ ROOMS: dict[int, Room] = {
             "name": "&gThe Seomra&N",  # Irish for Room
             "description": (
                 "The floor is covered with ripped-up &Yyellow warning tape&N and littered with &ytraffic cones&N.\n"
-                "The room is shaped like a triangle, painted &Ggreen&N with two &xiron doors&N on the far walls.\n"
-                "A &ywooden trap door&N on the floor seems inviting."
+                "The room is shaped like a triangle, painted &Ggreen&N with two &Xiron doors&N on the far walls."
             ),
             "indoors": False,
             "terrain": "no ground",
             "exits": [
                 {"direction": "north", "roomId": 3},
-                {"direction": "west", "roomId": 4},
-                {"direction": "down", "roomId": 2},
+                {"direction": "west", "roomId": 11},
+                {"direction": "down", "roomId": 99003, "external": True},
             ],
             "objects": [
                 O.spawn("traffic_cone"),
@@ -60,7 +59,7 @@ ROOMS: dict[int, Room] = {
                 {"direction": "south", "roomId": 2},
                 {"direction": "east", "roomId": 2},
                 {"direction": "west", "roomId": 2},
-                {"direction": "up", "roomId": 1},
+                {"direction": "up", "roomId": 12},
                 {"direction": "down", "roomId": 2},
             ],
         }
@@ -85,6 +84,40 @@ ROOMS: dict[int, Room] = {
                 M.spawn("unicorn_blob"),
                 M.spawn("unicorn_blob"),
             ],
+        }
+    ),
+    11: Room(
+        {
+            "number": 11,
+            "name": "ROOM_<11>",
+            "description": ("Metal."),
+            "indoors": False,
+            "terrain": "no ground",
+            "exits": [
+                {"direction": "east", "roomId": 1},
+                {"direction": "south", "roomId": 12},
+            ],
+            "objects": [
+                O.spawn("traffic_cone"),
+                # O.spawn("traffic_cone"),
+            ],  # objects include gears, pipes, springs, metal shards,
+            "mobs": [],
+        }
+    ),
+    12: Room(
+        {
+            "number": 12,
+            "name": "Unnamed",
+            "description": ("A &ywooden trap door&N on the floor seems inviting."),
+            "indoors": False,
+            "terrain": "no ground",
+            "exits": [
+                {"direction": "north", "roomId": 11},
+                # {"direction": "west", "roomId": 4},
+                {"direction": "down", "roomId": 2},
+            ],
+            "objects": [],  # objects include gears, pipes, springs, metal shards,
+            "mobs": [],
         }
     ),
 }

@@ -23,7 +23,7 @@ ROOMS: dict[int, Room] = {
             "indoors": False,
             "terrain": "cheese",
             "exits": [
-                {"direction": "north", "roomId": 1},
+                {"direction": "north", "roomId": 99003, "external": True},
                 {"direction": "south", "roomId": 1},
                 {"direction": "east", "roomId": 2},
                 {"direction": "west", "roomId": 3},
@@ -43,10 +43,12 @@ ROOMS: dict[int, Room] = {
         {
             "number": 2,
             "name": "The &YC&N&yh&Y&N&ye&ye&Ys&N&ye&N &BOasis&N",
-            "description": "The Cheese Oasis is a big patch of grass surrounded by cheese. \n The grass is surprisingly green and lush, and there is a small pond in the center.\n  The air smells fresher here, and you can hear the sound of cheesy birds chirping.\n\n",
+            "description": "The &YC&N&yh&Y&N&ye&ye&Ys&N&ye&N &BO&N&yr&Gl&N&yd is a &Rbig&N patch of &Ggrass&N surrounded by &YC&N&yh&Y&N&ye&ye&Ys&N&ye&N. \n The &Ggrass&N is surprisingly &Ggreen&N and &Blush&N, and there is a &msmall &Bpond&N in the center.\n  The air smells &Wfresher&N here, and you can hear the sound of &YC&N&yh&Y&N&ye&ye&Ys&N&ye&N &mbirds &Wchirping.&N\n\n",
             "indoors": False,
             "terrain": "no ground",
             "exits": [
+
+
                 {"direction": "north", "roomId": 99003, "external": True},
                 {"direction": "south", "roomId": 1},
                 {"direction": "east", "roomId": 1},
