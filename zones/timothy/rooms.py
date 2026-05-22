@@ -26,12 +26,15 @@ ROOMS: dict[int, Room] = {
                 {"direction": "north", "roomId": 99005, "external": True},
                 {"direction": "south", "roomId": 1},
                 {"direction": "east", "roomId": 1},
-                 {"direction": "west", "roomId": 1},
+                {"direction": "west", "roomId": 1},
             ],
             "objects": [
                 O.spawn("Brumplin Seed"),
             ],
-            "mobs": [M.spawn("Brumplin Minor"), ("Brumplin Alpha")],  # two independent students
+            "mobs": [
+                M.spawn("Brumplin Minor"),
+                M.spawn("Brumplin Alpha")
+            ],  # two independent students
         }
     ),
 }
