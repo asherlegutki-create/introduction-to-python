@@ -43,19 +43,19 @@ TEMPLATES: dict[str, dict] = {
         "hitroll":          2,
         "damroll":          4,
     },
-    "Brumplin husk": {
+    "Brumplin Seed": {
         "spawn_as":         Object,
-        "name":             "Brumplin husk",
-        "key_words":        ("Brumplin", "husk"),
+        "name":             "Brumplin Seed",
+        "key_words":        ("Brumplin", "Seed"),
         "room_description": "A &gball of brambles&n sticking out of the mud",
         "description":      "A light ball of brambles",
     },
-     "Acursed Elk Stake": {
-        "spawn_as":         Object,
-        "name":             "Acursed Elk Stake",
-        "key_words":        ("Acursed", "Elk", "Stake"),
+     "Acursed Elk Steak": {
+        "spawn_as":         Item,
+        "name":             "Acursed Elk Steak",
+        "key_words":        ("Acursed", "Elk", "Steak"),
         "room_description": "a slab of &mpurpleish meat",
-        "description":      "an unappealing stake"
+        "description":      "an unappealing steak"
                                 "&Wthe key to immortality, &Xbut not a good one",
     },
 
