@@ -14,15 +14,15 @@ from ashenmoor.world.zone import make_spawner
 TEMPLATES: dict[str, dict] = {
     "escbaalion": {
         "name": "&gEscbaalion&N",  # The c is silent
-        "key_words": ("Escbaalion", "lizard man"),
+        "key_words": ("Escbaalion", "lizard", "lizardman"),
         "room_description": "&gEscbaalion&N licks his eyeball.",
         "description": (
-            "(The 'c' is silent)\n"
+            "&gEscbaalion&N (The 'c' is silent)\n"
             "A humanoid lizard. He is &gdark-green&N, and has a short\n"
             "&Ccyan sail&N that runs from the top of his head to the end of his tail.\n"
             "He wears an almost &Xblack cloak&N, but wears &Rno&N pants.\n"
             "A &ybrown leather satchel&N is slung over his shoulder.\n"
-            "Only &ghe&N knows what is inside his &ybag&N. . . .\n"
+            "Only &ghe&N knows what is inside his &ybag&N. . . ."
         ),
         "race": "Lizaroid",
         "class": "Sorcerer",
@@ -36,12 +36,12 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("unicorn", "blob"),
         "room_description": "&MUnicorn Blob&N wanders without a care in the world.",
         "description": (
-            "It is a &Mpurple blob of&N &mjelly&N."
-            "A &Ygolden unicorn horn&N protrudes from its forehead."
-            "Its eyes are cute and sparkly and &Xsouless&N."
-            " "
-            " "
-            " "
+            "It is a &mpurple blob of&N &Mjelly&N.\n"
+            "A &Ygolden unicorn horn&N protrudes from its forehead.\n"
+            "Its eyes are cute and sparkly and &Xsouless&N.\n"
+            "\n"
+            "\n"
+            "\n"
             "I wonder what it tastes like...?"
         ),
         "race": "Slime",
