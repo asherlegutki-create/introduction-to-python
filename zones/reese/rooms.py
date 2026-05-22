@@ -15,17 +15,17 @@ from . import objects as O
 from . import mobs as M
 
 ROOMS: dict[int, Room] = {
-    1: Room(
+    5: Room(
         {
-            "number": 1,
+            "number": 5,
             "name": "&yT&bh&re &yI&bn&rn&N",
             "description": "The local inn of your childhood town",
             "indoors": True,
             "terrain": "wooden",
             "exits": [
-                {"direction": "north", "roomId": 2},
+                {"direction": "north", "roomId": 13001},
                 {"direction": "south", "roomId": 1},
-                {"direction": "east", "roomId": 2},
+                {"direction": "east", "roomId": 13001},
                 {"direction": "west", "roomId": 3},
                 {"direction": "up", "roomId": 1},
                 {"direction": "down", "roomId": 1},

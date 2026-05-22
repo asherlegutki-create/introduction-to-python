@@ -40,7 +40,7 @@ TEMPLATES: dict[str, dict] = {
         "wander": True,
     },
     "The_Inn_Maid": {
-        "name": "Maudie, the inn's maid"
+        "name": "Maudie, the inn's maid",
         "key_words": ("Maudie", "inn's", "maid"),
         "room_description": "&wMaudie, the inn's maid, cleans the inn thoroughly and happily.&N",
         "description": ("A nice lady with a smile on her face"),

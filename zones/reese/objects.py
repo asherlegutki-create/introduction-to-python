@@ -18,7 +18,7 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as":         Item,
         "name":             "a &Bwallet&N",
         "key_words":        ("wallet"),
-        "room_description": "a {g&wwallet&N has been carelessly discarded here."
+        "room_description": "a {g&wwallet&N has been carelessly discarded here.",
         "description":      "A brown leather wallet with the name Xavier imprinted on it.",
     },
 
