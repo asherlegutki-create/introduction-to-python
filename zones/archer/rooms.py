@@ -26,7 +26,7 @@ ROOMS: dict[int, Room] = {
                 {"direction": "north", "roomId": 2},
                 {"direction": "south", "roomId": 3},
                 {"direction": "east", "roomId": 1},
-                {"direction": "west", "roomId": 1},
+                {"direction": "west", "roomId": 4},
                 {"direction": "down", "roomId": 99002, "external": "True"},
             ],
             "objects": [
@@ -96,6 +96,18 @@ ROOMS: dict[int, Room] = {
                 ],
                 "mobs": [ 
                     M.spawn("&MIllrigger Mage&N"),
+                ],
+            }
+        ),
+        5: Room(
+            {
+                "number": 5,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Guest Room",
+                "description": "A cozy room with &Rcozy beds&N, stay as long as you need...",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "south", "roomId": 2},
                 ],
             }
         ),
