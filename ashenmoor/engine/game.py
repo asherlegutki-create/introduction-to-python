@@ -1,10 +1,23 @@
 """
 ashenmoor.engine.game
 ─────────────────────
-Command resolution: powers → system commands → "Pardon?"
+Command resolution and combat state management.
+
+Combat is driven by the ticker (ashenmoor.engine.ticker):
+  • auto_crepl() calls state.combat_tick() every 4 seconds automatically.
+  • handle() processes player commands — it does NOT run combat rounds.
+
+Power system
+────────────
+  Powers fire IMMEDIATELY when typed, subject to their individual cooldown.
+  If the power is still recharging the player sees:
+      "You're not ready to perform another action!"
+  If it is ready it fires right away — auto-attacks still happen every tick.
+  This means a player can get off a power between any two auto-attack rounds.
 """
 
 from __future__ import annotations
+import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -12,8 +25,12 @@ if TYPE_CHECKING:
     from ..core.character import Character
 
 from .targeting import find_target, target_name, parse_target
+from .combat    import (
+    combat_round, one_attack, ensure_hp,
+    compute_max_hp, hp_status, condition_str, calc_damage,
+)
 
-DIRECTIONS = frozenset({"north","south","east","west","up","down","n","s","e","w","u","d"})
+DIRECTIONS = frozenset({"north","south","east","west","up","down"})
 _DIR_EXPAND = {"n":"north","s":"south","e":"east","w":"west","u":"up","d":"down"}
 
 def _expand_direction(d): return _DIR_EXPAND.get(d.lower(), d.lower())
@@ -28,15 +45,63 @@ def go(character, locations, rooms, direction):
     return "&NAlas, you cannot go that way. . . ."
 
 
+# ── Command resolution ────────────────────────────────────────────────────────
+
+_COMMAND_MAP: dict[str, str] = {
+    "quit": "quit",  "exit": "quit",  "q": "quit",
+    "camp": "quit",  "leave": "quit",
+    "north": "north", "south": "south", "east": "east",
+    "west":  "west",  "up":    "up",    "down": "down",  "go": "go",
+    "n": "north", "s": "south", "e": "east",
+    "w": "west",  "u": "up",    "d": "down",
+    "look":    "look",    "l":  "look",
+    "examine": "examine", "ex": "examine", "x": "examine",
+    "get": "get", "take": "get",
+    "drop": "drop",
+    "put": "put", "put_on": "wear",
+    "open": "open", "close": "close",
+    "wear":   "wear", "wield": "wear", "hold": "wear",
+    "remove": "remove", "rem": "remove", "unequip": "remove",
+    "inventory": "inventory", "inv": "inventory", "i": "inventory",
+    "equipment": "equipment", "eq":  "equipment",
+    "powers":    "powers", "spells":    "powers",
+    "skills":    "powers", "abilities": "powers",
+    "who":   "who",
+    "score": "score", "stats": "score", "stat": "score",
+    "kill":     "kill",     "k":   "kill", "attack": "kill",
+    "flee":     "flee",     "fl":  "flee",
+    "consider": "consider", "con": "consider",
+}
+
+
+def _resolve_verb(verb: str) -> str | list | None:
+    if verb in _COMMAND_MAP:
+        return _COMMAND_MAP[verb]
+    matched: dict[str, str] = {}
+    for word, canonical in _COMMAND_MAP.items():
+        if "_" not in word and word.startswith(verb):
+            matched.setdefault(canonical, word)
+    if len(matched) == 1:
+        return next(iter(matched))
+    if len(matched) > 1:
+        return sorted(matched.keys())
+    return None
+
+
+# ── GameState ─────────────────────────────────────────────────────────────────
+
 class GameState:
 
     def __init__(self):
-        self.rooms            = {}
-        self.characters       = {}
-        self.locations        = {}
-        self.player           = ""
-        self.object_templates = {}
-        self.mob_templates    = {}
+        self.rooms:            dict = {}
+        self.characters:       dict = {}
+        self.locations:        dict = {}
+        self.player:           str  = ""
+        self.object_templates: dict = {}
+        self.mob_templates:    dict = {}
+        # combat state
+        self.fighting:         dict = {}  # player_name → target mob
+        self._power_cooldowns: dict = {}  # power_name → timestamp when ready
 
     def load_world(self, rooms, characters, locations, player=""):
         self.rooms      = rooms
@@ -58,50 +123,107 @@ class GameState:
         room_id = self.locations.get(self.player)
         return self.rooms.get(room_id) if room_id is not None else None
 
-    def _target(self, target_str):
-        room = self.current_room
-        if room is None: return None
-        return find_target(target_str, room, self.locations, self.characters)
-
-    # ── Command handler ───────────────────────────────────────────────────────
+    # ── Main command handler ──────────────────────────────────────────────────
 
     def handle(self, raw: str):
         tokens = raw.strip().lower().split()
         if not tokens: return None
         verb, *args = tokens
 
-        # 1. Player powers
+        # Powers fire immediately — cooldown check is inside _execute_power.
         result = self._try_power(verb, args)
-        if result is not None: return result
+        if result is not None:
+            return result
 
-        # 2. System commands
-        if verb in ("quit","exit","leave","q","camp"):   return "quit"
+        resolved = _resolve_verb(verb)
+        if resolved is None:
+            return "&NPardon?"
+        if isinstance(resolved, list):
+            opts = "&w, &W".join(resolved)
+            return f"&wAmbiguous command — did you mean: &W{opts}&w?&N"
+        verb = resolved
+
+        if verb == "quit":     return "quit"
+        if verb == "kill":     return self._cmd_kill(args)
+        if verb == "flee":     return self._cmd_flee()
+        if verb == "consider": return self._cmd_consider(args)
+
         if verb in DIRECTIONS or verb == "go":
-            return go(self.player, self.locations, self.rooms,
-                      args[0] if verb == "go" and args else verb)
+            if self.player in self.fighting:
+                return "&wYou cannot move while in combat — use &Wflee&w to escape!&N"
+            if verb == "go":
+                return go(self.player, self.locations, self.rooms,
+                          args[0] if args else "")
+            return go(self.player, self.locations, self.rooms, verb)
 
-        if verb in ("look","l"):              return self._cmd_look(args)
-        if verb in ("examine","ex","x"):      return self._cmd_examine(args)
-        if verb in ("get","take"):            return self._cmd_get(args)
-        if verb == "drop":                    return self._cmd_drop(args)
-        if verb == "put":                     return self._cmd_put(args)
-        if verb == "open":                    return self._cmd_open(args)
-        if verb == "close":                   return self._cmd_close(args)
-        if verb in ("wear","wield","hold","equip","put_on"): return self._cmd_wear(args)
-        if verb in ("remove","rem","unequip"):              return self._cmd_remove(args)
-        if verb in ("inventory","inv","i"):                 return self._cmd_inventory()
-        if verb in ("equipment","eq"):                      return self._cmd_equipment()
-        if verb in ("powers","spells","skills","abilities"): return self._cmd_powers()
-        if verb == "who":                     return self._who()
-        if verb in ("score","stats","stat"):
+        if   verb == "look":      return self._cmd_look(args)
+        elif verb == "examine":   return self._cmd_examine(args)
+        elif verb == "get":       return self._cmd_get(args)
+        elif verb == "drop":      return self._cmd_drop(args)
+        elif verb == "put":       return self._cmd_put(args)
+        elif verb == "open":      return self._cmd_open(args)
+        elif verb == "close":     return self._cmd_close(args)
+        elif verb == "wear":      return self._cmd_wear(args)
+        elif verb == "remove":    return self._cmd_remove(args)
+        elif verb == "inventory": return self._cmd_inventory()
+        elif verb == "equipment": return self._cmd_equipment()
+        elif verb == "powers":    return self._cmd_powers()
+        elif verb == "who":       return self._who()
+        elif verb == "score":
             char = self.characters.get(self.player)
             return char.character_sheet() if char else "&RNo character found.&N"
-
         return "&NPardon?"
+
+    # ── Auto-combat tick ──────────────────────────────────────────────────────
+
+    def combat_tick(self) -> str | None:
+        """
+        Called by the ticker every 4 seconds while fighting.
+        Runs one auto-attack round then checks for death.
+        Powers fire immediately when typed — they are NOT handled here.
+        """
+        target = self.fighting.get(self.player)
+        if not target: return None
+
+        player = self.characters.get(self.player)
+        if not player: return None
+
+        room = self.current_room
+        if room is None or target not in room.mobs:
+            self.fighting.pop(self.player, None)
+            return "&wYour opponent is no longer here.&N"
+
+        ensure_hp(player)
+        ensure_hp(target)
+
+        msgs: list[str] = []
+
+        # Auto-attack round
+        msgs.extend(combat_round(player, target))
+
+        # Death checks
+        if target.hp <= 0:
+            self.fighting.pop(self.player, None)
+            room.mobs.remove(target)
+            exp = target.level * 50
+            msgs.append(f"&+W{target.name}&w crumples and dies!&N")
+            msgs.append(f"&wYou gain &W{exp}&w experience points.&N")
+
+        elif player.hp <= 0:
+            self.fighting.pop(self.player, None)
+            player.hp = max(1, player.max_hp // 4)
+            msgs.append("&+RYOU HAVE BEEN SLAIN!&N")
+            msgs.append("&wYou somehow cling to life...&N")
+
+        else:
+            msgs.append(f"{hp_status(player)}   {hp_status(target)}")
+
+        return "\n".join(msgs)
 
     # ── Powers ────────────────────────────────────────────────────────────────
 
     def _try_power(self, verb, args):
+        """Check if verb matches a power keyword and fire it immediately."""
         char = self.characters.get(self.player)
         if not char or not char.powers: return None
         for power in char.powers:
@@ -111,39 +233,223 @@ class GameState:
                 return self._execute_power(power)
         return None
 
-    def _execute_power(self, power):
+    def _execute_power(self, power) -> str:
+        """
+        Fire a power immediately.
+
+        If the power is still on cooldown, return the 'not ready' message.
+        Otherwise fire it, apply any combat effect, and set the cooldown.
+        """
+        name     = power.get("name", "power")
+        now      = time.monotonic()
+        ready_at = self._power_cooldowns.get(name, 0)
+
+        # Cooldown check — same message whether in or out of combat
+        if now < ready_at:
+            return "&wYou're not ready to perform another action!&N"
+
+        # Set cooldown
+        cooldown = power.get("cooldown", 8)
+        self._power_cooldowns[name] = now + cooldown
+
         char     = self.characters.get(self.player)
-        name     = char.name if char else "Someone"
+        n        = char.name if char else "Someone"
         user_msg = power.get("user_msg", "")
-        room_msg = power.get("room_msg", "").format(name=name)
-        parts = []
+        room_msg = power.get("room_msg", "").format(name=n)
+
+        parts: list[str] = []
         if user_msg: parts.append(user_msg)
         if room_msg: parts.append(f"&w(others see)&N {room_msg}")
-        return "\n".join(parts)
+
+        # Apply combat effect immediately if we are fighting
+        if self.player in self.fighting and char:
+            target = self.fighting.get(self.player)
+            room   = self.current_room
+            if target and target.hp > 0:
+                ensure_hp(char)
+                ensure_hp(target)
+                effect_msg = self._apply_power_effect(power, char, target)
+                if effect_msg:
+                    parts.append(effect_msg)
+
+                # Check if power killed the target
+                if target.hp <= 0:
+                    self.fighting.pop(self.player, None)
+                    if room and target in room.mobs:
+                        room.mobs.remove(target)
+                    exp = target.level * 50
+                    parts.append(f"&+W{target.name}&w crumples and dies!&N")
+                    parts.append(f"&wYou gain &W{exp}&w experience points.&N")
+                else:
+                    parts.append(f"{hp_status(char)}   {hp_status(target)}")
+
+        return "\n".join(p for p in parts if p)
+
+    def _apply_power_effect(self, power, player, target) -> str | None:
+        """Apply the combat effect of a power (damage bonus or healing)."""
+        effect = power.get("effect")
+
+        if effect == "heal":
+            pct    = power.get("heal_pct", 0.20)
+            amount = int(player.max_hp * pct)
+            player.hp = min(player.max_hp, player.hp + amount)
+            return f"&+GYou recover &W{amount}&+G hit points.&N"
+
+        if effect == "damage":
+            mult   = power.get("damage_mult", 1.5)
+            dmg    = max(1, int(calc_damage(player) * mult))
+            target.hp = max(0, target.hp - dmg)
+            return (f"&+WYour power strikes &N{target.name}&+W for "
+                    f"&W{dmg}&+W bonus damage!&N")
+
+        return None
 
     def _cmd_powers(self):
         char = self.characters.get(self.player)
         if not char:        return "&RNo character found.&N"
         if not char.powers: return "&wYou have no powers.&N"
-        lines = [f"&+W{'Power':<20} {'Keywords'}&N", "&w" + "─"*46 + "&N"]
+
+        now   = time.monotonic()
+        lines = [
+            f"&+W{'Power':<20} {'Keywords':<22} Status&N",
+            "&w" + "─"*56 + "&N",
+        ]
         for p in char.powers:
-            lines.append(f"{p.get('name','?'):<20} &c{', '.join(p.get('keywords',()))}&N")
+            name     = p.get("name", "?")
+            keywords = ", ".join(p.get("keywords", ()))
+            cooldown = p.get("cooldown", 8)
+            ready_at = self._power_cooldowns.get(name, 0)
+            if now >= ready_at:
+                status = f"&+Gready&N &x({cooldown}s cooldown)&N"
+            else:
+                remaining = int(ready_at - now)
+                status    = f"&+R{remaining}s remaining&N"
+            lines.append(f"{name:<20} &c{keywords:<22}&N {status}")
         return "\n".join(lines)
+
+    # ── Combat commands ───────────────────────────────────────────────────────
+
+    def _cmd_kill(self, args) -> str:
+        if not args: return "&wKill what?&N"
+        if self.player in self.fighting:
+            return "&wYou are already in combat!&N"
+
+        char = self.characters.get(self.player)
+        room = self.current_room
+        if room is None: return "&RYou are nowhere.&N"
+
+        from ..world.mob import Mob
+
+        target_str = " ".join(args)
+        target = find_target(target_str, room, self.locations, self.characters)
+
+        if target is None:
+            return f"&wYou don't see '&W{target_str}&w' here.&N"
+        if not isinstance(target, Mob):
+            return f"&w{target_name(target)}&w is not something you can attack.&N"
+        if not target.killable:
+            return f"&w{target.name}&w is protected — you cannot attack it.&N"
+
+        ensure_hp(char)
+        ensure_hp(target)
+        self.fighting[self.player] = target
+
+        return (
+            f"&wYou engage &+W{target.name}&w in combat!&N\n"
+            f"&wThey appear to be &N{condition_str(target)}&w.&N\n"
+            f"&x(Auto-attack fires every 4 seconds. "
+            f"Type a power to use it immediately.)&N"
+        )
+
+    def _cmd_flee(self) -> str:
+        import random
+
+        if self.player not in self.fighting:
+            return "&wYou aren't fighting anyone.&N"
+
+        char = self.characters.get(self.player)
+        room = self.current_room
+        if room is None: return "&RYou are nowhere.&N"
+
+        dex      = char.get_stat("dex") if char else 75
+        flee_pct = 50 + max(0, (dex - 75) // 5)
+
+        if random.randint(1, 100) > flee_pct:
+            target = self.fighting.get(self.player)
+            if target:
+                ensure_hp(char)
+                ensure_hp(target)
+                _, _, hit_msg = one_attack(target, char)
+                msgs = ["&wYou attempt to flee, but stumble!&N", hit_msg]
+                if char.hp <= 0:
+                    self.fighting.pop(self.player, None)
+                    char.hp = max(1, char.max_hp // 4)
+                    msgs.append("&+RYOU HAVE BEEN SLAIN trying to flee!&N")
+                    msgs.append("&wYou collapse… and somehow cling to life.&N")
+                return "\n".join(msgs)
+            return "&wYou attempt to flee, but stumble!&N"
+
+        open_exits = [
+            ex for ex in room.exits
+            if not room.exit_is_blocked(ex["direction"])
+            and ex["roomId"] in self.rooms
+        ]
+        if not open_exits:
+            return "&wThere's nowhere to run!&N"
+
+        exit_choice = random.choice(open_exits)
+        self.fighting.pop(self.player, None)
+        self.locations[self.player] = exit_choice["roomId"]
+        dest = self.rooms[exit_choice["roomId"]]
+
+        return (f"&wYou flee in a panic to the {exit_choice['direction']}!&N\n"
+                f"{dest.render(self.locations, self.characters)}")
+
+    def _cmd_consider(self, args) -> str:
+        if not args: return "&wConsider whom?&N"
+
+        char   = self.characters.get(self.player)
+        room   = self.current_room
+        if room is None: return "&RYou are nowhere.&N"
+
+        from ..world.mob import Mob
+
+        target_str = " ".join(args)
+        target = find_target(target_str, room, self.locations, self.characters)
+
+        if target is None:
+            return f"&wYou don't see '&W{target_str}&w' here.&N"
+        if not isinstance(target, Mob):
+            return f"&w{target_name(target)}&w is not something you can fight.&N"
+
+        ensure_hp(target)
+
+        diff = target.level - char.level
+        if   diff <= -10: diff_str = "&+Gcompletely helpless before you&N"
+        elif diff <=  -5: diff_str = "&+Gvery easy&N"
+        elif diff <=  -2: diff_str = "&Geasy&N"
+        elif diff <=   2: diff_str = "&Yan even match&N"
+        elif diff <=   5: diff_str = "&Ychallenging&N"
+        elif diff <=  10: diff_str = "&Rdangerous&N"
+        else:             diff_str = "&+RSUICIDAL&N"
+
+        return "\n".join([
+            f"&wYou size up &N{target.name}&w:&N",
+            f"  &wDifficulty:&N {diff_str}",
+            f"  &wCondition:&N  {condition_str(target)}",
+            f"  &wLevel:&N      &W{target.level}&N",
+            f"  &wRace:&N       {target.race}",
+            f"  &wClass:&N      {target.cclass}",
+        ])
 
     # ── get / drop / put ─────────────────────────────────────────────────────
 
     def _cmd_get(self, args):
-        """
-        get <item>                   — pick up from room
-        get <item> from <container>  — take from container (explicit)
-        get <item> <container>       — take from container (implicit: last word)
-        """
         if not args: return "&wGet what?&N"
         char = self.characters.get(self.player)
         room = self.current_room
         if room is None: return "&RYou are nowhere.&N"
 
-        # Resolve item_str / cont_str
         if "from" in args:
             sep      = args.index("from")
             item_str = " ".join(args[:sep])
@@ -155,7 +461,6 @@ class GameState:
             item_str = None
             cont_str = None
 
-        # ── container mode ────────────────────────────────────────────────────
         if item_str is not None:
             from ..world.objects import Container as ContClass
             container = _find_container(cont_str, char, room)
@@ -172,7 +477,6 @@ class GameState:
             char.inventory.append(item)
             return f"&wYou take &N{item.name}&w from &N{container.name}&w.&N"
 
-        # ── room pickup ───────────────────────────────────────────────────────
         item = find_target(" ".join(args), room, self.locations, self.characters)
         if item is None:
             return f"&wYou don't see any '&W{' '.join(args)}&w' here.&N"
@@ -196,17 +500,11 @@ class GameState:
         return f"&wYou drop &N{item.name}&w.&N"
 
     def _cmd_put(self, args):
-        """
-        put <item> in <container>  — explicit
-        put <item> <container>     — implicit: last word is container
-        """
         if not args: return "&wPut what?&N"
         char = self.characters.get(self.player)
         if not char: return "&RNo character found.&N"
         room = self.current_room
-
-        if len(args) < 2:
-            return "&wUsage: &Wput <item> <container>&N"
+        if len(args) < 2: return "&wUsage: &Wput <item> <container>&N"
 
         if "in" in args:
             sep      = args.index("in")
@@ -245,18 +543,15 @@ class GameState:
         if not args: return "&wOpen what?&N"
         char = self.characters.get(self.player)
         room = self.current_room
-
         from ..world.objects import Container
         target_str = " ".join(args)
         container  = _find_container(target_str, char, room)
-
         if container is None:
             return f"&wYou don't see any '&W{target_str}&w' here.&N"
         if not isinstance(container, Container):
             return f"&w{container.name}&w is not something you can open.&N"
         if container.is_open:
             return f"&w{container.name}&w is already open.&N"
-
         container.is_open = True
         return f"&wYou open &N{container.name}&w.&N"
 
@@ -264,44 +559,30 @@ class GameState:
         if not args: return "&wClose what?&N"
         char = self.characters.get(self.player)
         room = self.current_room
-
         from ..world.objects import Container
         target_str = " ".join(args)
         container  = _find_container(target_str, char, room)
-
         if container is None:
             return f"&wYou don't see any '&W{target_str}&w' here.&N"
         if not isinstance(container, Container):
             return f"&w{container.name}&w is not something you can close.&N"
         if not container.is_open:
             return f"&w{container.name}&w is already closed.&N"
-
         container.is_open = False
         return f"&wYou close &N{container.name}&w.&N"
 
     # ── examine ───────────────────────────────────────────────────────────────
 
     def _cmd_examine(self, args):
-        """
-        examine <target>
-
-        Searches: room mobs/chars/objects, then player inventory.
-        Containers show description + capacity info + contents list.
-        """
         if not args: return "&wExamine what?&N"
-
         char       = self.characters.get(self.player)
         room       = self.current_room
         target_str = " ".join(args)
-
         instance = find_target(target_str, room, self.locations, self.characters) if room else None
-
         if instance is None and char:
             instance = _find_in_inventory(target_str, char)
-
         if instance is None:
             return f"&wYou don't see any '&W{target_str}&w' here.&N"
-
         return self._describe(instance, detailed=True)
 
     # ── wear / remove ─────────────────────────────────────────────────────────
@@ -311,16 +592,27 @@ class GameState:
         char = self.characters.get(self.player)
         if not char: return "&RNo character found.&N"
 
+        if " ".join(args) == "all":
+            wearable = [it for it in list(char.inventory)
+                        if getattr(it, "wear_on", None) is not None]
+            if not wearable: return "&wYou have nothing to wear.&N"
+            for it in wearable:
+                if it in char.inventory:
+                    self._wear_one(char, it)
+            return "&wYou wear your equipment.&N"
+
         item = _find_in_inventory(" ".join(args), char)
         if item is None:
             return f"&wYou're not carrying '&W{' '.join(args)}&w'.&N"
+        return self._wear_one(char, item)
 
+    def _wear_one(self, char, item) -> str:
         wear_on = getattr(item, "wear_on", None)
         if wear_on is None:
             return f"&wYou can't wear or hold &N{item.name}&w.&N"
 
         from ..world.equipment import (
-            DUAL_SLOTS, WEAR_ON_ALIAS, SLOTS, is_blocking_secondary, actual_slot
+            DUAL_SLOTS, SLOTS, is_blocking_secondary, actual_slot
         )
 
         slot  = actual_slot(wear_on)
@@ -331,9 +623,9 @@ class GameState:
         if two_h:
             for s in ("secondary_hand", "primary_hand"):
                 if s in char.equipment:
-                    old = char.equipment.pop(s)
-                    char.inventory.append(old)
-                    msgs.append(f"&wYou must free your secondary hand — &N{old.name}&w goes to inventory.&N")
+                    bumped = char.equipment.pop(s)
+                    char.inventory.append(bumped)
+                    msgs.append(f"&wYou must free your hands — &N{bumped.name}&w goes to inventory.&N")
             char.equipment["primary_hand"] = item
             msgs.append(f"&wYou wield &N{item.name}&w with both hands.&N")
 
@@ -342,11 +634,11 @@ class GameState:
             if primary and is_blocking_secondary(primary):
                 char.inventory.append(item)
                 return (f"&wYour primary hand is occupied with the two-handed "
-                        f"&N{primary.name}&w.&N")
+                        f"&N{primary.name}&w — &N{item.name}&w stays in inventory.&N")
             if "secondary_hand" in char.equipment:
-                old = char.equipment.pop("secondary_hand")
-                char.inventory.append(old)
-                msgs.append(f"&wYou remove &N{old.name}&w.&N")
+                bumped = char.equipment.pop("secondary_hand")
+                char.inventory.append(bumped)
+                msgs.append(f"&wYou remove &N{bumped.name}&w.&N")
             char.equipment["secondary_hand"] = item
             verb = "block with" if wear_on == "shield" else "hold in your off hand"
             msgs.append(f"&wYou {verb} &N{item.name}&w.&N")
@@ -360,13 +652,13 @@ class GameState:
                 msgs.append(f"&wYou remove &N{bumped.name}&w to make room.&N")
             current.append(item)
             char.equipment[slot] = current
-            msgs.append(f"&wYou wear &N{item.name}&w on your {SLOTS.get(slot,slot).lower()}.&N")
+            msgs.append(f"&wYou wear &N{item.name}&w on your {SLOTS.get(slot, slot).lower()}.&N")
 
         else:
             if slot in char.equipment:
-                old = char.equipment.pop(slot)
-                char.inventory.append(old)
-                msgs.append(f"&wYou remove &N{old.name}&w.&N")
+                bumped = char.equipment.pop(slot)
+                char.inventory.append(bumped)
+                msgs.append(f"&wYou remove &N{bumped.name}&w.&N")
             char.equipment[slot] = item
             verb = "wield" if slot == "primary_hand" else "wear"
             msgs.append(f"&wYou {verb} &N{item.name}&w.&N")
@@ -405,10 +697,10 @@ class GameState:
         char = self.characters.get(self.player)
         if not char: return "&RNo character found.&N"
         from ..world.equipment import SLOTS, DUAL_SLOTS, is_blocking_secondary
-        primary  = char.equipment.get("primary_hand")
+        primary     = char.equipment.get("primary_hand")
         sec_blocked = primary and is_blocking_secondary(primary)
-        lines    = ["&+WYou are wearing:&N"]
-        anything = False
+        lines       = ["&+WYou are wearing:&N"]
+        anything    = False
         for slot, label in SLOTS.items():
             equipped = char.equipment.get(slot)
             if slot == "secondary_hand" and sec_blocked and not equipped:
@@ -437,11 +729,9 @@ class GameState:
         room = self.current_room
         if room is None: return "&RYou are nowhere.&N"
 
-        # bare look — render the room
         if not args:
             return room.render(self.locations, self.characters)
 
-        # look <direction>
         token = args[0].lower()
         if token in self._ALL_DIRS:
             direction = _expand_direction(token)
@@ -449,7 +739,6 @@ class GameState:
             if msg: return msg
             return dest.render(self.locations, self.characters)
 
-        # look in <container>  — show contents
         if token == "in" and len(args) >= 2:
             char       = self.characters.get(self.player)
             target_str = " ".join(args[1:])
@@ -461,11 +750,9 @@ class GameState:
                 return f"&w{container.name}&w is not a container.&N"
             return _look_in_container(container)
 
-        # look <target>  — show description of the thing
         target_str = " ".join(args)
         instance   = find_target(target_str, room, self.locations, self.characters)
         if instance is None:
-            # also check inventory
             char = self.characters.get(self.player)
             if char:
                 instance = _find_in_inventory(target_str, char)
@@ -481,9 +768,7 @@ class GameState:
         from ..core.character import Character
 
         if isinstance(instance, Container):
-            if detailed:
-                return _examine_container(instance)
-            # look <container> — just the description
+            if detailed: return _examine_container(instance)
             desc = getattr(instance, "description", "")
             return desc if desc else f"You see nothing special about {target_name(instance)}."
 
@@ -513,16 +798,6 @@ class GameState:
 # ── Container helpers ─────────────────────────────────────────────────────────
 
 def _look_in_container(c) -> str:
-    """
-    'look in sack' — show what is inside the container.
-
-    Output:
-        You look in a tattered silken sack, it contains:
-          <item name>
-          <item name>
-        OR
-        A tattered silken sack is closed.
-    """
     if not c.is_open:
         return f"&N{c.name}&w is closed.&N"
     if not c.contents:
@@ -532,48 +807,27 @@ def _look_in_container(c) -> str:
         lines.append(f"  {item.name}")
     return "\n".join(lines)
 
-
 def _examine_container(c) -> str:
-    """
-    'examine sack' — description, capacity remaining, then the look-in view.
-    """
     lines = []
-
     if c.description:
         lines.append(c.description)
-
-    avail = int(c.available_capacity)
-    lines.append(f"&wIt can hold about &W{avail}&w more lbs.&N")
-
+    lines.append(f"&wIt can hold about &W{int(c.available_capacity)}&w more lbs.&N")
     lines.append(_look_in_container(c))
-
     return "\n".join(lines)
-
 
 # ── Search helpers ────────────────────────────────────────────────────────────
 
-def _find_container(target_str: str, char, room) -> object | None:
-    """
-    Find a container by keyword.  Searches:
-      1. Room objects
-      2. Player inventory
-    """
+def _find_container(target_str, char, room):
     _, keyword = parse_target(target_str)
-
     if room is not None:
         for obj in room.objects:
-            if _item_matches(obj, keyword):
-                return obj
-
+            if _item_matches(obj, keyword): return obj
     if char is not None:
         for item in char.inventory:
-            if _item_matches(item, keyword):
-                return item
-
+            if _item_matches(item, keyword): return item
     return None
 
-
-def _find_in_container(target_str: str, container) -> object | None:
+def _find_in_container(target_str, container):
     idx, keyword = parse_target(target_str)
     matches = 0
     for item in container.contents:
@@ -582,8 +836,7 @@ def _find_in_container(target_str: str, container) -> object | None:
             if matches == idx: return item
     return None
 
-
-def _find_in_inventory(target_str: str, char) -> object | None:
+def _find_in_inventory(target_str, char):
     idx, keyword = parse_target(target_str)
     matches = 0
     for item in char.inventory:
@@ -592,8 +845,7 @@ def _find_in_inventory(target_str: str, char) -> object | None:
             if matches == idx: return item
     return None
 
-
-def _find_in_equipment(target_str: str, char) -> tuple:
+def _find_in_equipment(target_str, char):
     from ..world.equipment import DUAL_SLOTS
     _, keyword = parse_target(target_str)
     for slot, equipped in char.equipment.items():
@@ -603,7 +855,6 @@ def _find_in_equipment(target_str: str, char) -> tuple:
         else:
             if _item_matches(equipped, keyword): return equipped, slot
     return None, None
-
 
 def _item_matches(item, keyword: str) -> bool:
     if hasattr(item, "key_words"):

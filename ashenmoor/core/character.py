@@ -2,6 +2,9 @@
 ashenmoor.core.character
 ────────────────────────
 Base Character class.
+
+HP is derived from CON and level when not specified in the dict:
+    max_hp = (CON // 5) × level  +  level × 5
 """
 
 from __future__ import annotations
@@ -26,6 +29,14 @@ class Character:
         # inventory  — list of Item instances being carried (not equipped)
         # equipment  — slot_key → Item  (dual slots store list[Item, max 2])
 
+        # ── Hit Points ────────────────────────────────────────────────────────
+        # max_hp can be set explicitly in the dict, or is computed from CON/level.
+        # hp starts at max_hp (full health) unless overridden.
+        con     = self.stats[Stats.CONSTITUTION.value] if len(self.stats) > Stats.CONSTITUTION.value else 75
+        default_max  = max(10, (con // 5) * max(1, self.level) + max(1, self.level) * 5)
+        self.max_hp: int = d.get("max_hp", default_max)
+        self.hp:     int = d.get("hp",     self.max_hp)
+
         if races is None:
             from .race import RACES
             races = RACES
@@ -45,11 +56,13 @@ class Character:
         return int(self.get_stat(stat) * race.get_mod(stat))
 
     def character_sheet(self) -> str:
+        hp_pct = int(self.hp / max(1, self.max_hp) * 100)
         lines = [
             f"&+WCharacter sheet for &N{self.name}\n",
             f"&wRace:&N  {self.race}",
             f"&wClass:&N {self.cclass}",
             f"&wLevel:&N {self.level}",
+            f"&wHP:&N    {self.hp}/{self.max_hp}  ({hp_pct}%)",
             "&wStats:&N",
             (f"  &wStrength:&N     {self.get_stat('str'):>3}    "
              f"&wIntelligence:&N {self.get_stat('int'):>3}"),

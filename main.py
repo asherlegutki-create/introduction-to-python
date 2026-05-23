@@ -6,10 +6,11 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
 
-from ashenmoor.color  import crepl, cprint
-from ashenmoor.core   import Character, RACES
-from ashenmoor.engine import GameState
-from ashenmoor.world.powers import POWERS   # <-- import the registry
+from ashenmoor.color        import cprint
+from ashenmoor.core         import Character, RACES
+from ashenmoor.engine       import GameState
+from ashenmoor.engine.ticker import auto_crepl          # ← replaces crepl
+from ashenmoor.world.powers import POWERS
 
 from zones.the_void  import ZONE as THE_VOID
 from zones.archer    import ZONE as ARCHER
@@ -38,7 +39,7 @@ def main():
             "class":  "Shaman",
             "level":  24,
             "stats":  [88, 80, 80, 80, 80, 80],
-            "powers": [              # <-- assign powers here
+            "powers": [
                 POWERS["heal"],
                 POWERS["smite"],
                 POWERS["meditate"],
@@ -85,13 +86,14 @@ def main():
 
     cprint(f"&w{len(state.rooms)} rooms loaded across all zones.&N")
 
-    crepl(
-        handler  = state.handle,
+    # auto_crepl replaces crepl — it takes state directly (not handler=)
+    auto_crepl(
+        state    = state,
         prompt   = "&g> &N",
         banner   = (
             "&WWelcome to &RRiverview &WChristian &BSchool&N SUD!&N\n"
             "&wType &Wlook&N&w, &Wn&N&w/&Ws&N&w/&We&N&w/&Ww&N&w, "
-            "&Wwho&N&w, &Wstats&N&w, &Wpowers&N&w, &Wquit&N&w.&N"
+            "&Wwho&N&w, &Wstats&N&w, &Wpowers&N&w, &Wkill <mob>&N&w, &Wflee&N&w, &Wquit&N&w.&N"
         ),
         farewell = "&CGoodbye!&N",
     )
