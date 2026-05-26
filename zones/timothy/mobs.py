@@ -41,7 +41,7 @@ TEMPLATES: dict[str, dict] = {
     "Brumplin Minor": {
         "name": "Brumplin Minor",
         "key_words": ("Brumplin"),
-        "room_description": "&wA Brumplin Minor bounces about.&N",
+        "room_description": "A &gBrumplin Minor&n bounces about.&N",
         "description": (
             "A little ball of brambles with two glowing white eyes.\n"
         ),
@@ -54,7 +54,7 @@ TEMPLATES: dict[str, dict] = {
     "Brumplin Alpha": {
         "name": "Brumplin Alpha",
         "key_words": ("Brumplin"),
-        "room_description": "&gA Brumplin Alpha&n howels a &rdeathly&n screech.&N",
+        "room_description": "A &gBrumplin Alpha&n howels a &rdeathly&n screech.&N",
         "description": (
             "The final stage of the &gBrumplin&n race.\n"
             "&rvery&n aggressive"

@@ -1,3 +1,3 @@
-number = 100
+number = 8
 name=""
 author=""

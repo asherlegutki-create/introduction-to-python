@@ -18,23 +18,17 @@ ROOMS: dict[int, Room] = {
     1: Room(
         {
             "number": 1,
-            "name": "The Void",
-            "description": "There is nothing here but the sound of rushing of wind.\nWe are waiting for the Spirit of God to move over it.",
-            "indoors": False,
-            "terrain": "no ground",
+            "name": "&yT&bh&re &yI&bn&rn&N",
+            "description": "The local inn of your childhood town",
+            "indoors": True,
+            "terrain": "wooden",
             "exits": [
-                {"direction": "north", "roomId": 1},
-                {"direction": "south", "roomId": 1},
-                {"direction": "east", "roomId": 2},
-                {"direction": "west", "roomId": 3},
-                {"direction": "up", "roomId": 1},
-                {"direction": "down", "roomId": 1},
+                {"direction": "up", "roomId": 99004, "external": True},
             ],
             "objects": [
-                O.spawn("silken_sack"),
-                O.spawn("windsong"),
+                O.spawn("wallet"),
             ],
-            "mobs": [M.spawn("wandering_student")],  # two independent students
+            "mobs": [M.spawn("The_Inn_Maid")],  # two independent students
         }
     ),
 }

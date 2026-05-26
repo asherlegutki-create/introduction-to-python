@@ -25,12 +25,8 @@ ROOMS: dict[int, Room] = {
             "exits": [
                 {"direction": "north", "roomId": 2},
                 {"direction": "south", "roomId": 3},
-                {"direction": "east", "roomId": 99002, "external": "True"},
+                {"direction": "east", "roomId": 99002, "external": True},
                 {"direction": "west", "roomId": 4},
-            ],
-            "objects": [
-                O.spawn("Potion of Turtle Master"),
-                O.spawn("windsong"),
             ],
             "mobs": [ 
                 M.spawn("&MIllrigger Mage&N"),
@@ -56,7 +52,6 @@ ROOMS: dict[int, Room] = {
                 ],
                 "objects": [
                     O.spawn("Potion of Turtle Master"),
-                    O.spawn("windsong"),
                 ],
                 "mobs": [ 
                     M.spawn("&RIllrigger Rogue&N"),
@@ -90,9 +85,6 @@ ROOMS: dict[int, Room] = {
                 "exits": [
                     {"direction": "south", "roomId": 1},
                 ],
-                "objects": [
-                    O.spawn("windsong"),
-                ],
                 "mobs": [ 
                     M.spawn("&MIllrigger Mage&N"),
                 ],
@@ -108,6 +100,9 @@ ROOMS: dict[int, Room] = {
                 "exits": [
                     {"direction": "south", "roomId": 2},
                 ],
+                 "objects": [
+                    O.spawn("Potion of Strength II"),
+                 ],
             }
         ),
 }
