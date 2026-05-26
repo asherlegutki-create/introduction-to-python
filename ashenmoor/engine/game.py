@@ -353,14 +353,17 @@ class GameState:
         if target.hp <= 0:
             self.fighting.pop(self.player, None)
             room.mobs.remove(target)
-            exp = target.level * 50
+            from ..dnd.xp import mob_xp_award, level_for_xp, apply_level_up
+            exp = mob_xp_award(target.level, player.level)
             player.xp = getattr(player, "xp", 0) + exp
+            _, pct = level_for_xp(player.xp)
             msgs.append(f"&+W{target.name}&w crumples and dies!&N")
             msgs.append(
-                f"&wYou gain &W{exp}&w xp  "
-                f"(&W{player.xp:,}&w total)&N"
+                f"&wYou gain &W{exp:,}&w xp  "
+                f"(&W{player.xp:,}&w total | &W{pct}&w% into level)&N"
             )
-            # Save XP gain to disk
+            lvlup_msgs = apply_level_up(player)
+            msgs.extend(lvlup_msgs)
             self._save_player()
 
         elif player.hp <= 0:
@@ -439,10 +442,17 @@ class GameState:
                     self.fighting.pop(self.player, None)
                     if room and target in room.mobs:
                         room.mobs.remove(target)
-                    exp = target.level * 50
+                    from ..dnd.xp import mob_xp_award, level_for_xp, apply_level_up
+                    exp = mob_xp_award(target.level, char.level)
                     char.xp = getattr(char, "xp", 0) + exp
+                    _, pct = level_for_xp(char.xp)
                     parts.append(f"&+W{target.name}&w crumples and dies!&N")
-                    parts.append(f"&wYou gain &W{exp}&w xp  (&W{char.xp:,}&w total)&N")
+                    parts.append(
+                        f"&wYou gain &W{exp:,}&w xp  "
+                        f"(&W{char.xp:,}&w total | &W{pct}&w% into level)&N"
+                    )
+                    lvlup_msgs = apply_level_up(char)
+                    parts.extend(lvlup_msgs)
                     self._save_player()
                 else:
                     parts.append(f"{hp_status(char)}   {hp_status(target)}")
@@ -628,11 +638,13 @@ class GameState:
         char = self.characters.get(self.player)
         if not char: return "&RNo character found.&N"
 
-        from ..dnd.abilities import xp_percent
+        from ..dnd.xp import level_for_xp, XP_TABLE, MAX_LEVEL
 
-        level   = char.level
-        xp      = getattr(char, "xp",        0)
-        xp_pct  = xp_percent(level, xp)
+        xp       = getattr(char, "xp", 0)
+        level, xp_pct = level_for_xp(xp)
+        # Keep char.level in sync if it drifted (edge case on load)
+        if level != char.level and level <= MAX_LEVEL:
+            char.level = level
         hp      = getattr(char, "hp",        char.max_hp)
         mhp     = getattr(char, "max_hp",    1)
         moves   = getattr(char, "moves",     100)
@@ -671,7 +683,8 @@ class GameState:
             f"&wLevel:&N {level:<5} &wRace:&N {char.race:<14} &wClass:&N {char.cclass}",
             (f"&wHit points:&N &W{hp}&w(&W{mhp}&w)  "
              f"&wMoves:&N &W{moves}&w(&W{mmoves}&w)"),
-            f"&wExperience Progress:&N &W{xp_pct}&w %",
+            f"&wExperience Progress:&N &W{xp_pct}&w %  "
+            f"&x({xp:,} / {XP_TABLE.get(level+1, xp):,} xp)&N",
             _coin_line("Coins carried:   ", coins),
             _coin_line("Coins in bank:   ", bank_coins),
             f"&wPlaying time:&N {days} days / {hours} hours / {mins} minutes",

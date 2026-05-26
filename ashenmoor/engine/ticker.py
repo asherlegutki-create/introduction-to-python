@@ -114,8 +114,8 @@ def login_crepl(
     conn = open_db(db_path)
 
     cprint("\n&+W╔══════════════════════════════╗&N")
-    cprint("&+W║   W e l c o m e  t o         ║&N")
-    cprint("&+W║   A s h e n m o o r          ║&N")
+    cprint("&+W║      W e l c o m e  t o      ║&N")
+    cprint("&+W║      R i v e r m o o r       ║&N")
     cprint("&+W╚══════════════════════════════╝&N\n")
 
     while True:
