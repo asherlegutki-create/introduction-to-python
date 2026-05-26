@@ -5,14 +5,14 @@ from . import mobs    as M
 ROOMS: dict[int, Room] = {
     1: Room({
         "number": 1,
-        "name": "Mrs. Allisons",
-        "description": "a well &decorated room, filled with historical artifacts",
+        "name": "&YM&yr&Ys.&N &RA&rl&Rl&ri&Rs&ro&Rn&rs &Bc&bl&Ba&rs&Bs&N",
+        "description": "&Ra &yw&Ye&Gl&Bl &Rd&ye&Yc&Go&Br&Ra&yt&Ye&Gd &Br&Ro&yo&Ym, &Gf&Bi&Rl&yl&Ge&Bd &Rw&yi&Yt&Gh &Bh&Ri&ys&Yt&Go&Br&Ri&yc&Ya&Gl &Ba&Rr&yt&Yi&Gf&Ba&Rc&yt&Ys&N",
         "indoors": True,
         "terrain": "ground",
         "exits": [
             {"direction": "west", "roomId": 8},
         ],
-        "objects": [
+        "objects": ["water bottle", "pitch fork"
         ],
         "mobs": [],
     }),
@@ -60,8 +60,8 @@ ROOMS: dict[int, Room] = {
     }),
     5: Room({
         "number": 5,
-        "name": "Mr. Millers",
-        "description": "a bland room with few decorations, two couches sat in the back",
+        "name": "Mrs. Millers class",
+        "description": "a bland room with few decorations, two couches sit in the back.",
         "indoors": True,
         "terrain": "ground",
         "exits": [
