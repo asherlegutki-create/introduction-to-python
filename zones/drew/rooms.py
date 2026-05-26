@@ -23,7 +23,7 @@ ROOMS: dict[int, Room] = {
             "indoors": False,
             "terrain": "no ground",
             "exits": [
-                {"direction": "east", "roomId": 99003, "external": True},
+                {"direction": "south", "roomId": 99003, "external": True},
             ],
             "objects": [
             ],

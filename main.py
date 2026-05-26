@@ -6,11 +6,10 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
 
-from ashenmoor.color        import cprint
-from ashenmoor.core         import Character, RACES
-from ashenmoor.engine       import GameState
-from ashenmoor.engine.ticker import auto_crepl          # ← replaces crepl
-from ashenmoor.world.powers import POWERS
+from ashenmoor.color               import cprint
+from ashenmoor.core                import RACES
+from ashenmoor.engine              import GameState
+from ashenmoor.engine.ticker       import login_crepl, auto_crepl
 
 from zones.the_void  import ZONE as THE_VOID
 from zones.archer    import ZONE as ARCHER
@@ -30,41 +29,15 @@ from zones.timothy   import ZONE as TIMOTHY
 from zones.wilson    import ZONE as WILSON
 from zones.wyatt     import ZONE as WYATT
 
+DB_PATH    = "ashenmoor.db"
+START_ROOM = 99001   # Hub room in new_zone — where new characters spawn
+
 
 def main():
-    characters = {
-        "Moted": Character({
-            "name":   "Moted",
-            "race":   "Dwarf",
-            "class":  "Shaman",
-            "level":  24,
-            "stats":  [88, 80, 80, 80, 80, 80],
-            "powers": [
-                POWERS["heal"],
-                POWERS["smite"],
-                POWERS["meditate"],
-                POWERS["shout"],
-            ],
-        }, races=RACES),
-
-        "Aleolas": Character({
-            "name":   "Aleolas",
-            "race":   "Grey Elf",
-            "class":  "Ranger",
-            "level":  50,
-            "stats":  [100, 80, 100, 80, 80, 80],
-            "powers": [
-                POWERS["entangle"],
-                POWERS["barkskin"],
-                POWERS["frost_bolt"],
-            ],
-        }, races=RACES),
-    }
-
-    locations = {"Moted": 99001, "Aleolas": 1}
-
     state = GameState()
-    state.load_world({}, characters, locations, player="Moted")
+
+    # ── Load all zones (no characters yet — login picks who plays) ──────────
+    state.load_world({}, {}, {})
 
     state.load_zone(THE_VOID)
     state.load_zone(ARCHER)
@@ -84,18 +57,28 @@ def main():
     state.load_zone(WILSON)
     state.load_zone(WYATT)
 
-    cprint(f"&w{len(state.rooms)} rooms loaded across all zones.&N")
+    cprint(f"&x{len(state.rooms)} rooms loaded.&N")
 
-    # auto_crepl replaces crepl — it takes state directly (not handler=)
+    # ── Login: picks/creates character, sets state.player ───────────────────
+    login_crepl(
+        state      = state,
+        start_room = START_ROOM,
+        races      = RACES,
+        db_path    = DB_PATH,
+    )
+
+    # ── Start the game ───────────────────────────────────────────────────────
+    char = state.characters[state.player]
     auto_crepl(
         state    = state,
         prompt   = "&g> &N",
         banner   = (
-            "&WWelcome to &RRiverview &WChristian &BSchool&N SUD!&N\n"
-            "&wType &Wlook&N&w, &Wn&N&w/&Ws&N&w/&We&N&w/&Ww&N&w, "
-            "&Wwho&N&w, &Wstats&N&w, &Wpowers&N&w, &Wkill <mob>&N&w, &Wflee&N&w, &Wquit&N&w.&N"
+            f"&wYou are &W{char.name}&w, a level &W{char.level}&w "
+            f"{char.race} {char.cclass}.&N\n"
+            f"&xType &Wscore&N&x, &Watt&N&x, &Wlook&N&x, "
+            f"&Wkill <mob>&N&x, &Wquit&N&x.&N"
         ),
-        farewell = "&CGoodbye!&N",
+        farewell = "&CGoodbye! Your progress has been saved.&N",
     )
 
 
