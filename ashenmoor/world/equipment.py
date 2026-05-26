@@ -1,83 +1,172 @@
 """
 ashenmoor.world.equipment
 ─────────────────────────
-Equipment slot definitions and two-handed blocking logic.
+Slot definitions and routing for the wear/remove system.
 
-Slot list (17 slots, 4 dual pairs)
-───────────────────────────────────
-    head, eyes, earring×2, face, neck×2, on_body, about_body,
-    quiver, waist, arms, wrist×2, hands, finger×2,
-    primary_hand, secondary_hand, legs, feet
+Dual slots (ring, neck, wrist, earring)
+────────────────────────────────────────
+Each of these slots holds a list of up to 2 items in char.equipment.
+Zone items may declare wear_on with a number suffix (ring1, ring2, neck1 …)
+or without (ring, neck, wrist).  actual_slot() collapses all variants to
+the bare canonical name so _wear_one() always stores into the same key
+and the list-of-2 logic fires correctly.
 
-wear_on values
-──────────────
-Set wear_on on an Item/Weapon template to one of VALID_WEAR_ON:
+  item.wear_on = "ring1"  →  actual_slot() → "ring"  →  DUAL_SLOT
+  item.wear_on = "ring2"  →  actual_slot() → "ring"  →  DUAL_SLOT  (same key!)
+  item.wear_on = "ring"   →  actual_slot() → "ring"  →  DUAL_SLOT
 
-  Direct slot key   — stored in that slot
-  "shield"          — stored in secondary_hand
-  "held_twohanded"  — stored in primary_hand; secondary_hand becomes unavailable
+Result: a player can wear any two ring-type items regardless of whether
+the zone author wrote ring, ring1, or ring2 as the wear_on value.
+Same for neck (necklace/neck1/neck2) and wrist (bracelet/wrist1/wrist2).
 
-Two-handed weapons
-──────────────────
-A Weapon with two_handed=True also blocks secondary_hand when equipped.
-
-Race-specific slots
-───────────────────
-For now all races share the same slot set.  In a future phase, each Race
-will carry a set of available slots and the equip command will validate
-against it.
+Slot ordering in SLOTS
+──────────────────────
+The dict is insertion-ordered (Python 3.7+).  _cmd_equipment() iterates
+SLOTS top-to-bottom to display worn items, so the order here is the
+display order shown to players.
 """
 
-# Slot key → display label, in display order
+# ── Canonical slot → display label ───────────────────────────────────────────
+
 SLOTS: dict[str, str] = {
+    "light":          "Light Source",
+    "floating":       "Floating Nearby",
     "head":           "Head",
-    "eyes":           "Eyes",
-    "earring":        "Earring",        # dual ×2
     "face":           "Face",
-    "neck":           "Neck",           # dual ×2
-    "on_body":        "On Body",
-    "about_body":     "About Body",
-    "quiver":         "Quiver",
-    "waist":          "Waist",
+    "earring":        "Ear",
+    "neck":           "Neck",
+    "on_body":        "Torso",
+    "about_body":     "Worn About Body",
+    "back":           "Back",
     "arms":           "Arms",
-    "wrist":          "Wrist",          # dual ×2
     "hands":          "Hands",
-    "finger":         "Finger",         # dual ×2
-    "primary_hand":   "Primary Hand",
-    "secondary_hand": "Secondary Hand",
+    "waist":          "Waist",
     "legs":           "Legs",
     "feet":           "Feet",
+    "wrist":          "Wrist",
+    "ring":           "Finger",
+    "primary_hand":   "Primary Hand",
+    "secondary_hand": "Off Hand",
 }
 
-# Slots that hold exactly 2 items (stored as list[item])
-DUAL_SLOTS: frozenset = frozenset({
-    "earring", "neck", "wrist", "finger",
+# ── Dual slots: each holds a list[item] of up to 2 items ─────────────────────
+#
+# Adding a slot here is all that is needed to make it hold two items.
+# The wear/remove logic in game.py checks DUAL_SLOTS and branches accordingly.
+
+DUAL_SLOTS: frozenset[str] = frozenset({
+    "ring",
+    "neck",
+    "wrist",
+    "earring",
 })
 
-# Special wear_on aliases → actual slot where item is stored
-WEAR_ON_ALIAS: dict[str, str] = {
+# ── wear_on alias map ─────────────────────────────────────────────────────────
+#
+# Maps raw wear_on values (as written in zone templates) → canonical slot key.
+#
+# Rules:
+#   • Numbered variants (ring1, ring2) collapse to the bare name (ring).
+#   • Common synonyms (necklace, bracelet, finger, ear, shield) are mapped.
+#   • "shield" and "held" both route to secondary_hand (game checks is_shield).
+
+_SLOT_MAP: dict[str, str] = {
+    # ── Primary / secondary hand ──────────────────────────────────────────────
+    "primary_hand":   "primary_hand",
+    "weapon":         "primary_hand",
+    "wield":          "primary_hand",
+    "secondary_hand": "secondary_hand",
     "shield":         "secondary_hand",
-    "held_twohanded": "primary_hand",
+    "held":           "secondary_hand",
+    "offhand":        "secondary_hand",
+    # ── Head / face ───────────────────────────────────────────────────────────
+    "head":           "head",
+    "helmet":         "head",
+    "hat":            "head",
+    "face":           "face",
+    "mask":           "face",
+    "goggles":        "face",
+    # ── Neck (dual) ───────────────────────────────────────────────────────────
+    "neck":           "neck",
+    "neck1":          "neck",
+    "neck2":          "neck",
+    "necklace":       "neck",
+    "amulet":         "neck",
+    "collar":         "neck",
+    # ── Body ──────────────────────────────────────────────────────────────────
+    "on_body":        "on_body",
+    "body":           "on_body",
+    "torso":          "on_body",
+    "chest":          "on_body",
+    "armor":          "on_body",
+    "about_body":     "about_body",
+    "cloak":          "about_body",
+    "cape":           "about_body",
+    "back":           "back",
+    # ── Arms / hands / legs / feet ────────────────────────────────────────────
+    "arms":           "arms",
+    "sleeves":        "arms",
+    "hands":          "hands",
+    "gloves":         "hands",
+    "gauntlets":      "hands",
+    "waist":          "waist",
+    "belt":           "waist",
+    "legs":           "legs",
+    "pants":          "legs",
+    "greaves":        "legs",
+    "feet":           "feet",
+    "boots":          "feet",
+    "shoes":          "feet",
+    # ── Wrist (dual) ──────────────────────────────────────────────────────────
+    "wrist":          "wrist",
+    "wrist1":         "wrist",
+    "wrist2":         "wrist",
+    "bracelet":       "wrist",
+    "bracer":         "wrist",
+    "bangle":         "wrist",
+    # ── Ring / finger (dual) ──────────────────────────────────────────────────
+    "ring":           "ring",
+    "ring1":          "ring",
+    "ring2":          "ring",
+    "finger":         "ring",
+    "band":           "ring",
+    # ── Earring (dual) ────────────────────────────────────────────────────────
+    "earring":        "earring",
+    "earring1":       "earring",
+    "earring2":       "earring",
+    "ear":            "earring",
+    "stud":           "earring",
+    # ── Misc ──────────────────────────────────────────────────────────────────
+    "light":          "light",
+    "torch":          "light",
+    "lantern":        "light",
+    "floating":       "floating",
+    "hover":          "floating",
 }
 
-# Every legal value for the wear_on field
-VALID_WEAR_ON: frozenset = frozenset(SLOTS) | frozenset(WEAR_ON_ALIAS)
+# Build VALID_WEAR_ON from _SLOT_MAP keys (used by Item.__init__ for validation)
+VALID_WEAR_ON: frozenset[str] = frozenset(_SLOT_MAP.keys())
+
+
+# ── Helper functions ──────────────────────────────────────────────────────────
+
+def actual_slot(wear_on: str) -> str:
+    """
+    Map a raw wear_on value to its canonical equipment slot key.
+
+    ring1  → ring   (DUAL_SLOT: can hold 2 rings)
+    ring2  → ring
+    ring   → ring
+    neck1  → neck   (DUAL_SLOT: can hold 2 necklaces)
+    wrist2 → wrist  (DUAL_SLOT: can hold 2 bracelets)
+    shield → secondary_hand
+    """
+    return _SLOT_MAP.get(wear_on, wear_on)
 
 
 def is_blocking_secondary(item) -> bool:
     """
-    True when this item, once in primary_hand, prevents use of secondary_hand.
-
-    Triggered by:
-      - Weapon with two_handed=True
-      - Any item with wear_on="held_twohanded"
+    Return True if the item requires both hands (two_handed=True),
+    which prevents anything from being held in the secondary_hand slot.
     """
-    return (
-        getattr(item, "two_handed", False)
-        or getattr(item, "wear_on", None) == "held_twohanded"
-    )
-
-
-def actual_slot(wear_on: str) -> str:
-    """Resolve a wear_on value to the real equipment dict key."""
-    return WEAR_ON_ALIAS.get(wear_on, wear_on)
+    return getattr(item, "two_handed", False)
