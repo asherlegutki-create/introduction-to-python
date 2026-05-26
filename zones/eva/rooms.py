@@ -44,6 +44,7 @@ ROOMS: dict[int, Room] = {
             M.spawn("Red kobold"),
             
         ],
+        }),
         2: Room({
         "number": 2,
         "name": "Tavern Courtyard",
@@ -63,7 +64,6 @@ ROOMS: dict[int, Room] = {
             M.spawn("Large_Orange_Cat"),
             M.spawn("Eclectic_Rouge"),
          ], 
-        
     }),
 
 }
