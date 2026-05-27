@@ -23,14 +23,18 @@ ROOMS: dict[int, Room] = {
             "indoors": False,
             "terrain": "grassy",
             "exits": [
-                {"direction": "north", "roomId": 1},
+                {"direction": "north", "roomId": 99005, "external": True},
                 {"direction": "south", "roomId": 1},
                 {"direction": "east", "roomId": 1},
+                {"direction": "west", "roomId": 1},
             ],
             "objects": [
-                O.spawn("Brumplin husk"),
+                O.spawn("Brumplin Seed"),
             ],
-            "mobs": [M.spawn("Brumplin")],  # two independent students
+            "mobs": [
+                M.spawn("Brumplin Minor"),
+                M.spawn("Brumplin Alpha")
+            ],  # two independent students
         }
     ),
 }

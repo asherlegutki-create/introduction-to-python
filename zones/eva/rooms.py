@@ -30,7 +30,10 @@ ROOMS: dict[int, Room] = {
         "indoors": True,
         "terrain": "wooden floor",
         "exits": [
-            {"direction": "north", "roomId": 2},
+            {"direction": "east", "roomId": 99003,"external": True}, 
+            #to the other rooms ^
+
+            #{"direction": "north", "roomId": 1}, #to dark woods at a later point
             {"direction": "south", "roomId": 2},
         ],
         "objects": [
@@ -38,7 +41,29 @@ ROOMS: dict[int, Room] = {
         ],
         "mobs": [                           # was [spawn1][spawn2] — that's list subscription, not a list
             M.spawn("fanciful_Bard"),
-            M.spawn("Large_Orange_Cat"),
+            M.spawn("Red kobold"),
+            
         ],
+        }),
+        2: Room({
+        "number": 2,
+        "name": "Tavern Courtyard",
+        "description": "I still need to add a description for this room still, i just haven't have time yet. i will complete it soon :]",
+        "indoors": False,
+        "terrain": "grass",
+        "exits": [
+            {"direction": "north", "roomId": 1},
+        ],
+        "objects": [
+            O.spawn("Giant_Oak_Tree"),
+            O.spawn("Tables"),
+            O.spawn("Wyldflowers"),
+        ],
+        "mobs": [
+            M.spawn("Excited_Child"),
+            M.spawn("Large_Orange_Cat"),
+            M.spawn("Eclectic_Rouge"),
+         ], 
     }),
+
 }

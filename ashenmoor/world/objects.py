@@ -3,24 +3,26 @@ ashenmoor.world.objects
 ───────────────────────
 Object / Item / Weapon / Container hierarchy.
 
-wear_on  str | None   slot from VALID_WEAR_ON, or None (carry-only).
-                      Weapons default to "primary_hand".
-two_handed bool       Weapon flag — blocks secondary_hand when equipped.
+Stat bonuses on items
+─────────────────────
+Add a "stat_mods" dict to any item template to give it ability bonuses.
+The bonus is summed across all equipped items in computed_stat(), then the
+total (base + bonus) is capped at the character's racial maximum.
 
-Container
-─────────
-Can live in a room or a player's inventory.
-Interact with it wherever it is — no need to pick it up first.
+  {"stat_mods": {"str": 10}}            — +10 STR ring
+  {"stat_mods": {"dex": 5, "cha": 3}}  — multi-stat item
 
-    capacity            float   total weight it can hold (lbs)
-    weightless_capacity float   of that, this many lbs don't add to carrier burden
-    contents            list    Item instances inside
-    is_open             bool    whether it can be accessed
+Humans max at 100 per stat.  Ogres can reach 180 STR with enough +STR gear.
 
-Weight rules:
-  - contents_weight  = sum of all item weights inside
-  - effective_weight = container.weight + max(0, contents_weight - weightless_capacity)
-    (weightless_capacity 'absorbs' the first N lbs of contents)
+D&D 5.5e weapon properties
+───────────────────────────
+  light       Can be used for Two-Weapon Fighting without the style feat.
+  finesse     Use STR or DEX modifier (whichever is higher) for attack and damage.
+  versatile   Can be wielded one-handed (normal dice) or two-handed (versatile_dice).
+  thrown      Can be thrown as a ranged attack.
+  reach       Adds 5 ft to melee reach.
+  is_shield   When in secondary_hand: grants +10 AC (0-100 scale).
+  armor_type  Key into ARMOR_TABLE in dnd/armor.py (e.g. "chain_mail").
 """
 
 from .equipment import VALID_WEAR_ON
@@ -45,10 +47,17 @@ class Object:
 class Item(Object):
     def __init__(self, d: dict):
         super().__init__(d)
-        self.weight:  float    = d.get("weight",  0)
-        self.mod:     list     = d.get("mod",     [])
-        self.take:    bool     = True
-        self.wear_on: str|None = d.get("wear_on", None)
+        self.weight:    float         = d.get("weight",    0)
+        self.mod:       list          = d.get("mod",       [])   # legacy compat
+        self.take:      bool          = True
+        self.wear_on:   str | None    = d.get("wear_on",   None)
+        # Stat bonuses while equipped.
+        # Regular keys  ("str", "int", …)      push toward the 100 display cap.
+        # Max keys      ("max_str", "max_int")  extend the ceiling above 100.
+        # Example: {"int": 10, "max_int": 56} — fills toward 100, then adds 56 beyond.
+        self.stat_mods: dict[str,int] = d.get("stat_mods", {})
+        # Saving throw bonuses: keys are "par", "rod", "pet", "bre", "spe"
+        self.save_mods: dict[str,int] = d.get("save_mods", {})
 
         if self.wear_on is not None and self.wear_on not in VALID_WEAR_ON:
             raise ValueError(
@@ -64,14 +73,29 @@ class Weapon(Item):
         if "wear_on" not in d:
             d = {**d, "wear_on": "primary_hand"}
         super().__init__(d)
-        self.dice:       str  = d.get("dice",       "1d6")
-        self.hitroll:    int  = d.get("hitroll",    0)
-        self.damroll:    int  = d.get("damroll",    0)
-        self.two_handed: bool = d.get("two_handed", False)
+        # ── Combat stats ──────────────────────────────────────────────────────
+        self.dice:           str        = d.get("dice",           "1d6")
+        self.hitroll:        int        = d.get("hitroll",        0)
+        self.damroll:        int        = d.get("damroll",        0)
+        self.two_handed:     bool       = d.get("two_handed",     False)
+        # ── D&D 5.5e weapon properties ────────────────────────────────────────
+        self.light:          bool       = d.get("light",          False)
+        self.finesse:        bool       = d.get("finesse",        False)
+        self.versatile:      bool       = d.get("versatile",      False)
+        self.versatile_dice: str        = d.get("versatile_dice", self.dice)
+        self.thrown:         bool       = d.get("thrown",         False)
+        self.reach:          bool       = d.get("reach",          False)
+        self.is_shield:      bool       = d.get("is_shield",      False)
+        # armor_type: key into ARMOR_TABLE (e.g. "chain_mail")
+        self.armor_type:     str | None = d.get("armor_type",     None)
 
     def __repr__(self):
-        th = ", 2h" if self.two_handed else ""
-        return f"Weapon({self.name!r}, dice={self.dice!r}{th})"
+        props = []
+        if self.two_handed: props.append("2h")
+        if self.light:      props.append("light")
+        if self.finesse:    props.append("finesse")
+        suffix = f", {', '.join(props)}" if props else ""
+        return f"Weapon({self.name!r}, dice={self.dice!r}{suffix})"
 
 
 class Container(Item):
@@ -92,35 +116,28 @@ class Container(Item):
         self.weightless_capacity: float = d.get("weightless_capacity", 0.0)
         self.contents:            list  = list(d.get("contents",       []))
         self.is_open:             bool  = d.get("is_open",             True)
+        self.is_shield:           bool  = False   # containers are never shields
 
     @property
     def contents_weight(self) -> float:
-        """Total weight of everything inside."""
         return sum(getattr(i, "weight", 0) for i in self.contents)
 
     @property
     def available_capacity(self) -> float:
-        """How many more lbs can fit."""
         return max(0.0, self.capacity - self.contents_weight)
 
     @property
     def available_weightless(self) -> float:
-        """How many more weightless lbs remain."""
         used = min(self.contents_weight, self.weightless_capacity)
         return max(0.0, self.weightless_capacity - used)
 
     @property
     def effective_weight(self) -> float:
-        """
-        Weight this container contributes to whoever is carrying it.
-        Contents up to weightless_capacity are absorbed; the rest counts.
-        """
-        cw          = self.contents_weight
-        absorbed    = min(cw, self.weightless_capacity)
+        cw       = self.contents_weight
+        absorbed = min(cw, self.weightless_capacity)
         return self.weight + max(0.0, cw - absorbed)
 
     def can_fit(self, item) -> bool:
-        """True if item fits by weight."""
         return getattr(item, "weight", 0) <= self.available_capacity
 
     def __repr__(self):

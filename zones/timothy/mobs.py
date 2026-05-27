@@ -38,16 +38,30 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     },
-    "Brumplin": {
-        "name": "Brumplin",
+    "Brumplin Minor": {
+        "name": "Brumplin Minor",
         "key_words": ("Brumplin"),
-        "room_description": "&wA Brumplin bounces about.&N",
+        "room_description": "A &gBrumplin Minor&n bounces about.&N",
         "description": (
             "A little ball of brambles with two glowing white eyes.\n"
         ),
         "race": "Brumplin",
         "level": 1,
         "stats": [10, 40, 30, 10, 10, 60],
+        "aggro": False,
+        "wander": True,
+    },
+    "Brumplin Alpha": {
+        "name": "Brumplin Alpha",
+        "key_words": ("Brumplin"),
+        "room_description": "A &gBrumplin Alpha&n howels a &rdeathly&n screech.&N",
+        "description": (
+            "The final stage of the &gBrumplin&n race.\n"
+            "&rvery&n aggressive"
+        ),
+        "race": "Brumplin",
+        "level": 20,
+        "stats": [80, 70, 30, 10, 10, 10],
         "aggro": True,
         "wander": True,
     },

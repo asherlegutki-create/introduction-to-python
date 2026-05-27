@@ -57,8 +57,8 @@ TEMPLATES: dict[str, dict] = {
 
     "windsong" : {
         "spawn_as":         Weapon,
-        'name': "&+ga &wg&Wl&wi&Wtt&wer&Wi&wng &N&+gelven scimitar&N",
-        'key_words': ('scimitar', 'elven', 'glittering'),
+        'name': "&+ga &wg&Wl&N&wi&Wtt&N&wer&Wi&N&wng&N &gelven scimitar&N",
+        'key_words': ('scimitar', 'elven', 'glittering', 'windsong'),
         'room_description': "&+gA glittering elven scimitar is lying on the ground here.&N",
         'description': ("&+gIts blade encrusted with diamond dust, this magically light",
             "&+gelven blade glitters in the sunlight and seems to hum softly",

@@ -23,14 +23,10 @@ ROOMS: dict[int, Room] = {
             "indoors": True,
             "terrain": "floors, rooms, and walls",
             "exits": [
-                {"direction": "north", "roomId": 1},
-                {"direction": "south", "roomId": 1},
-                {"direction": "east", "roomId": 1},
-                {"direction": "west", "roomId": 1},
+                {"direction": "south", "roomId": 99002, "external": True},
             ],
             "objects": [
                 O.spawn("Potion of Turtle Master"),
-                O.spawn("windsong"),
             ],
             "mobs": [ 
                 M.spawn("&MIllrigger Mage&N"),
