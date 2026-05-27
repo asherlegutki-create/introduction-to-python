@@ -12,7 +12,7 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "Mrs.Stacey": {
+h    "Mrs.Stacey": {
         "name": "&BM&N&R&R&N&BS&N&R.S&N&Bt&N&Ra&N&Bc&N&Re&N&By&N ",
         "key_words": ("Stacey"),
         "room_description": "Mrs.Stacey wanders from here to there helping students and teachers.",

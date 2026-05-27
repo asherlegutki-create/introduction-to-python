@@ -20,12 +20,12 @@ ROOMS: dict[int, Room] = {
         {
             "number": 1,
             "name": "The Front Doors",#this is the Front doors
-            "description": "The Front doors is the entrance to the school. There are two doors that open in. These doors may or may not be locked for safety./n  left is the office, right is the wall, south is the",
+            "description": "The Front doors is the entrance to the school. There are two doors that open in. These doors may or may not be locked for safety./n  west is the office, east is the wall, south is the parking lot,up is the exit out of my rooms, and down is carpet.",
             "indoors": False,                        
             "terrain": "concrete",
             "exits": [
                 {"direction": "north", "roomId": 2},
-                {"direction": "west", "roomId": 99002, "external": True}
+                {"direction": "up", "roomId": 99002, "external": True}
                 
             ],
             "objects": [
@@ -33,39 +33,39 @@ ROOMS: dict[int, Room] = {
               #  O.spawn(""),
               #  O.spawn(""),
             ],
-            "mobs": [],
+            "mobs": [
                # M.spawn("") ,
                # M.spawn(""),],  # two independent students
-
+            ],
         }
     ),
 2: Room(
         {
             "number": 2,
-            "name": "",
-            "description": "",
-            "indoors": False,
-            "terrain": "",
+            "name": "Hallway",
+            "description": "This hallway is one of many and leads to the bathrooms, teacher lounge ,office,and janitors closet #1./n West is the office north is still same hallway, east is the wall, up is ceiling, down is the floor.",
+            "indoors": True,
+            "terrain": "carpet floor",
             "exits": [
-                {"direction": "east", "roomId": 1},
-                {"direction": "north", "roomId": 3},
+                {"direction": "west", "roomId": 3},
+                {"direction": "north", "roomId": 4},
             ],
             "objects": [
-              #  O.spawn("The Horn"),
-              # O.spawn("Tunic")
+              #  O.spawn(""),
+              # O.spawn("")
             ],
             "mobs": [  
-                #M.spawn("Joshua") ,
-                #M.spawn("Israelite"),
-                #M.spawn("Trumpet Player")
-            ],  # two independent students
+                #M.spawn("") ,
+                #M.spawn(""),
+                #M.spawn("")
+            ],  
         }
     ),
 3: Room(
         {
             "number": 3,
-            "name": "",
-            "description": ".",
+            "name": "Office",
+            "description": "This is the office where Mrs.stacey spends most of the day. To the west again is Mr.Carlson's office, east is the hallway,",
             "indoors": True,
             "terrain": "",
             "exits": [
