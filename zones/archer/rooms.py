@@ -27,6 +27,7 @@ ROOMS: dict[int, Room] = {
                 {"direction": "south", "roomId": 3},
                 {"direction": "east", "roomId": 99002, "external": True},
                 {"direction": "west", "roomId": 4},
+                {"direction": "up", "roomId": 6},
             ],
             "mobs": [ 
                 M.spawn("&MIllrigger Mage&N"),
@@ -41,7 +42,7 @@ ROOMS: dict[int, Room] = {
             {
                 "number": 2,
                 "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Chest Room",
-                "description": "A gaint room full of chests filled with treasures beyond your wildest dreams /nIt is guarded by an &RIllrigger&N",
+                "description": "A giant room full of chests filled with treasures beyond your wildest dreams /nIt is guarded by an &RIllrigger&N",
                 "indoors": True,
                 "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
                 "exits": [
@@ -79,7 +80,7 @@ ROOMS: dict[int, Room] = {
             {
                 "number": 4,
                 "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Library",
-                "description": "A gaint room filled with books and shelves",
+                "description": "A giant room filled with books and shelves",
                 "indoors": True,
                 "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
                 "exits": [
@@ -103,6 +104,77 @@ ROOMS: dict[int, Room] = {
                  "objects": [
                     O.spawn("Potion of Strength II"),
                  ],
+            }
+        ),
+        6: Room(
+            {
+                "number": 6,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Hallway Seg 1",
+                "description": "&BEast&N is the room with the giant cat statue, &BSouth&N is another library, &BWest&N is another guest room and so is &BNorth&N",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "east", "roomId": 7},
+                    {"direction": "south", "roomId": 8},
+                    {"direction": "West", "roomId": 9},
+                    {"direction": "north", "roomId": 10},
+                    {"direction": "down", "roomId": 1},
+                ],
+                
+            }
+        ),
+        7: Room(
+            {
+                "number": 7,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Cat Statue Room",
+                "description": "A giant statue of a cat made of wool, totally not creepy at all",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "west", "roomId": 6},
+                ],
+                
+            }
+        ),
+        8: Room(
+            {
+                "number": 8,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Library #2",
+                "description": "another library with more books, endless amount of books and shelves",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "north", "roomId": 6},
+                ],
+                "mobs": [ 
+                    M.spawn("&MIllrigger Mage&N"),
+                ],
+            }
+        ),
+        9: Room(
+            {
+                "number": 9,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Guest Room #2",
+                "description": "A cozy room with &Mcozy beds&N, stay as long as you need...",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "east", "roomId": 6},
+                ],
+                
+            }
+        ),
+        10: Room(
+            {
+                "number": 10,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Guest Room #2",
+                "description": "A cozy room with &Gcozy beds&N, stay as long as you need...",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "south", "roomId": 6},
+                ],
+                
             }
         ),
 }

@@ -19,17 +19,17 @@ TEMPLATES: dict[str, dict] = {
         "name":             "a Potion of &rStrength II&N",
         "key_words":        ("Potion", "Strength", "II"),
         "room_description": "a &wPotion of Strength II&N has been carelessly discarded here.&N",
-        "description":      "A potion that grants double the usual strength, empty.",
+        "description":      "A potion that grants double the usual strength, about empty.",
     },
 
   
   
     "Potion of Turtle Master": {
         "spawn_as":         Item,
-        "name":             "a &wTurtle Master&N potion&N",
+        "name":             "a &wTurtle Master&N potion",
         "key_words":        ("Potion", "Turtle", "Master"),
         "room_description": "a &wPotion of Turtle Master&N has been carelessly discarded here.&N",
-        "description":      "A potion that grants defense and slowness, about half used.",
+        "description":      "A potion that grants defense and slowness, about empty.",
     },
 }
 
