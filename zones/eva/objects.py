@@ -19,14 +19,14 @@ TEMPLATES: dict[str, dict] = {
         "name":             "object",
         "key_words":        ("1", "2",),
         "room_description": "object is here.",
-        "description":      "can't interact with.",
+        "description":      "can't take.",
     },
     "Item_template": {
         "spawn_as":         Item,
         "name":             "item",
         "key_words":        ("1", "2",),
         "room_description": "item sets here.",
-        "description":      "can interact with.",
+        "description":      "can take.",
     },
     "Weapon_template" : {
         "spawn_as":         Weapon,
@@ -47,7 +47,31 @@ TEMPLATES: dict[str, dict] = {
         "description":      "Five assorted &gc&Bo&Yl&Co&Mr&Rf&Gu&bl&N and &yunlabeled&N &Wglass bottles&N are siting on the counter.\nIt might &rnot&N be the best idea to drink these,as you don't know what is in them, but you do you.",
     },
 
-    
+
+
+
+
+"Giant_Oak_Tree": {
+        "spawn_as":         Object,
+        "name":             "Giant Oak Tree",
+        "key_words":        ("oak", "tree",),
+        "room_description": "An extremely large &goak tree&N sits deeply rooted in the center of the courtyard.",
+        "description":      "This &ggiant oak&N towers over all else near it, it's &gb&yr&ga&yn&gc&yh&ye&gs&N covering the courtyard in a pleasant dappled shade.\nIts roots have started to disrupt some of the &wcobblestone bricks&N in the path surrounding it.",
+    },
+    "Tables": {
+        "spawn_as":         Object,
+        "name":             "empty tables",
+        "key_words":        ("table", "tables"),
+        "room_description": "A few empty &ytables&N are strewn about the &Ggrass&N, all but one are empty.",
+        "description":      "Four &ytables&N with varying amounts of &ychairs&N sit in the &Ggrassy&N part of the courtyard.\nAt one rests a solitary rouge, the rest remain empty.",
+    },
+   "Wyldflowers": {
+        "spawn_as":         Item,
+        "name":             "Wyldflowers",
+        "key_words":        ("wyldflowers","flowers",),
+        "room_description": "Sparse patches of &YW&yy&Wl&Yd&yf&Wl&Yo&yw&We&Yr&ys&N are dotted around the courtyard.",
+        "description":      "As you look closer at one of the smatterings of &YW&yy&Wl&Yd&yf&Wl&Yo&yw&We&Yr&ys&N you see that they are ruffled and delicate, about the size of a adult human's palm.\nIt seems the &Yf&yl&Wo&Yw&ye&Wr&Ys&N come in three distinct colors: &Yyellow&N, &yorange&N, and &Wwhite&N.",
+    },
 
     
 }

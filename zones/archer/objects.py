@@ -14,44 +14,23 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
+      "Potion of Strength II": {
+        "spawn_as":         Item,
+        "name":             "a Potion of &rStrength II&N",
+        "key_words":        ("Potion", "Strength", "II"),
+        "room_description": "a &wPotion of Strength II&N has been carelessly discarded here.&N",
+        "description":      "A potion that grants double the usual strength, about empty.",
+    },
+
+  
+  
     "Potion of Turtle Master": {
         "spawn_as":         Item,
-        "name":             "a &wTurtle Master&N potion&N",
+        "name":             "a &wTurtle Master&N potion",
         "key_words":        ("Potion", "Turtle", "Master"),
         "room_description": "a &wPotion of Turtle Master&N has been carelessly discarded here.&N",
-        "description":      "A potion that grants defense and slowness, about half used.",
+        "description":      "A potion that grants defense and slowness, about empty.",
     },
-    
-    "green_marker": {
-        "spawn_as":         Object,
-        "name":             "a &ggreen expo marker&N",
-        "key_words":        ("green", "expo", "marker"),
-        "room_description": "a {g&wgreen expo marker&N has been carelessly discarded here.",
-        "description":      "A forest green low-scent dry-erase marker, about half used.",
-    },
-
-    "silken_sack": {
-        "spawn_as":         Item,
-        "name":             "a &+rtattered &+csilken sack&N",
-        "key_words":        ("tattered", "silken", "sack"),
-        "room_description": "A &+rtattered &+csilken sack&N lies here, discarded.",
-        "description":      "This sack seems to be in an awful condition.",
-        "weight":           2,
-    },
-    "windsong" : {
-        "spawn_as":         Weapon,
-        'name': "&+ga &wg&Wl&wi&Wtt&wer&Wi&wng &N&+gelven scimitar&N",
-        'key_words': ('scimitar', 'elven', 'glittering'),
-        'room_description': "&+gA glittering elven scimitar is lying on the ground here.&N",
-        'description': """&+gIts blade encrusted with diamond dust, this magically light
-&+gelven blade glitters in the sunlight and seems to hum softly
-&+gwhen wielded in battle.&N""",
-        "weight":           3,
-        "dice":             "2d8",
-        "hitroll":          2,
-        "damroll":          4,
-    },
-
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")

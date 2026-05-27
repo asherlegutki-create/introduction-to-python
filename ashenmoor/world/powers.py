@@ -3,115 +3,88 @@ ashenmoor.world.powers
 ──────────────────────
 Power (ability / spell / skill) definitions.
 
-A power is a plain dict.  Required keys:
+Required keys
+─────────────
+  keywords   tuple[str]   words the player types to activate
+  name       str          display name shown in power listings
+  user_msg   str          Diku-colored message shown to the player
+  room_msg   str          message shown to everyone else  ({name} = player)
 
-    keywords  tuple[str]   words the player types to activate this power
-    name      str          display name shown in power listings
-    user_msg  str          Diku-colored message shown to the player
-    room_msg  str          Diku-colored message shown to everyone else in the room
-                           Use {name} as a placeholder for the player's name.
+Combat keys (optional)
+──────────────────────
+  cooldown   int          seconds before the power can be used again
+                          Default: 8 seconds (2 ticks).
+                          Low-cost: 4 s (1 tick).  High-power: 12–20 s.
+  effect     str          "damage" or "heal" — what happens in combat
+  damage_mult float       for effect="damage": multiplier on a normal hit
+  heal_pct    float       for effect="heal":   fraction of max_hp restored
 
-Optional keys (for future combat expansion):
-
-    target    str          "none" | "mob" | "character" | "any"   default "none"
-    cost      int          resource cost (mana, stamina, etc.)     default 0
-    cooldown  int          seconds before reuse                    default 0
-
-Example
-───────
-    {
-        "keywords": ("fireball", "fire"),
-        "name":     "Fireball",
-        "user_msg": "&RYou draw the heat from the air and hurl a blazing fireball!&N",
-        "room_msg": "&R{name}&R draws the heat from the air and hurls a blazing fireball!&N",
-        "target":   "mob",
-        "cost":     10,
-    }
-
-Assigning powers to a character
-────────────────────────────────
-    from ashenmoor.world.powers import POWERS
-
-    char.powers = [
-        POWERS["fireball"],
-        POWERS["heal"],
-    ]
-
-Or inline in a character dict (e.g. during creation):
-
-    char.powers = [
-        {
-            "keywords": ("smite",),
-            "name":     "Divine Smite",
-            "user_msg": "&YYour weapon blazes with divine light!&N",
-            "room_msg": "&Y{name}'s weapon blazes with divine light!&N",
-        }
-    ]
+Powers outside combat fire instantly.
+Powers typed during combat are queued and fire on the next tick.
 """
-
-
-# ── Power registry ────────────────────────────────────────────────────────────
-# Pull from here when assigning powers to races / classes / characters.
-# Keys are short identifiers; values are the full power dicts.
 
 POWERS: dict[str, dict] = {
 
     # ── Arcane ────────────────────────────────────────────────────────────────
 
     "fireball": {
-        "keywords": ("fireball", "fire"),
-        "name":     "Fireball",
+        "keywords":    ("fireball", "fire"),
+        "name":        "Fireball",
+        "cooldown":    12,
+        "effect":      "damage",
+        "damage_mult": 2.5,
         "user_msg": "&RYou draw the heat from the air and hurl a blazing fireball!&N",
         "room_msg": "&R{name} draws the heat from the air and hurls a blazing fireball!&N",
-        "target":   "mob",
-        "cost":     10,
     },
 
     "frost_bolt": {
-        "keywords": ("frostbolt", "frost"),
-        "name":     "Frost Bolt",
+        "keywords":    ("frostbolt", "frost"),
+        "name":        "Frost Bolt",
+        "cooldown":    12,
+        "effect":      "damage",
+        "damage_mult": 2.0,
         "user_msg": "&BA bolt of crackling ice shoots from your fingertips!&N",
         "room_msg": "&BA bolt of crackling ice shoots from {name}'s fingertips!&N",
-        "target":   "mob",
-        "cost":     8,
     },
 
     "arcane_missile": {
-        "keywords": ("missile", "arcane"),
-        "name":     "Arcane Missile",
+        "keywords":    ("missile", "arcane"),
+        "name":        "Arcane Missile",
+        "cooldown":    8,
+        "effect":      "damage",
+        "damage_mult": 1.5,
         "user_msg": "&mYou launch a streak of pure arcane energy!&N",
         "room_msg": "&m{name} launches a streak of pure arcane energy!&N",
-        "target":   "mob",
-        "cost":     5,
     },
 
     # ── Divine ────────────────────────────────────────────────────────────────
 
     "heal": {
-        "keywords": ("heal",),
-        "name":     "Heal",
+        "keywords":  ("heal",),
+        "name":      "Heal",
+        "cooldown":  12,
+        "effect":    "heal",
+        "heal_pct":  0.30,
         "user_msg": "&+GWarm light flows through you, knitting your wounds closed.&N",
         "room_msg": "&+GWarm light flows through {name}, knitting wounds closed.&N",
-        "target":   "none",
-        "cost":     12,
     },
 
     "smite": {
-        "keywords": ("smite",),
-        "name":     "Divine Smite",
+        "keywords":    ("smite",),
+        "name":        "Divine Smite",
+        "cooldown":    12,
+        "effect":      "damage",
+        "damage_mult": 2.0,
         "user_msg": "&YYour weapon blazes with divine light as you bring it down!&N",
         "room_msg": "&Y{name}'s weapon blazes with divine light!&N",
-        "target":   "mob",
-        "cost":     8,
     },
 
     "bless": {
         "keywords": ("bless",),
         "name":     "Bless",
+        "cooldown": 16,
         "user_msg": "&YYou call upon the divine and feel strength pour into you.&N",
         "room_msg": "&YA holy light surrounds {name} as they receive a blessing.&N",
-        "target":   "none",
-        "cost":     6,
     },
 
     # ── Nature ────────────────────────────────────────────────────────────────
@@ -119,48 +92,49 @@ POWERS: dict[str, dict] = {
     "entangle": {
         "keywords": ("entangle", "roots"),
         "name":     "Entangle",
+        "cooldown": 16,
         "user_msg": "&GRoots burst from the ground at your command!&N",
         "room_msg": "&GRoots burst from the ground at {name}'s command!&N",
-        "target":   "mob",
-        "cost":     7,
     },
 
     "barkskin": {
         "keywords": ("barkskin", "bark"),
         "name":     "Barkskin",
+        "cooldown": 20,
         "user_msg": "&GYour skin hardens like rough bark, toughening your body.&N",
         "room_msg": "&G{name}'s skin hardens and takes on the rough texture of bark.&N",
-        "target":   "none",
-        "cost":     6,
     },
 
     "Rockstab": {
-        "keywords": ("Rockstab", "Rock"),
-        "name":     "Rockstab",
+        "keywords":    ("Rockstab", "Rock"),
+        "name":        "Rockstab",
+        "cooldown":    8,
+        "effect":      "damage",
+        "damage_mult": 1.5,
         "user_msg": "&GYou launch &xRock&N&WSpikes&N out of the &yground&N",
         "room_msg": "&G{name} launches &xRock&N&WSpikes&N out of the &yground&N",
-        "target":   "none",
-        "cost":     10,
     },
 
     # ── Shadow ────────────────────────────────────────────────────────────────
 
     "shadowstep": {
-        "keywords": ("shadowstep", "shadow"),
-        "name":     "Shadowstep",
+        "keywords":    ("shadowstep", "shadow"),
+        "name":        "Shadowstep",
+        "cooldown":    12,
+        "effect":      "damage",
+        "damage_mult": 2.5,
         "user_msg": "&XYou melt into the shadows and reappear behind your target.&N",
         "room_msg": "&X{name} melts into the shadows and vanishes.&N",
-        "target":   "mob",
-        "cost":     9,
     },
 
     "backstab": {
-        "keywords": ("backstab", "stab"),
-        "name":     "Backstab",
+        "keywords":    ("backstab", "stab"),
+        "name":        "Backstab",
+        "cooldown":    8,
+        "effect":      "damage",
+        "damage_mult": 2.0,
         "user_msg": "&xYou drive your blade deep into an unguarded back!&N",
         "room_msg": "&x{name} drives a blade into an unguarded back!&N",
-        "target":   "mob",
-        "cost":     5,
     },
 
     # ── Utility ───────────────────────────────────────────────────────────────
@@ -168,18 +142,18 @@ POWERS: dict[str, dict] = {
     "shout": {
         "keywords": ("shout",),
         "name":     "Shout",
+        "cooldown": 4,
         "user_msg": "&WYou let out a thunderous battle cry!&N",
         "room_msg": "&W{name} lets out a thunderous battle cry!&N",
-        "target":   "none",
-        "cost":     2,
     },
 
     "meditate": {
         "keywords": ("meditate", "med"),
         "name":     "Meditate",
+        "cooldown": 8,
+        "effect":   "heal",
+        "heal_pct": 0.15,
         "user_msg": "&cYou close your eyes and focus inward, restoring your concentration.&N",
         "room_msg": "&c{name} closes their eyes and enters a deep meditative state.&N",
-        "target":   "none",
-        "cost":     0,
     },
 }
