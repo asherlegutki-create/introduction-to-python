@@ -27,6 +27,21 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True
     },
+    "Mr. Carlson": {
+        "name": "Mr. Carlson",
+        "key_words": ("student", "wandering"),
+        "room_description": "&wA wandering student meanders about aimlessly.&N",
+        "description": (
+            "A student with a faraway look, clearly lost in thought.\n"
+            "Or possibly just lost."
+        ),
+        "race": "Human",
+        "class": "Student",
+        "level": 1,
+        "stats": [60, 65, 60, 80, 70, 75],
+        "aggro": False,
+        "wander": True
+    },
     "fellow_student": {
         "name": "fellow student",
         "key_words": ("fellow", "student"),

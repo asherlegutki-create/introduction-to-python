@@ -12,38 +12,39 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "wandering_student": {
-        "name": "a wandering student",
-        "key_words": ("student", "wandering"),
-        "room_description": "&wA wandering student meanders about aimlessly.&N",
+    "Mrs.Stacey": {
+        "name": "&BM&N&R&R&N&BS&N&R.S&N&Bt&N&Ra&N&Bc&N&Re&N&By&N ",
+        "key_words": ("Stacey"),
+        "room_description": "Mrs.Stacey wanders from here to there helping students and teachers.",
         "description": (
-            "A student with a faraway look, clearly lost in thought.\n"
-            "Or possibly just lost."
+            "Mrs.Stacey is the secretary, She is the person who runs the office.\n"
+            "She is always wearing a set of keys that may be use full for any door in this building."
         ),
         "race": "Human",
-        "class": "Student",
-        "level": 1,
+        "class": "Staff",
+        "level": 10,
         "stats": [60, 65, 60, 80, 70, 75],
         "aggro": False,
         "wander": True,
     },
-    "Adam": {
-        "name": "Adam",
-        "key_words": ("Adam"),
-        "room_description": "Adam is standing around animals nameing each one.",
-        "description": ( "Adam is the first man. \n He has been givin the job of taking care of the earth. He is wearing nothing because he doesn't know what is right from wrong."),
+    "Mrs.Stubblefield": {
+        "name": "Mrs.stubblefield",
+        "key_words": ("Mrs.Stubblefield"),
+        "room_description": "Mrs.Stubblefield wanders around the school cleaning.",
+        "description": ( "Mr.Stubblefield is Mrs.Stubblefield's husband \n Mrs.Stubblefield also drives the bus and is janitor."),
+
         "race": "Human",
-        "class": "Male",
-        "level": 7,
+        "class": "Janitor",
+        "level": 10,
         "stats": [71, 75, 80, 84, 79, 73],
         "aggro": False,
         "wander": False,
     },
-    "Eve": {
-        "name": "Eve",
-        "key_words": ("Eve"),
-        "room_description": "Eve is standing here talking to a serpent.",
-        "description": ( "Eve is the first woman. \n She has been givin the job of taking care of the earth. She is wearing nothing because she doesn't know what is right from wrong."),
+    "Mr. Carlson": {
+        "name": "Mr. Carlson",
+        "key_words": ("Mr.Carlson"),
+        "room_description": "Mr.Carlson wanders from room to room.",
+        "description": ( ". \n She has been givin the job of taking care of the earth. She is wearing nothing because she doesn't know what is right from wrong."),
         "race": "Human",
         "class": "Female",
         "level": 7,
@@ -51,7 +52,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
     },
-    "Slippery Serpant": {
+    "": {
         "name": "Slipery Serpent",
         "key_words": ("Slippery","Serpant"),
         "room_description": "The Serpant is resting on the end of the tree branch Tricking the woman.",
