@@ -56,6 +56,19 @@ TEMPLATES: dict[str, dict] = {
         "hitroll": 16,
         "damroll": 8,
     },
+    "Arm canon twin": {
+        "spawn_as": Weapon,
+        "name": "&RArm&N canon twin",
+        "key_words": ("Arm", "canon", "twin"),
+        "room_description": "&WAn {m&RArm canon{n &Wthat is able to sit on your arm lays here... it seems like it works perfectly with another arm canon.",
+        "description": """&WIt's&N canon &Wis of &Mmagenta &Wcoloration and is a &Cstrong, &Wlightweight&N metal.
+&WIt looks like it can shoot &Ybullets &Wof pure {m&Mplasma&N
+&WIt is &Mmagenta&N, not &Rpink&N""",
+        "weight": 7,
+        "dice": "2d10",
+        "hitroll": 16,
+        "damroll": 8,
+    },
     "Uranium Rod": {
         "spawn_as": Item,
         "name": "&GRadioactive Uranium&N rod",
