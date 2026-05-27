@@ -49,6 +49,7 @@ ROOMS: dict[int, Room] = {
             "exits": [
                 {"direction": "west", "roomId": 3},
                 {"direction": "north", "roomId": 4},
+                 {"direction": "north", "roomId": 1},
             ],
             "objects": [
               #  O.spawn(""),
@@ -65,12 +66,12 @@ ROOMS: dict[int, Room] = {
         {
             "number": 3,
             "name": "Office",
-            "description": "This is the office where Mrs.stacey spends most of the day. To the west again is Mr.Carlson's office, east is the hallway,",
+            "description": "This is the office where Mrs.stacey spends most of the day. To the west again is Mr.Carlson's office, east is the hallway, and north is the teachers lounge.",
             "indoors": True,
-            "terrain": "",
+            "terrain": "carpet floor",
             "exits": [
-                {"direction": "south", "roomId": 2},
-                {"direction": "north", "roomId": 4},
+                {"direction": "east", "roomId": 2},
+                {"direction": "north", "roomId": 6},
             ],
             "objects": [
                 #O.spawn(""),
@@ -85,4 +86,251 @@ ROOMS: dict[int, Room] = {
             ],
         }
     ),
+    4: Room(
+        {
+            "number": 4,
+            "name": "hallway",
+            "description": "This hallway is one of many and leads to the bathrooms, teacher lounge ,office,and janitors closet #1. To the west is the teachers lounge,to the north is more hallway, east is a wall, up is the ceiling, /n down is the floor, and south is more hallway.",
+            "indoors": True,
+            "terrain": "carpet floor",
+            "exits": [
+                {"direction": "east", "roomId": 2},
+                {"direction": "north", "roomId": 6},
+                {"direction": "north", "roomId": 7},
+            ],
+            "objects": [
+                #O.spawn(""),
+                #O.spawn(""),
+                #O.spawn("")
+            ],
+            "mobs": [  
+#                M.spawn("") ,
+#                M.spawn(""),
+#                M.spawn(""),
+#                
+            ],
+        }
+    ),
+    5: Room(
+        {
+            "number": 5,
+            "name": "Mr. Carlson's office",
+            "description": "Mr.C office is in side of the regular office. Mr.Carlson's office has a sword hanging on the wall. To the west is a wall,to the north is the regular office, east is a wall, up is the ceiling, /n down is the floor, and south is a wall.",
+            "indoors": True,
+            "terrain": "carpet floor",
+            "exits": [
+                {"direction": "east", "roomId": 3},
+                
+            ],
+            "objects": [
+                #O.spawn(""),
+                #O.spawn(""),
+                #O.spawn("")
+            ],
+            "mobs": [  
+#                M.spawn("") ,
+#                M.spawn(""),
+#                M.spawn(""),
+#                
+            ],
+        }
+    ),  
+     6: Room(
+        {
+            "number": 6,
+            "name": "teacher's lounge",
+            "description": "The teachers lounge is where teachers hang around when not teaching. To the west is a wall,to the north is a wall, east is the hallway, up is the ceiling, /n down is the floor, and south is the office.",
+            "indoors": True,
+            "terrain": "carpet floor",
+            "exits": [
+                {"direction": "south", "roomId": 3},
+                {"direction": "east", "roomId": 4},
+            ],
+            "objects": [
+                #O.spawn(""),
+                #O.spawn(""),
+                #O.spawn("")
+            ],
+            "mobs": [  
+#                M.spawn("") ,
+#                M.spawn(""),
+#                M.spawn(""),
+#                
+            ],
+        }
+    ),  
+     7: Room(
+        {
+            "number": 7,
+            "name": "hallway",
+            "description": "This hallway is one of many and leads to the bathrooms, teacher lounge ,office,and janitors closet #1. To the west is the teacher lounge,to the north is more hallway, east is more hallway, up is the ceiling, /n down is the floor, and south is more hallway.",
+            "indoors": True,
+            "terrain": "carpet floor",
+            "exits": [
+                {"direction": "east", "roomId": 15},
+                {"direction": "south", "roomId": 4},
+                {"direction": "east", "roomId": 8},
+            ],
+            "objects": [
+                #O.spawn(""),
+                #O.spawn(""),
+                #O.spawn("")
+            ],
+            "mobs": [  
+#                M.spawn("") ,
+#                M.spawn(""),
+#                M.spawn(""),
+#                
+            ],
+        }
+    ),  
+     8: Room(
+        {
+            "number": 8,
+            "name": "hallway",
+            "description": "This hallway is one of many and leads to the bathrooms, teacher lounge ,office,and janitors closet #1. To the west is the boys bathroom, to the north is more hallway, east is a wall, up is the ceiling, /n down is the floor, and south is more hallway.",
+            "indoors": True,
+            "terrain": "carpet floor",
+            "exits": [
+                {"direction": "east", "roomId": 12},
+                {"direction": "south", "roomId": 7},
+                {"direction": "north", "roomId": 9},
+
+                
+            ],
+            "objects": [
+                #O.spawn(""),
+                #O.spawn(""),
+                #O.spawn("")
+            ],
+            "mobs": [  
+#                M.spawn("") ,
+#                M.spawn(""),
+#                M.spawn(""),
+#                
+            ],
+        }
+    ),  
+     9: Room( 
+        {
+            "number": 9,
+            "name": "hallway",
+            "description": "This hallway is one of many and leads to the bathrooms, teacher lounge ,office,and janitors closet #1. To the west is the janitor, to the north is more hallway, east is a wall, up is the ceiling, /n down is the floor, and south is more hallway.",
+            "indoors": True,
+            "terrain": "carpet floor",
+            "exits": [
+                {"direction": "east", "roomId": 13},
+                {"direction": "south", "roomId": 8},
+                {"direction": "north", "roomId": 10},
+            ],
+            "objects": [
+                #O.spawn(""),
+                #O.spawn(""),
+                #O.spawn("")
+            ],
+            "mobs": [  
+#                M.spawn("") ,
+#                M.spawn(""),
+#                M.spawn(""),
+#                
+            ],
+        }
+    ),  
+     10: Room(
+        {
+            "number": 10,
+            "name": "hallway",
+            "description": "This hallway is one of many and leads to the bathrooms, teacher lounge ,office,and janitors closet #1. To the west is the girls bathroom, to the north is the blacktop, east is a wall, up is the ceiling, /n down is the floor, and south is more hallway.",
+            "indoors": True,
+            "terrain": "carpet floor",
+            "exits": [
+                {"direction": "west", "roomId": 14},
+                {"direction": "north", "roomId": 11},
+                {"direction": "south", "roomId": 9},
+            ],
+            "objects": [
+                #O.spawn(""),
+                #O.spawn(""),
+                #O.spawn("")
+            ],
+            "mobs": [  
+#                M.spawn("") ,
+#                M.spawn(""),
+#                M.spawn(""),
+#                
+            ],
+        }
+    ),  
+     11: Room(
+        {
+            "number": 11,
+            "name": "blacktop",
+            "description": "Mr.C office is in side of the regular office. Mr.Carlson's office has a sword hanging on the wall. To the west is a wall,to the north is the regular office, east is a wall, up is the ceiling, /n down is the floor, and south is a wall.",
+            "indoors": True,
+            "terrain": "carpet floor",
+            "exits": [
+                {"direction": "east", "roomId": 3},
+                
+            ],
+            "objects": [
+                #O.spawn(""),
+                #O.spawn(""),
+                #O.spawn("")
+            ],
+            "mobs": [  
+#                M.spawn("") ,
+#                M.spawn(""),
+#                M.spawn(""),
+#                
+            ],
+        }
+    ),  
+     12: Room(   
+         {
+            "number": 12,
+            "name": "Mr. Carlson's office",
+            "description": "Mr.C office is in side of the regular office. Mr.Carlson's office has a sword hanging on the wall. To the west is a wall,to the north is the regular office, east is a wall, up is the ceiling, /n down is the floor, and south is a wall.",
+            "indoors": True,
+            "terrain": "carpet floor",
+            "exits": [
+                {"direction": "east", "roomId": 3},
+                
+            ],
+            "objects": [
+                #O.spawn(""),
+                #O.spawn(""),
+                #O.spawn("")
+            ],
+            "mobs": [  
+#                M.spawn("") ,
+#                M.spawn(""),
+#                M.spawn(""),
+#                
+            ],
+        }
+    ),  
+     13: Room(
+        {
+            "number": 13,
+            "name": "Mr. Carlson's office",
+            "description": "Mr.C office is in side of the regular office. Mr.Carlson's office has a sword hanging on the wall. To the west is a wall,to the north is the regular office, east is a wall, up is the ceiling, /n down is the floor, and south is a wall.",
+            "indoors": True,
+            "terrain": "carpet floor",
+            "exits": [
+                {"direction": "east", "roomId": 3},
+                
+            ],
+            "objects": [
+                #O.spawn(""),
+                #O.spawn(""),
+                #O.spawn("")
+            ],
+            "mobs": [  
+#                M.spawn("") ,
+#                M.spawn(""),
+#                M.spawn(""),
+#                
+            ],
+        }
+    ),  
 }
