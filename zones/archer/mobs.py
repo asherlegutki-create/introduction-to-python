@@ -42,8 +42,24 @@ TEMPLATES: dict[str, dict] = {
         "aggro": True,
         "wander": True,
 
-        },
-    }
+    },
+    
+     "&yImprisoned Illrigger&N": {
+        "name": "&yImprisoned Illrigger&N" ,
+        "key_words": ("Imprisoned", "Illrigger"),
+        "room_description": "You found this &yIllrigger&N in his cell in the Prison Room.",
+        "description": (
+            "this &yIllrigger&N is sulking in his cell, pondering, planning his revenge",
+        ),
+        "race": "Illrigger",
+        "class": "Bard",
+        "level": 24,
+        "stats": [55, 79, 53, 62, 85, 10],
+        "aggro": True,
+        "wander": True,
+
+    },
+}
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)
