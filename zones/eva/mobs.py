@@ -78,7 +78,7 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("cat", "orange", "large"),
         "room_description": "A large &yorange cat&N stands here playing with a child in the flowers.",
         "description": ("A fluffy &yorange tomcat&N of considerable size rolls in the &YW&yy&Wl&Yd&yf&Wl&Yo&yw&We&Yr&ys&N with an excited little girl.\n" 
-                       "His &ggreen eyes&N follow you as he roughhouse." 
+                       "His &ggreen eyes&N follow you as he roughhouses." 
                         ),
         "race": "cat",
         "class": "pet",
