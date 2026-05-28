@@ -12,8 +12,7 @@ ROOMS: dict[int, Room] = {
         "exits": [
             {"direction": "south", "roomId": 1},
         ],
-        "objects": ["water bottle", "pitch fork"
-        ],
+        "objects": [O.spawn("water bottle"), O.spawn("pitch fork")],
         "mobs": [],
     }),
     6: Room({
