@@ -258,14 +258,20 @@ def auto_crepl(
         if (now - last_tick) >= TICK_INTERVAL:
             last_tick += TICK_INTERVAL   # advance by one interval, no drift
 
+            # Always check for mob aggro (fires even when not in combat).
+            # This is the tick-based fallback for the sneak mechanic:
+            # _check_aggro() fires on room entry; mob_aggro_tick() fires
+            # every 4 seconds, catching sneaking players after one window.
+            tick_output = None
             if state.fighting:
-                # Clear the current input line so output prints cleanly.
-                sys.stdout.write("\r\033[K")
-                output = state.combat_tick()
-                if output:
-                    cprint(output)
-                    # Show a fresh prompt after combat output.
-                    need_prompt = True
+                tick_output = state.combat_tick()
+            else:
+                tick_output = state.mob_aggro_tick()
+
+            if tick_output:
+                sys.stdout.write("\r\033[K")   # clear prompt line
+                cprint(tick_output)
+                need_prompt = True
 
         # ── Reprint prompt only when needed ──────────────────────────────
         if need_prompt:
