@@ -14,7 +14,7 @@ from ashenmoor.world.zone import make_spawner
 TEMPLATES: dict[str, dict] = {
     "&MIllrigger Mage&N": {
         "name": "Illrigger",
-        "key_words": ("Illrigger"),
+        "key_words": ("illrigger"),
         "room_description": "&MIllriggers &Wwander these parts, searching for any intruders.&N",
         "description": (
             "&MIllrigger Mage, &Wit is clearly mastering the arts of &xDark Magic&N."
@@ -30,7 +30,7 @@ TEMPLATES: dict[str, dict] = {
         
         "&RIllrigger Rogue&N": {
         "name": "Illrigger Rogue" ,
-        "key_words": ("Illrigger", "Rogue"),
+        "key_words": ("illrigger", "rogue"),
         "room_description": "&RIllriggers &Wwander these parts, searching for any intruders.&N",
         "description": (
             "&xIllrigger Rogue, &Wit's trying to guard the chest room&N",

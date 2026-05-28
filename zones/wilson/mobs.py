@@ -26,18 +26,18 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
     },
-        "Wemmbu": {
-        "name": "Wemmbu",
-        "key_words": ("&mWemmbu&N"),
-        "room_description": "Wemmbu stands here holding &mGambit&N menacingly.",
+        "Steve": {
+        "name": "Steve",
+        "key_words": ("Steve"),
+        "room_description": "&GSteve&N stands here.",
         "description": (
             ".\n"
         ),
         "race": "Minecraft",
-        "class": "Protaginist",
-        "level": 1,
-        "stats": [100, 100, 100, 100, 100, 0],
-        "aggro": True,
+        "class": "Steve",
+        "level": 1000000000000000000000,
+        "stats": [100, 100, 100, 100, 100, 100],
+        "aggro": False,
         "wander": True,
     }
 }
