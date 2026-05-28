@@ -265,11 +265,11 @@ ROOMS: dict[int, Room] = {
         {
             "number": 11,
             "name": "blacktop",
-            "description": "Mr.C office is in side of the regular office. Mr.Carlson's office has a sword hanging on the wall. To the west is a wall,to the north is the regular office, east is a wall, up is the ceiling, /n down is the floor, and south is a wall.",
-            "indoors": True,
-            "terrain": "carpet floor",
+            "description": "The blacktop is a black cement parking lot where kids play during lunch. There are no cars. To the west is more blacktop, to the north is more blacktop, east is more blacktop, up is nothing but air, /n down is the blacktop, and south is the hallway inside of the school.",
+            "indoors": False,
+            "terrain": "concrete",
             "exits": [
-                {"direction": "east", "roomId": 3},
+                {"direction": "south", "roomId": 10},
                 
             ],
             "objects": [
@@ -288,8 +288,8 @@ ROOMS: dict[int, Room] = {
      12: Room(   
          {
             "number": 12,
-            "name": "Mr. Carlson's office",
-            "description": "Mr.C office is in side of the regular office. Mr.Carlson's office has a sword hanging on the wall. To the west is a wall,to the north is the regular office, east is a wall, up is the ceiling, /n down is the floor, and south is a wall.",
+            "name": "boy's bathroom",
+            "description": "This is the boy's bathroom. To the west is a wall,to the north is the regular office, east is a wall, up is the ceiling, /n down is the floor, and south is a wall.",
             "indoors": True,
             "terrain": "carpet floor",
             "exits": [
