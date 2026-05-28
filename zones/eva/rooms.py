@@ -38,6 +38,7 @@ ROOMS: dict[int, Room] = {
         ],
         "objects": [
             O.spawn("Assorted_Bottles__Full"),
+            O.spawn("Silver_Sword"),
         ],
         "mobs": [                           # was [spawn1][spawn2] — that's list subscription, not a list
             M.spawn("fanciful_Bard"),

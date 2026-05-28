@@ -120,4 +120,15 @@ def get_ac(target) -> int:
     if shield and getattr(shield, "is_shield", False):
         ac += SHIELD_AC
 
+    # ── ac_bonus from every equipped item ────────────────────────────────
+    # Any item in any slot may carry an ac_bonus field (int).  These stack
+    # additively on top of the base armor calculation above.
+    # Dual slots (ring, neck, wrist, earring) hold lists — iterate both.
+    for item in equipped.values():
+        if isinstance(item, list):
+            for sub in item:
+                ac += getattr(sub, "ac_bonus", 0)
+        else:
+            ac += getattr(item, "ac_bonus", 0)
+
     return min(100, ac)

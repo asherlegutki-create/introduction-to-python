@@ -39,6 +39,9 @@ TEMPLATES: dict[str, dict] = {
         "hitroll":          2,
         "damroll":          4,
     },
+
+
+
     "Assorted_Bottles__Full": {
         "spawn_as":         Item,
         "name":             "Assorted bottles",
@@ -46,17 +49,25 @@ TEMPLATES: dict[str, dict] = {
         "room_description": "A few &gc&Bo&Yl&Co&Mr&Rf&Gu&bl&N &Wglass&N &Yb&co&mt&rt&gl&Be&Ms&N are on the &ycounter&N of the bar, they are all filled with different kinds of liquids.",
         "description":      "Five assorted &gc&Bo&Yl&Co&Mr&Rf&Gu&bl&N and &yunlabeled&N &Wglass bottles&N are siting on the counter.\nIt might &rnot&N be the best idea to drink these,as you don't know what is in them, but you do you.",
     },
+    "Silver_Sword" : {
+        "spawn_as":         Weapon,
+        'name': "Silver Sword",
+        'key_words': ("sword", "silver", "silver sword"),
+        'room_description': "A &Wsilver sword&N rests against the side of the bar.",
+        'description': "A &Wsilver sword&N leans, abandoned, against the tavern's counter.\nThis &Wsword&W seems like it would be effective against &rc&Xr&re&Xa&rt&Xu&rr&Xe&rs &Xo&rf &Xt&re&Xh &rn&Xi&rg&Xh&rt&N",
+        "weight":           3,
+        "dice":             "1d6",
+        "hitroll":          2,
+        "damroll":          2,
+    },
 
-
-
-
-
+    
 "Giant_Oak_Tree": {
         "spawn_as":         Object,
         "name":             "Giant Oak Tree",
         "key_words":        ("oak", "tree",),
         "room_description": "An extremely large &goak tree&N sits deeply rooted in the center of the courtyard.",
-        "description":      "This &ggiant oak&N towers over all else near it, it's &gb&yr&ga&yn&gc&yh&ye&gs&N covering the courtyard in a pleasant dappled shade.\nIts roots have started to disrupt some of the &wcobblestone bricks&N in the path surrounding it.",
+        "description":      "This &ggiant oak&N towers over all else near it, it's &gb&yr&ga&yn&gc&yh&ye&gs&N covering the courtyard in a pleasant dappled shade.\nIts &yroots&N have started to disrupt some of the &Xcobblestone bricks&N in the path surrounding it.",
     },
     "Tables": {
         "spawn_as":         Object,
@@ -72,6 +83,9 @@ TEMPLATES: dict[str, dict] = {
         "room_description": "Sparse patches of &YW&yy&Wl&Yd&yf&Wl&Yo&yw&We&Yr&ys&N are dotted around the courtyard.",
         "description":      "As you look closer at one of the smatterings of &YW&yy&Wl&Yd&yf&Wl&Yo&yw&We&Yr&ys&N you see that they are ruffled and delicate, about the size of a adult human's palm.\nIt seems the &Yf&yl&Wo&Yw&ye&Wr&Ys&N come in three distinct colors: &Yyellow&N, &yorange&N, and &Wwhite&N.",
     },
+
+
+  
 
     
 }

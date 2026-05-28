@@ -17,12 +17,12 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("Escbaalion", "lizard man"),
         "room_description": "&gEscbaalion&N licks his eyeball.",
         "description": (
-            "(The 'c' is silent)\n"
-            "A humanoid lizard. He is &gdark-green&N, and has a short\n"
-            "&Ccyan sail&N that runs from the top of his head to the end of his tail.\n"
-            "He wears an almost &Xblack cloak&N, but wears &Rno&N pants.\n"
-            "A &ybrown leather satchel&N is slung over his shoulder.\n"
-            "Only &ghe&N knows what is inside his &ybag&N. . . .\n"
+            "(The 'c' is silent)"
+            "A humanoid lizard. He is &gdark-green&N, and has a short",
+            "&Ccyan sail&N that runs from the top of his head to the end of his tail.",
+            "He wears an almost &Xblack cloak&N, but wears &Rno&N pants.",
+            "A &ybrown leather satchel&N is slung over his shoulder.",
+            "Only &ghe&N knows what is inside his &ybag&N. . . .",
         ),
         "race": "Lizaroid",
         "class": "Sorcerer",
@@ -36,16 +36,16 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("unicorn", "blob"),
         "room_description": "&MUnicorn Blob&N wanders without a care in the world.",
         "description": (
-            "It is a &Mpurple blob of&N &mjelly&N."
-            "A &Ygolden unicorn horn&N protrudes from its forehead."
-            "Its eyes are cute and sparkly and &Xsouless&N."
-            " "
-            " "
-            " "
-            "I wonder what it tastes like...?"
+            "It is a &Mpurple blob of&N &mjelly&N.",
+            "A &Ygolden unicorn horn&N protrudes from its forehead.",
+            "Its eyes are cute and sparkly and &Xsouless&N.",
+            " ",
+            " ",
+            " ",
+            "I wonder what it tastes like...?",
         ),
         "race": "Slime",
-        "class": None,
+        "class": "",
         "level": 7,
         "stats": [70, 50, 160, 20, 20, 100],
         "aggro": False,
