@@ -21,10 +21,11 @@ TEMPLATES: dict[str, dict] = {
         ),
         "race": "Illrigger",
         "class": "Mage",
-        "level": 39,
-        "stats": [75, 92, 53, 72, 85, 10],
+        "level": 18,
+        "stats": [25, 12, 35, 72, 45, 10],
         "aggro": True,
         "wander": True,
+        "killable": True,
 
     },
         
@@ -37,16 +38,17 @@ TEMPLATES: dict[str, dict] = {
         ),
         "race": "Illrigger",
         "class": "Rogue",
-        "level": 24,
-        "stats": [55, 79, 53, 62, 85, 10],
+        "level": 12,
+        "stats": [25, 19, 35, 62, 45, 10],
         "aggro": True,
         "wander": True,
+        "killable": True,
 
     },
     
      "&yImprisoned Illrigger&N": {
         "name": "&yImprisoned Illrigger&N" ,
-        "key_words": ("Imprisoned", "Illrigger"),
+        "key_words": ("imprisoned", "illrigger"),
         "room_description": "You found this &yIllrigger&N in his cell in the Prison Room.",
         "description": (
             "this &yIllrigger&N is sulking in his cell, pondering, planning his revenge",
@@ -55,9 +57,58 @@ TEMPLATES: dict[str, dict] = {
         "class": "Bard",
         "level": 24,
         "stats": [55, 79, 53, 62, 85, 10],
+        "aggro": False,
+        "wander": False,
+        "killable": True,
+
+    },
+
+    "&MSlime&N": {
+        "name": "Slime" ,
+        "key_words": ("slime"),
+        "room_description": "hey look! free &MX&GP&N!",
+        "description": (
+            "Slimy idiots with zero intelligence...",
+        ),
+        "race": "Unknown",
+        "class": "Unknown",
+        "level": 34,
+        "stats": [0, 1, 1, 0, 1, 0],
         "aggro": True,
         "wander": True,
+        "killable": True,
+    },
 
+    "&YKing &MSlime&N": {
+        "name": "King Slime" ,
+        "key_words": ("king", "slime"),
+        "room_description": "oooh! a boss battle with a hefty reward of &GX&MP...",
+        "description": (
+            "the King of the Slimy idiots with zero intelligence...",
+        ),
+        "race": "Unknown",
+        "class": "Unknown",
+        "level": 89,
+        "stats": [78, 45, 98, 69, 78, 0],
+        "aggro": True,
+        "wander": True,
+        "killable": True,
+    },
+
+    "Zombie": {
+        "name": "Zombie" ,
+        "key_words": ("zombie"),
+        "room_description": "looks like these Zombies are hungry",
+        "description": (
+            "they may eat brains but i dont think it makes them smarter",
+        ),
+        "race": "Undead",
+        "class": "Barbarian",
+        "level": 30,
+        "stats": [24, 45, 38, 29, 8, 0],
+        "aggro": True,
+        "wander": True,
+        "killable": True,
     },
 }
 
