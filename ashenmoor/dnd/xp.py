@@ -265,10 +265,7 @@ def apply_level_up(char) -> list[str]:
 
         skill = skills_gained_at(char.cclass, char.level)
         msgs.append(
-            f"\n&+Y╔══════════════════════════════════════╗&N\n"
-            f"&+Y║  LEVEL UP!  You are now level &W{char.level:<3}&+Y  ║&N\n"
-            f"&+Y╚══════════════════════════════════════╝&N\n"
-            f"&+G  HP +{hp_gain}  (total: {char.max_hp})&N"
+            f"&+WYou raise a level!&N"
         )
         if skill:
             msgs.append(f"&+G  New ability: &W{skill}&+G!&N")
