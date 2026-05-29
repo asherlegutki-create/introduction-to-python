@@ -85,6 +85,7 @@ _COMMAND_MAP: dict[str, str] = {
     "kill":     "kill",     "k":   "kill",
     "flee":     "flee",     "fl":  "flee",
     "consider": "consider", "con": "consider",
+    "hi": 'hello', 'hello': 'hello'
 }
 
 
@@ -228,6 +229,7 @@ class GameState:
         if verb == "flee":     return self._cmd_flee()
         if verb == "consider": return self._cmd_consider(args)
         if verb == "rest":     return self._cmd_rest(args)
+        if verb == "hello": return "Heya!"
 
         if verb in DIRECTIONS or verb == "go":
             if self._player in self.fighting:
