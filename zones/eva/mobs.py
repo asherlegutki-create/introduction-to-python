@@ -71,6 +71,7 @@ TEMPLATES: dict[str, dict] = {
         "level": 15,
         "stats": [90, 75, 95, 80, 70, 75],
         "aggro": False,
+        "killable": False,
         "wander": True,
     },
     "Large_Orange_Cat": {
@@ -85,6 +86,7 @@ TEMPLATES: dict[str, dict] = {
         "level": 20,
         "stats": [90, 70, 90, 70, 70, 70],
         "aggro": False,
+        "killable": False,
         "wander": True,
     },
 "Eclectic_Rouge": {
