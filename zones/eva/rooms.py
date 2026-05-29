@@ -49,7 +49,7 @@ ROOMS: dict[int, Room] = {
         2: Room({
         "number": 2,
         "name": "Tavern Courtyard",
-        "description": "I still need to add a description for this room still, i just haven't have time yet. i will complete it soon :]",
+        "description": "This courtyard, which is a bit larger than the tavern itself, has a perimeter of &gshrubbery&N that connects to the back of the tavern wall.\nA &Xcobblestone path&N stretches from the door and surrounds a &ggiant oak&N in the middle of the room, the rest of the courtyard is covered in &Gshort grass&N.\nThe ancient &goak tree&N in the center provides a sense if safety and the patches of &YW&yy&Wl&Yd&yf&Wl&Yo&yw&We&Yr&ys&N dotted about give it a light and cheery atmosphere.",
         "indoors": False,
         "terrain": "grass",
         "exits": [
