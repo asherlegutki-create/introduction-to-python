@@ -58,6 +58,11 @@ class Item(Object):
         self.stat_mods: dict[str,int] = d.get("stat_mods", {})
         # Saving throw bonuses: keys are "par", "rod", "pet", "bre", "spe"
         self.save_mods: dict[str,int] = d.get("save_mods", {})
+        # Flat AC bonus added by get_ac() on top of armor_type base.
+        # Any wearable item may carry this — not just body armor.
+        self.ac_bonus:  int           = d.get("ac_bonus",  0)
+        # Armor type key into ARMOR_TABLE (on_body items only; see dnd/armor.py)
+        self.armor_type: str | None   = d.get("armor_type", None)
 
         if self.wear_on is not None and self.wear_on not in VALID_WEAR_ON:
             raise ValueError(

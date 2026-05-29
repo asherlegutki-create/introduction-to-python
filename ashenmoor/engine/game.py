@@ -248,10 +248,15 @@ class GameState:
             if self.player in self.fighting:
                 return "&wYou cannot move while in combat — use &Wflee&w to escape!&N"
             direction = args[0] if (verb == "go" and args) else verb
-            result    = go(self.player, self.locations, self.rooms, direction)
-            if not isinstance(result, str):   # successful move
-                self._save_location()
-            return result
+            result = go(self.player, self.locations, self.rooms, direction)
+            if isinstance(result, str):
+                return result
+            self._save_location()
+            parts = [self._cmd_look([])]
+            aggro = self._check_aggro()
+            if aggro:
+                parts.append(aggro)
+            return "\n".join(parts)
 
         # ── Standard commands ─────────────────────────────────────────────
         if   verb == "look":      return self._cmd_look(args)
@@ -315,6 +320,7 @@ class GameState:
             result = self._cmd_remove(args)
             self._save_player()
             return result
+
 
         return "&NPardon?"
 
@@ -628,7 +634,11 @@ class GameState:
             return f"&wNo room with vnum &W{vnum}&w exists.&N"
         self.locations[self.player] = vnum
         self._save_location()
-        return self._cmd_look([])
+        parts = [self._cmd_look([])]
+        aggro = self._check_aggro()
+        if aggro:
+            parts.append(aggro)
+        return "\n".join(parts)
 
     # ── score / position ─────────────────────────────────────────────────────
 
@@ -737,6 +747,130 @@ class GameState:
         }
         return msgs.get(new_pos, f"&wYou are now {new_pos}.&N")
 
+    def mob_aggro_tick(self) -> str | None:
+        """
+        D&D 5e Active Perception check on each tick.
+
+        The mob actively looks around (Search action equivalent).
+        It rolls Wisdom (Perception) against the player's Passive Stealth.
+
+        Formula
+        ───────
+          Mob active perception  = d20 + WIS modifier [+ proficiency]
+          Player Passive Stealth = 10 + DEX modifier
+          Detected if mob_roll >= player_passive_stealth
+
+        This fires every 4 seconds regardless of how the player entered.
+        The sneak mechanic (future) raises the player's Passive Stealth
+        by adding a proficiency bonus, making them harder to find each tick.
+        Without sneak there is no proficiency bonus — average DEX characters
+        have Passive Stealth 10, which an alert mob beats more often than not.
+        """
+        import random
+        if self.player in self.fighting:
+            return None
+        room = self.current_room
+        if room is None:
+            return None
+        char = self.characters.get(self.player)
+        if char is None:
+            return None
+
+        from ..world.mob import Mob
+        from ..dnd.abilities import modifier
+
+        dex_mod = modifier(char.computed_stat("dex"))
+        # Passive Stealth = 10 + DEX modifier (no proficiency until sneak built)
+        player_passive_stealth = 10 + dex_mod
+
+        for mob in getattr(room, "mobs", []):
+            if not isinstance(mob, Mob): continue
+            if not mob.is_alive() or not mob.killable: continue
+            if not mob.is_hostile_to(self.player): continue
+
+            # Mob's active Wisdom (Perception) roll
+            wis = mob.stats[4] if len(mob.stats) > 4 else 75
+            wis_mod = (wis - 75) // 5
+            if mob.perception_prof:
+                prof = (max(1, mob.level) - 1) // 4 + 2
+                wis_mod += prof
+            mob_perception = random.randint(1, 20) + wis_mod
+
+            if mob_perception < player_passive_stealth:
+                continue   # mob didn't spot the player this tick
+
+            # Detected
+            self.fighting[self.player] = mob
+            if mob.aggressive:
+                return (f"&+R{mob.name}&w spots you and attacks!&N\n"
+                        f"&x(Auto-attack fires every 4 seconds.)&N")
+            return (f"&+R{mob.name}&w sees you and attacks!&N\n"
+                    f"&x(Auto-attack fires every 4 seconds.)&N")
+        return None
+
+    def _check_aggro(self) -> str | None:
+        """
+        D&D 5e awareness check on room entry.
+
+        The player rolls Dexterity (Stealth) against each hostile mob's
+        Passive Perception.  If the player beats or ties the PP the mob
+        doesn't notice them this moment.  If the roll fails the mob attacks.
+
+        Formula
+        ───────
+          Player stealth roll  = d20 + DEX modifier
+          Mob Passive Perception = 10 + WIS modifier [+ proficiency]
+          Detected if stealth_roll < mob.passive_perception()
+
+        Memory mobs (player previously fled) get Advantage on their PP:
+        they are actively watching, so we take the higher of two d20 rolls.
+
+        This check fires once on room entry and can be suppressed by the
+        sneak mechanic (future).  mob_aggro_tick() is the fallback that
+        fires every 4 seconds with an active Perception roll — much harder
+        to avoid.
+        """
+        import random
+        if self.player in self.fighting:
+            return None
+        room = self.current_room
+        if room is None:
+            return None
+        char = self.characters.get(self.player)
+        if char is None:
+            return None
+
+        from ..world.mob import Mob
+        from ..dnd.abilities import modifier
+
+        dex_mod = modifier(char.computed_stat("dex"))
+
+        for mob in getattr(room, "mobs", []):
+            if not isinstance(mob, Mob): continue
+            if not mob.is_alive() or not mob.killable: continue
+            if not mob.is_hostile_to(self.player): continue
+
+            # Player stealth roll: d20 + DEX modifier.
+            # Memory mob gets Advantage on PP (watching for this player):
+            # represented as a bonus d20 kept if higher, simulating alertness.
+            stealth = random.randint(1, 20) + dex_mod
+            pp = mob.passive_perception()
+            if self.player in mob.memory:
+                # Advantage: mob rolls perception twice, takes the better
+                pp = max(pp, pp + random.randint(0, 5))  # alert bonus
+
+            if stealth >= pp:
+                continue   # player slips by unnoticed
+
+            # Detected — initiate combat
+            self.fighting[self.player] = mob
+            if mob.aggressive:
+                return (f"&+R{mob.name}&w notices you and attacks!&N\n"
+                        f"&x(Auto-attack fires every 4 seconds.)&N")
+            return (f"&+R{mob.name}&w recognises you and attacks!&N\n"
+                    f"&x(Auto-attack fires every 4 seconds.)&N")
+        return None
+
     def _cmd_kill(self, args) -> str:
         if not args: return "&wKill what?&N"
         if self.player in self.fighting:
@@ -804,9 +938,14 @@ class GameState:
 
         import random
         exit_choice = random.choice(open_exits)
+        # Mob remembers this player — will auto-attack on re-entry
+        angry_mob = self.fighting.get(self.player)
+        if angry_mob is not None and hasattr(angry_mob, "remember"):
+            angry_mob.remember(self.player)
+
         self.fighting.pop(self.player, None)
         self.locations[self.player] = exit_choice["roomId"]
-        self._save_location()   # save the fled-to location
+        self._save_location()
         dest = self.rooms[exit_choice["roomId"]]
         return (f"&wYou flee in a panic to the {exit_choice['direction']}!&N\n"
                 f"{dest.render(self.locations, self.characters)}")
