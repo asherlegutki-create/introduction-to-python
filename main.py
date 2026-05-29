@@ -1,15 +1,30 @@
 """
-main.py
+main.py  —  Ashenmoor MUD entry point
+
+Usage
+─────
+  python main.py                  Local shell only (offline, stdin/stdout)
+  python main.py -s               Local shell + network server on :4000
+  python main.py -s -nc           Network server only (no local shell)
+  python main.py -s --port 4001   Custom port
+
+Options
+───────
+  -s  / --serve       Also accept network connections (TCP/telnet/MCCP2)
+  -nc / --no-console  Suppress the local stdin/stdout shell
+  -p  / --port        TCP port to listen on (default: 4000)
 """
 
 import sys
 import os
+import asyncio
+import argparse
+
 sys.path.insert(0, os.path.dirname(__file__))
 
-from ashenmoor.color               import cprint
 from ashenmoor.core                import RACES
 from ashenmoor.engine              import GameState
-from ashenmoor.engine.ticker       import login_crepl, auto_crepl
+from ashenmoor.net.server          import MudServer
 
 from zones.the_void  import ZONE as THE_VOID
 from zones.archer    import ZONE as ARCHER
@@ -33,53 +48,112 @@ DB_PATH    = "ashenmoor.db"
 START_ROOM = 99001   # Hub room in new_zone — where new characters spawn
 
 
-def main():
-    state = GameState()
+# ── Argument parsing ───────────────────────────────────────────────────────────
 
-    # ── Load all zones (no characters yet — login picks who plays) ──────────
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog        = "main.py",
+        description = "Ashenmoor MUD server",
+        formatter_class = argparse.RawDescriptionHelpFormatter,
+        epilog = (
+            "examples:\n"
+            "  python main.py               # offline single-player shell\n"
+            "  python main.py -s            # shell + network server\n"
+            "  python main.py -s -nc        # network server only\n"
+            "  python main.py -s -p 5000    # custom port\n"
+        ),
+    )
+    parser.add_argument(
+        "--serve", "-s",
+        action  = "store_true",
+        default = False,
+        help    = "accept network connections (TCP telnet, port 4000)",
+    )
+    parser.add_argument(
+        "--no-console", "-nc",
+        dest    = "no_console",
+        action  = "store_true",
+        default = False,
+        help    = "suppress local stdin/stdout shell",
+    )
+    parser.add_argument(
+        "--port", "-p",
+        type    = int,
+        default = 4000,
+        metavar = "PORT",
+        help    = "TCP port to listen on (default: 4000, requires --serve)",
+    )
+    parser.add_argument(
+        "--host",
+        default = "0.0.0.0",
+        metavar = "HOST",
+        help    = "bind address for TCP server (default: 0.0.0.0)",
+    )
+    return parser.parse_args()
+
+
+# ── World loading ──────────────────────────────────────────────────────────────
+
+def load_world() -> GameState:
+    state = GameState()
     state.load_world({}, {}, {})
 
-    state.load_zone(THE_VOID)
-    state.load_zone(ARCHER)
-    state.load_zone(ASHER)
-    state.load_zone(CHARLOTTE)
-    state.load_zone(DAMIEN)
-    state.load_zone(DREW)
-    state.load_zone(EVA)
-    state.load_zone(GABE)
-    state.load_zone(ISAAC)
-    state.load_zone(JORDAN)
-    state.load_zone(JOSHUA)
-    state.load_zone(LINDI)
-    state.load_zone(NEW_ZONE)
-    state.load_zone(REESE)
-    state.load_zone(TIMOTHY)
-    state.load_zone(WILSON)
-    state.load_zone(WYATT)
+    for zone in (
+        THE_VOID, ARCHER, ASHER, CHARLOTTE, DAMIEN,
+        DREW, EVA, GABE, ISAAC, JORDAN, JOSHUA,
+        LINDI, NEW_ZONE, REESE, TIMOTHY, WILSON, WYATT,
+    ):
+        state.load_zone(zone)
 
-    cprint(f"&x{len(state.rooms)} rooms loaded.&N")
+    print(f"[world] {len(state.rooms)} rooms loaded.", flush=True)
+    return state
 
-    # ── Login: picks/creates character, sets state.player ───────────────────
-    login_crepl(
-        state      = state,
+
+# ── Async main ─────────────────────────────────────────────────────────────────
+
+async def async_main(args: argparse.Namespace) -> None:
+    state  = load_world()
+    server = MudServer(state, host=args.host, port=args.port)
+
+    serve   = args.serve
+    console = not args.no_console
+
+    if not serve and not console:
+        print(
+            "error: --no-console requires --serve  "
+            "(nothing to do without at least one client source)",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    if args.no_console and not args.serve:
+        print(
+            "warning: --no-console has no effect without --serve",
+            file=sys.stderr,
+        )
+
+    mode_parts = []
+    if console: mode_parts.append("local console")
+    if serve:   mode_parts.append(f"TCP server on {args.host}:{args.port}")
+    print(f"[ashenmoor] starting: {' + '.join(mode_parts)}", flush=True)
+
+    await server.start(
+        serve      = serve,
+        console    = console,
         start_room = START_ROOM,
         races      = RACES,
         db_path    = DB_PATH,
     )
 
-    # ── Start the game ───────────────────────────────────────────────────────
-    char = state.characters[state.player]
-    auto_crepl(
-        state    = state,
-        prompt   = "&g> &N",
-        banner   = (
-            f"&wYou are &W{char.name}&w, a level &W{char.level}&w "
-            f"{char.race} {char.cclass}.&N\n"
-            f"&xType &Wscore&N&x, &Watt&N&x, &Wlook&N&x, "
-            f"&Wkill <mob>&N&x, &Wquit&N&x.&N"
-        ),
-        farewell = "&CGoodbye! Your progress has been saved.&N",
-    )
+
+# ── Entry point ────────────────────────────────────────────────────────────────
+
+def main() -> None:
+    args = parse_args()
+    try:
+        asyncio.run(async_main(args))
+    except KeyboardInterrupt:
+        print("\n[ashenmoor] shutting down.", flush=True)
 
 
 if __name__ == "__main__":

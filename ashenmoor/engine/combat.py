@@ -2,40 +2,6 @@
 ashenmoor.engine.combat
 ────────────────────────
 Unified d20 combat system, 0-100 AC scale.
-
-Attack resolution
-─────────────────
-  attack_score = (d20 + ability_modifier) × 5
-
-  Compare to target AC (0-100):
-    • Natural 20    → critical hit   (double dice, always hits)
-    • Natural 1     → automatic miss (regardless of modifiers)
-    • Otherwise     → hit if attack_score ≥ AC
-
-  Why ×5?  The d20 range (1-20) × 5 = 5-100, which maps naturally onto
-  the 0-100 AC scale.  A +5 modifier (human peak) adds 25 to the score,
-  making it noticeably harder to miss but never a guarantee against high
-  AC targets.  A maxed Ogre (+21 STR) effectively always hits anything
-  not protected by divine magic.
-
-Attack modifier
-───────────────
-  = STR modifier + proficiency_bonus + weapon_hitroll
-  (DEX modifier used instead of STR when weapon has finesse AND DEX > STR)
-
-Damage
-──────
-  Melee  :  weapon dice  + STR modifier  (DEX if finesse)
-  Unarmed:  1d(level ÷ 5, min 1)  + STR modifier
-  Crit   :  double weapon dice, then add modifiers once (5e rule)
-
-Examples
-────────
-  Fighter  STR 90  → modifier +3   → base attack range (1+3)×5=20 to (20+3)×5=115
-  Ogre     STR 180 → modifier +21  → base attack range 110 to 205   (capped at hit)
-  AC 25    (unarmored DEX 75)   → needs attack_score ≥ 25 → very easy
-  AC 65    (chain mail)         → needs d20+3 ≥ 13  →  ~40% hit chance for +3 fighter
-  AC 80    (plate)              → needs d20+3 ≥ 16  →  ~25% hit chance
 """
 
 from __future__ import annotations
@@ -45,10 +11,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..core.character import Character
 
-# ── Dice helpers ───────────────────────────────────────────────────────────────
+# ── Dice helpers ──────────────────────────────────────────────────────────────
 
 def parse_dice(dice_str: str) -> tuple[int, int]:
-    """'2d8' → (2, 8)"""
     n, s = dice_str.lower().split("d")
     return int(n), int(s)
 
@@ -56,20 +21,18 @@ def roll_dice(dice_str: str) -> int:
     n, s = parse_dice(dice_str)
     return sum(random.randint(1, s) for _ in range(n))
 
-# ── Hit type constants ─────────────────────────────────────────────────────────
+# ── Hit type constants ────────────────────────────────────────────────────────
 
-MISS   = 0
-HIT    = 1
-CRIT   = 2
+MISS = 0
+HIT  = 1
+CRIT = 2
 
-# ── HP helpers ─────────────────────────────────────────────────────────────────
+# ── HP helpers ────────────────────────────────────────────────────────────────
 
 def compute_max_hp(char) -> int:
-    """Derive max HP from CON modifier and level when not set in the template."""
     from ..dnd.abilities import char_modifier
     con_mod = char_modifier(char, "con")
     level   = max(1, char.level)
-    # Base 10 HP + (10 + CON modifier) per level, minimum 1 per level
     return max(level, 10 + (max(1, 10 + con_mod) * level))
 
 def ensure_hp(char) -> None:
@@ -104,38 +67,42 @@ def condition_str(char) -> str:
     if pct >  0.10: return "&+Rcritically wounded&N"
     return "&+RAT DEATH'S DOOR&N"
 
-# ── Attack modifier ────────────────────────────────────────────────────────────
+# ── Attack modifier ───────────────────────────────────────────────────────────
 
 def _attack_mod(attacker) -> int:
-    """
-    Total attack bonus:
-        ability_modifier + proficiency_bonus + weapon_hitroll
-
-    Uses STR, or DEX if weapon has finesse AND DEX modifier is higher.
-    """
     from ..dnd.abilities import char_modifier, proficiency_bonus
-
     str_mod = char_modifier(attacker, "str")
     dex_mod = char_modifier(attacker, "dex")
     prof    = proficiency_bonus(attacker.level)
-
     weapon  = (attacker.equipment.get("primary_hand")
                if hasattr(attacker, "equipment") else None)
     finesse = getattr(weapon, "finesse", False)
     att_mod = max(str_mod, dex_mod) if finesse else str_mod
     magic   = getattr(weapon, "hitroll", 0) if weapon else 0
-
     return att_mod + prof + magic
 
+# ── Accumulated damroll ───────────────────────────────────────────────────────
 
-# ── Damage roll ────────────────────────────────────────────────────────────────
+def _accumulated_damroll(attacker) -> int:
+    """
+    Sum damroll from every equipped weapon (primary + secondary hand).
+
+    Both weapons contribute to the damage pool on every hit — matching
+    what the 'att' display already shows.  STR modifier is handled
+    separately and applied per-hit based on fighting style.
+    """
+    eq    = getattr(attacker, "equipment", {})
+    total = 0
+    for slot in ("primary_hand", "secondary_hand"):
+        item = eq.get(slot)
+        if item is not None:
+            total += getattr(item, "damroll", 0)
+    return total
+
+# ── Damage roll ───────────────────────────────────────────────────────────────
 
 def calc_damage(attacker, crit: bool = False) -> int:
-    """
-    Roll damage for one hit (crit = double weapon dice, then add modifiers once).
-    """
     from ..dnd.abilities import char_modifier
-
     str_mod = char_modifier(attacker, "str")
     dex_mod = char_modifier(attacker, "dex")
     weapon  = (attacker.equipment.get("primary_hand")
@@ -147,34 +114,29 @@ def calc_damage(attacker, crit: bool = False) -> int:
         n, s    = parse_dice(weapon.dice)
         two_h   = getattr(weapon, "two_handed", False)
         finesse = getattr(weapon, "finesse", False)
+        rolls   = [random.randint(1, s) for _ in range(n * (2 if crit else 1))]
 
-        rolls = [random.randint(1, s) for _ in range(n * (2 if crit else 1))]
-
-        # Great Weapon Fighting: reroll 1s and 2s once on two-handers
         if dnd.get("fighting_style") == "great_weapon" and two_h:
             from ..dnd.classes.warrior import great_weapon_reroll
             rolls = great_weapon_reroll(rolls, s)
 
         base    = sum(rolls)
-        magic   = getattr(weapon, "damroll", 0)
+        magic   = _accumulated_damroll(attacker)
         dam_mod = max(str_mod, dex_mod) if finesse else str_mod
 
-        # Dueling: +2 damage when wielding a one-hander with no off-hand weapon
         if (not two_h and not finesse
                 and dnd.get("fighting_style") == "dueling"
                 and not eq.get("secondary_hand")):
             dam_mod += 2
 
         return max(1, base + magic + dam_mod)
-
     else:
-        # Unarmed — scales with level so mobs remain threatening at high level
-        sides = max(1, attacker.level // 5)
-        rolls = [random.randint(1, sides) for _ in range(2 if crit else 1)]
+        sides   = max(1, attacker.level // 5)
+        rolls   = [random.randint(1, sides) for _ in range(2 if crit else 1)]
+        str_mod = char_modifier(attacker, "str")
         return max(1, sum(rolls) + str_mod)
 
-
-# ── Damage verbs (relative to target's max HP) ────────────────────────────────
+# ── Damage verbs ──────────────────────────────────────────────────────────────
 
 _DAM_VERBS: list[tuple[int, str]] = [
     (2,   "&wbarely scratches&N"),
@@ -194,29 +156,22 @@ def _damage_verb(damage: int, target_max_hp: int) -> str:
             return verb
     return "&+ROBLITERATES&N"
 
-
-# ── Single attack ──────────────────────────────────────────────────────────────
+# ── Single attack ─────────────────────────────────────────────────────────────
 
 def one_attack(attacker, defender) -> tuple[int, int, str]:
     """
-    Resolve one attack swing.
-
-    Attack score = (d20 + ability_modifier) × 5
-    Hit if attack_score ≥ target AC (0-100)
-
-    Returns (damage, hit_type, diku_coloured_message).
+    Resolve one attack swing.  Returns (damage, hit_type, message).
+    Does NOT fire weapon procs — procs are only checked in combat_round().
     """
     from ..dnd.armor import get_ac
 
     roll = random.randint(1, 20)
     ac   = get_ac(defender)
 
-    # Natural 1 — automatic miss
     if roll == 1:
         return (0, MISS,
                 f"&w{attacker.name}&N fumbles and misses completely!&N")
 
-    # Natural 20 — critical hit regardless of AC
     if roll == 20:
         dmg         = calc_damage(attacker, crit=True)
         defender.hp = max(0, defender.hp - dmg)
@@ -224,7 +179,6 @@ def one_attack(attacker, defender) -> tuple[int, int, str]:
                 f"&+W[CRITICAL HIT!] &w{attacker.name}&N devastates "
                 f"&N{defender.name}&w for &W{dmg}&w damage!&N")
 
-    # Normal roll — attack score vs AC
     att_mod      = _attack_mod(attacker)
     attack_score = (roll + att_mod) * 5
 
@@ -241,16 +195,40 @@ def one_attack(attacker, defender) -> tuple[int, int, str]:
             f"&w{attacker.name}&N {verb} &N{defender.name}&w "
             f"(&W{dmg}&w dmg | score &W{attack_score}&w vs AC &W{ac}&w)&N")
 
+# ── Weapon proc ───────────────────────────────────────────────────────────────
 
-# ── Off-hand attack ────────────────────────────────────────────────────────────
+def _fire_weapon_proc(attacker, defender, msgs: list,
+                      slot: str = "primary_hand") -> None:
+    """
+    Look up and fire the weapon proc for the given equipment slot.
+
+    slot defaults to "primary_hand" for main attacks.
+    Pass slot="secondary_hand" for off-hand attacks.
+
+    The proc key is stored as a string on weapon.proc and resolved at
+    call time from world.procs.PROCS to avoid circular imports.
+    """
+    eq     = getattr(attacker, "equipment", {})
+    weapon = eq.get(slot)
+    if weapon is None:
+        return
+    proc_key = getattr(weapon, "proc", None)
+    if not proc_key:
+        return
+
+    from ..world.procs import PROCS
+    proc_fn = PROCS.get(proc_key) if isinstance(proc_key, str) else proc_key
+    if proc_fn is None:
+        print(f"[warn] unknown weapon proc key: {proc_key!r}", flush=True)
+        return
+
+    extra_msgs = proc_fn(attacker, defender)
+    if extra_msgs:
+        msgs.extend(extra_msgs)
+
+# ── Off-hand attack ───────────────────────────────────────────────────────────
 
 def off_hand_attack(attacker, defender) -> tuple[int, int, str] | None:
-    """
-    Bonus off-hand attack for dual-wielding.  Returns None if no off-hand weapon.
-
-    Two-Weapon Fighting style  → add ability modifier to off-hand damage
-    No style                   → no ability modifier on off-hand damage
-    """
     from ..dnd.armor     import get_ac
     from ..dnd.abilities import char_modifier, proficiency_bonus
 
@@ -278,9 +256,9 @@ def off_hand_attack(attacker, defender) -> tuple[int, int, str] | None:
                 f"&+W[CRIT OFF-HAND] &w{attacker.name}&N hits "
                 f"&N{defender.name}&w for &W{dmg}&w damage!&N")
 
-    dnd   = getattr(attacker, "dnd", {}) or {}
-    prof  = proficiency_bonus(attacker.level)
-    magic = getattr(weapon, "hitroll", 0)
+    dnd       = getattr(attacker, "dnd", {}) or {}
+    prof      = proficiency_bonus(attacker.level)
+    magic     = getattr(weapon, "hitroll", 0)
     att_score = (roll + prof + magic) * 5
 
     if att_score < ac:
@@ -290,9 +268,8 @@ def off_hand_attack(attacker, defender) -> tuple[int, int, str] | None:
 
     n, s  = parse_dice(weapon.dice)
     rolls = [random.randint(1, s) for _ in range(n)]
-    base  = sum(rolls) + getattr(weapon, "damroll", 0)
+    base  = sum(rolls) + _accumulated_damroll(attacker)
 
-    # Two-Weapon Fighting adds ability modifier to off-hand damage
     if dnd.get("fighting_style") == "two_weapon":
         str_mod = char_modifier(attacker, "str")
         dex_mod = char_modifier(attacker, "dex")
@@ -307,21 +284,22 @@ def off_hand_attack(attacker, defender) -> tuple[int, int, str] | None:
             f"&w{attacker.name}&N {verb} &N{defender.name}&w off-hand "
             f"(&W{dmg}&w dmg | score &W{att_score}&w vs AC &W{ac}&w)&N")
 
-
-# ── Combat round ───────────────────────────────────────────────────────────────
+# ── Combat round ──────────────────────────────────────────────────────────────
 
 def combat_round(player, target, extra_attacks: int = 0) -> list[str]:
     """
-    One full combat round: player multi-attacks → off-hand → target replies.
+    One full combat round: player attacks → weapon procs → off-hand → target.
 
-    extra_attacks: added on top of normal count (Action Surge).
+    Weapon procs fire after each successful hit, on both primary and
+    off-hand weapons independently.  Extra hits generated by a proc call
+    one_attack() directly and do not re-trigger procs.
     """
     ensure_hp(player)
     ensure_hp(target)
 
     msgs: list[str] = []
 
-    # ── Player main attacks ───────────────────────────────────────────────
+    # ── Player main attacks + primary-hand proc ───────────────────────────
     dnd = getattr(player, "dnd", {}) or {}
     if dnd.get("class") == "warrior":
         from ..dnd.classes.warrior import attack_count
@@ -330,16 +308,23 @@ def combat_round(player, target, extra_attacks: int = 0) -> list[str]:
         n_attacks = 1 + extra_attacks
 
     for _ in range(n_attacks):
-        if target.hp <= 0: break
-        _, _, msg = one_attack(player, target)
+        if target.hp <= 0:
+            break
+        dmg, hit_type, msg = one_attack(player, target)
         msgs.append(msg)
 
-    # ── Off-hand bonus attack ─────────────────────────────────────────────
+        if hit_type != MISS and target.hp > 0:
+            _fire_weapon_proc(player, target, msgs, slot="primary_hand")
+
+    # ── Off-hand attack + off-hand proc ──────────────────────────────────
     if target.hp > 0:
         result = off_hand_attack(player, target)
         if result:
-            _, _, msg = result
+            dmg, hit_type, msg = result
             msgs.append(msg)
+
+            if hit_type != MISS and target.hp > 0:
+                _fire_weapon_proc(player, target, msgs, slot="secondary_hand")
 
     # ── Target counter-attacks ────────────────────────────────────────────
     if target.hp > 0:
