@@ -22,6 +22,7 @@ Foreground color codes:
     &y / &Y   dark yellow   / bright yellow
     &m / &M   dark magenta  / bright magenta
     &w / &W   dark grey     / bright white
+    &l / &L   black         / dark grey
     &x / &X   black         / dark grey
     &+X       same as uppercase (explicit bright-bit prefix)
     &&        literal ampersand
@@ -49,6 +50,7 @@ def _ansi(code: int, bold: bool = False) -> str:
     return f"\033[1;{code}m" if bold else f"\033[{code}m"
 
 _BARE = {
+    "l": (30, False),  "L": (30, True),
     "x": (30, False),  "X": (30, True),
     "r": (31, False),  "R": (31, True),
     "g": (32, False),  "G": (32, True),
