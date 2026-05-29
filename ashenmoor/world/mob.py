@@ -137,7 +137,8 @@ class Mob(Character):
             template.get("room_desc", f"{self.name} is here.")
         )
         self.key_words: tuple = tuple(template.get("key_words", ()))
-        self.description:  str  = template.get("description", "")
+        desc = template.get("description", "")
+        self.description:      str   = "\n".join(desc) if isinstance(desc, (tuple, list)) else desc
 
         # ── AC override ───────────────────────────────────────────────────
         # If the template supplies ac=, store it so combat.py's get_ac()
