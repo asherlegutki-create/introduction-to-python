@@ -45,16 +45,37 @@ TEMPLATES: dict[str, dict] = {
     },
     "Arm canon": {
         "spawn_as": Weapon,
-        "name": "&RArm&N canon",
-        "key_words": ("Arm", "canon"),
-        "room_description": "&WAn &RArm&N canon &Wthat is able to sit on your arm lays here... obviously.",
+        "name": "&WDouble barrel &Rarm&N canon",
+        "key_words": ("Arm", "canon", "double"),
+        "room_description": "&WAn {m&RArm canon{n &Wthat is able to sit on your arm lays here... obviously.",
         "description": """&WIt's&N canon &Wis of &Mmagenta &Wcoloration and is a &Cstrong, &Wlightweight&N metal.
-&WIt looks like it can shoot &Ybullets &Wof pure &Mplasma&N
+&WIt looks like it can shoot &Ybullets &Wof pure {m&Mplasma&N
 &WIt is &Mmagenta&N, not &Rpink&N""",
         "weight": 7,
-        "dice": "2d6",
-        "hitroll": 4,
-        "damroll": 8,
+        "dice": "20d40",
+        "hitroll": 36,
+        "damroll": 50,
+    },
+    "Arm canon dupe": {
+        "spawn_as": Weapon,
+        "name": "&WDouble barrel &Rarm&N canon",
+        "key_words": ("Arm", "canon", "double"),
+        "room_description": "&WAn {m&RArm canon{n &Wthat is able to sit on your arm lays here... obviously.",
+        "description": """&WIt's&N canon &Wis of &Mmagenta &Wcoloration and is a &Cstrong, &Wlightweight&N metal.
+&WIt looks like it can shoot &Ybullets &Wof pure {m&Mplasma&N
+&WIt is &Mmagenta&N, not &Rpink&N""",
+        "weight": 7,
+        "dice": "2d10",
+        "hitroll": 36,
+        "damroll": 50,
+    },
+    "Uranium Rod": {
+        "spawn_as": Item,
+        "name": "&GRadioactive Uranium&N rod",
+        "key_words": ("Radioactive", "Uranium", "rod"),
+        "room_description": "&WA {g&WRadioactive Uranium&N rod &Wlies here. please do not go near it.",
+        "description": "A &GRadioactive Uranium&N rod&W. what else to explain&N",
+        "weight": 2,
     },
 }
 

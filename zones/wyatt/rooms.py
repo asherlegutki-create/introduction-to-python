@@ -29,6 +29,7 @@ ROOMS: dict[int, Room] = {
             "objects": [
                 O.spawn("Dragons Talon"),
                 O.spawn("Arm canon"),
+                O.spawn("Uranium Rod"),
             ],
             "mobs": [M.spawn("Green Nessie")],  # two independent students
         }
@@ -42,6 +43,7 @@ ROOMS: dict[int, Room] = {
             "terrain": "wood",
             "exits": [
                 {"direction": "north", "roomId": 1},
+                {"direction": "west", "roomId": 3},
             ],
             "objects": [
                 O.spawn("Glass"),
@@ -51,6 +53,57 @@ ROOMS: dict[int, Room] = {
                 O.spawn("Glass"),
             ],
             "mobs": [M.spawn("Alisa Macailnov")],  # two independent students
+        }
+    ),
+    3: Room(
+        {
+            "number": 3,
+            "name": "&Clearning &GJu&gng&Gle",
+            "description": "&WIt is a jungle that has, what almost seems like, an unlimited amount of trees and shrubs\n It goes pretty far",
+            "indoors": False,
+            "terrain": "dirt",
+            "exits": [
+                {"direction": "east", "roomId": 2},
+                {"direction": "north", "roomId": 4},
+            ],
+            "objects": [],
+            "mobs": [
+                M.spawn("Gobbles the Learnosaur"),
+            ],
+        }
+    ),
+    4: Room(
+        {
+            "number": 4,
+            "name": "&CW&Ba&Ct&Be&Cr &GWorld&N",
+            "description": "&WA &Gworld &Wof endless &CW&Ba&Ct&Be&Cr\n&WIt has tons of life ",
+            "indoors": False,
+            "terrain": "water",
+            "exits": [
+                {"direction": "north", "roomId": 5},
+                {"direction": "south", "roomId": 3},
+            ],
+            "objects": [],
+            "mobs": [
+                M.spawn("Pedro the Sea Urchin"),
+                M.spawn("Doug the Hermit Crab"),
+            ],
+        }
+    ),
+    5: Room(
+        {
+            "number": 5,
+            "name": "&RC&Co&Gr&Ya&Ml &WReef City",
+            "description": "&WA city with hundreds of sea creature civilians around",
+            "indoors": False,
+            "terrain": "water, rock",
+            "exits": [
+                {"direction": "south", "roomId": 4},
+            ],
+            "objects": [],
+            "mobs": [
+                M.spawn("Flappers the Super Dolphin"),
+            ],
         }
     ),
 }
