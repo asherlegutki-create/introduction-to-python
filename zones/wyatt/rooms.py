@@ -94,13 +94,13 @@ ROOMS: dict[int, Room] = {
         {
             "number": 5,
             "name": "&RC&Co&Gr&Ya&Ml &WReef City",
-            "description": "&WA city with hundreds of sea creature civilians around",
+            "description": "&WA city with hundreds of sea creature civilians around&N",
             "indoors": False,
             "terrain": "water, rock",
             "exits": [
                 {"direction": "south", "roomId": 4},
             ],
-            "objects": [],
+            "objects": [O.spawn("Sword of Coral"),],
             "mobs": [
                 M.spawn("Flappers the Super Dolphin"),
             ],
