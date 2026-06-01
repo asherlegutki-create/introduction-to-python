@@ -20,7 +20,7 @@ _WINDSONG_ALLOWED: frozenset[str] = frozenset({
 })
 
 # Outer proc (normal attack): 1-in-20
-_WINDSONG_OUTER_CHANCE = 25
+_WINDSONG_OUTER_CHANCE = 10
 
 # Inner proc (proc-generated swing): 1-in-10
 _WINDSONG_INNER_CHANCE = 10
