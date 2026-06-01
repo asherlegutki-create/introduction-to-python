@@ -34,6 +34,41 @@ def _power_cooldown_ticks(power: dict) -> float:
         return float(power["cooldown_ticks"])
     return power.get("cooldown", 8) / _TICK_INTERVAL
 
+def _power_key(power: dict) -> str:
+    """
+    Cooldown dict key for a power.
+    Weapon powers are slot-qualified so each hand tracks independently:
+        "Windsong:primary_hand"
+        "Windsong:secondary_hand"
+    Character powers use the name alone:
+        "Second Wind"
+    """
+    name = power.get("name", "?")
+    slot = power.get("_slot")
+    return f"{name}:{slot}" if slot else name
+
+_SLOT_LABELS: dict[str, str] = {
+    "primary_hand":   "main hand",
+    "secondary_hand": "off hand",
+}
+
+def _collect_tagged_powers(char) -> list[dict]:
+    """
+    Return all available powers for a character, each as a shallow copy
+    with an added '_slot' key for weapon powers (None for character powers).
+    """
+    result: list[dict] = []
+    for p in (char.powers or []):
+        result.append(p)                          # character power — no slot
+    for slot, item in char.equipment.items():
+        items = item if isinstance(item, list) else ([item] if item else [])
+        for it in items:
+            for p in (getattr(it, "powers", None) or []):
+                tagged = dict(p)
+                tagged["_slot"] = slot            # weapon power — tag with slot
+                result.append(tagged)
+    return result
+
 _active_player: _cv.ContextVar[str] = _cv.ContextVar("_active_player")
 
 DIRECTIONS = frozenset({"north","south","east","west","up","down"})
@@ -76,8 +111,8 @@ _COMMAND_MAP: dict[str, str] = {
     "who":   "who",
     "goto":  "goto",
     "scan":  "scan",
-    "score": "score", "stats": "score", "stat": "score", "sc": "score",
-    "stand": "stand", "wake": "stand",
+    "score": "score", "stats": "score", "sc": "score",
+    "stand": "stand", "st": "stand", "wake": "stand",
     "sit":   "sit",
     "rest":  "rest",
     "kneel": "kneel",
@@ -85,7 +120,6 @@ _COMMAND_MAP: dict[str, str] = {
     "kill":     "kill",     "k":   "kill",
     "flee":     "flee",     "fl":  "flee",
     "consider": "consider", "con": "consider",
-    "hi": 'hello', 'hello': 'hello'
 }
 
 
@@ -229,7 +263,6 @@ class GameState:
         if verb == "flee":     return self._cmd_flee()
         if verb == "consider": return self._cmd_consider(args)
         if verb == "rest":     return self._cmd_rest(args)
-        if verb == "hello": return "Heya!"
 
         if verb in DIRECTIONS or verb == "go":
             if self._player in self.fighting:
@@ -487,21 +520,31 @@ class GameState:
         char = self.characters.get(self._player)
         if not char: return None
 
-        # Collect powers from character + all equipped weapons
-        all_powers = list(char.powers or [])
-        for item in char.equipment.values():
-            if isinstance(item, list):
-                for sub in item:
-                    all_powers.extend(getattr(sub, "powers", None) or [])
-            elif item is not None:
-                all_powers.extend(getattr(item, "powers", None) or [])
+        all_powers = _collect_tagged_powers(char)
 
-        for power in all_powers:
-            kws = power.get("keywords", ())
-            if isinstance(kws, str): kws = (kws,)
-            if verb in (k.lower() for k in kws):
+        # Find all powers whose keywords match this verb
+        matches = [
+            p for p in all_powers
+            if verb in (k.lower() for k in (
+                (p["keywords"],) if isinstance(p.get("keywords"), str)
+                else p.get("keywords", ())
+            ))
+        ]
+        if not matches:
+            return None
+
+        now = time.monotonic()
+
+        # Fire the first one that is ready (primary hand before secondary)
+        for power in matches:
+            if now >= self._power_cooldowns.get(_power_key(power), 0):
                 return self._execute_power(power)
-        return None
+
+        # All on cooldown — report the one closest to ready
+        soonest = min(matches, key=lambda p: self._power_cooldowns.get(_power_key(p), 0))
+        rem     = (self._power_cooldowns.get(_power_key(soonest), 0) - now) / _TICK_INTERVAL
+        name    = soonest.get("name", "power")
+        return f"&w{name}&w is not ready yet ({rem:.1f} ticks remaining).&N"
 
     def _execute_power(self, power) -> str:
         name = power.get("name", "power")
@@ -517,13 +560,14 @@ class GameState:
             return self._execute_charge_power(power, char, dnd)
 
         now      = time.monotonic()
-        ready_at = self._power_cooldowns.get(name, 0)
+        pkey     = _power_key(power)
+        ready_at = self._power_cooldowns.get(pkey, 0)
         if now < ready_at:
             remaining = (ready_at - now) / _TICK_INTERVAL
             return f"&w{name}&w is not ready yet ({remaining:.1f} ticks remaining).&N"
 
         cooldown = _power_cooldown_secs(power)
-        self._power_cooldowns[name] = now + cooldown
+        self._power_cooldowns[pkey] = now + cooldown
 
         n        = char.name if char else "Someone"
         user_msg = power.get("user_msg", "")
@@ -613,35 +657,30 @@ class GameState:
         char = self.characters.get(self._player)
         if not char: return "&RNo character found.&N"
 
-        # Build list of (power_dict, source_label)
-        # Character powers have no label; weapon powers show "(equipped)"
-        tagged: list[tuple[dict, str]] = []
-        for p in (char.powers or []):
-            tagged.append((p, ""))
-        for item in char.equipment.values():
-            items = item if isinstance(item, list) else ([item] if item else [])
-            for it in items:
-                for p in (getattr(it, "powers", None) or []):
-                    tagged.append((p, " &x(equipped)&N"))
-
-        if not tagged: return "&wYou have no powers.&N"
+        all_powers = _collect_tagged_powers(char)
+        if not all_powers: return "&wYou have no powers.&N"
 
         now   = time.monotonic()
         lines = [
-            f"&+W{'Power':<28} {'Keywords':<22} Status&N",
+            f"&W{'Power':<28} {'Keywords':<22} Status&N",
             "&w" + "─"*64 + "&N",
         ]
-        for p, label in tagged:
+        for p in all_powers:
             raw_name = p.get("name", "?")
-            # Name column: "Windsong (equipped)" padded to 28 chars
+            slot     = p.get("_slot")
+            if slot:
+                label   = f" &x({_SLOT_LABELS.get(slot, slot)})&N"
+            else:
+                label   = ""
             display  = f"{raw_name}{label}"
             keywords = ", ".join(p.get("keywords", ()))
-            ready_at = self._power_cooldowns.get(raw_name, 0)
+            pkey     = _power_key(p)
+            ready_at = self._power_cooldowns.get(pkey, 0)
             if now >= ready_at:
-                status = "&+Gready&N"
+                status = "&Gready&N"
             else:
                 rem    = (ready_at - now) / _TICK_INTERVAL
-                status = f"&+R{rem:.1f} ticks&N"
+                status = f"&R{rem:.1f} ticks&N"
             lines.append(f"{display:<28} &c{keywords:<22}&N {status}")
         return "\n".join(lines)
 
