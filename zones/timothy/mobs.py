@@ -145,7 +145,7 @@ TEMPLATES: dict[str, dict] = {
         "race": "Voidkin",
         "class": "boss",
         "level": 60,
-        "stats": [90, 90, 90, 90, 80, 70],
+        "stats": [120, 110, 100, 100, 100, 90],
         "aggro": True,
         "wander": False,
     },
