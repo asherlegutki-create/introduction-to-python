@@ -87,7 +87,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     },
-    "Doug the Heermit Crab": {
+    "Doug the Hermit Crab": {
         "name": "&WDoug the &YHermit &RCrab",
         "key_words": ("Doug", "Hermit", "Crab"),
         "room_description": "&WDoug scuttles around with Pedro just following along like he doesn't give two craps about the world around him",
