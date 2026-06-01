@@ -20,13 +20,13 @@ _WINDSONG_ALLOWED: frozenset[str] = frozenset({
 })
 
 # Outer proc (normal attack): 1-in-20
-_WINDSONG_OUTER_CHANCE = 20
+_WINDSONG_OUTER_CHANCE = 10
 
 # Inner proc (proc-generated swing): 1-in-10
 _WINDSONG_INNER_CHANCE = 10
 
 # Hard recursion cap
-_WINDSONG_MAX_DEPTH = 6
+_WINDSONG_MAX_DEPTH = 7
 
 # Depth counter — safe in asyncio (single-threaded)
 _windsong_depth: int = 0
@@ -99,7 +99,7 @@ def windsong(attacker, defender) -> list[str]:
     race         = getattr(attacker, "race", "")
     extra_swings = 0
 
-    if race == "Grey Elf":
+    if race == "Human":
         extra_swings += 3
 
     if random.randint(0, 2) == 0:    # 1/3 chance

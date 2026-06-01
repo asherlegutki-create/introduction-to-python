@@ -19,6 +19,7 @@ ROOMS: dict[int, Room] = {
             {"direction": "west",  "roomId": 3},
             {"direction": "east",  "roomId": 4},
             {"direction": "south", "roomId": 5},
+            {"direction": "down",  "roomId": 6}
         ],
         "objects": [
             O.spawn("silken_sack"),
@@ -85,6 +86,17 @@ ROOMS: dict[int, Room] = {
             {"direction": "west",  "roomId": 13001, "external": True},
             {"direction": "east",  "roomId": 14001, "external": True},
             {"direction": "south", "roomId": 12001, "external": True},
+        ],
+    }),
+    6: Room({
+        "number": 6,
+        "name": "This is the abyss",
+        "description": (
+        ),
+        "indoors": False,
+        "terrain": "abyss",
+        "exits": [
+            {"direction": "up", "roomId": 1}
         ],
     }),
 }
