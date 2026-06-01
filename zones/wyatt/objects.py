@@ -56,19 +56,6 @@ TEMPLATES: dict[str, dict] = {
         "hitroll": 36,
         "damroll": 50,
     },
-    "Arm canon dupe": {
-        "spawn_as": Weapon,
-        "name": "&WDouble barrel &Rarm&N canon",
-        "key_words": ("Arm", "canon", "double"),
-        "room_description": "&WAn {m&RArm canon{n &Wthat is able to sit on your arm lays here... obviously.",
-        "description": """&WIt's&N canon &Wis of &Mmagenta &Wcoloration and is a &Cstrong, &Wlightweight&N metal.
-&WIt looks like it can shoot &Ybullets &Wof pure {m&Mplasma&N
-&WIt is &Mmagenta&N, not &Rpink&N""",
-        "weight": 7,
-        "dice": "2d10",
-        "hitroll": 36,
-        "damroll": 50,
-    },
     "Uranium Rod": {
         "spawn_as": Item,
         "name": "&GRadioactive Uranium&N rod",
@@ -76,6 +63,19 @@ TEMPLATES: dict[str, dict] = {
         "room_description": "&WA {g&WRadioactive Uranium&N rod &Wlies here. please do not go near it.",
         "description": "A &GRadioactive Uranium&N rod&W. what else to explain&N",
         "weight": 2,
+    },
+    "Sword of Coral": {
+        "spawn_as": Weapon,
+        "name": "&WA &CSword &Wof &+RC&+Yo&+Cr&+Ba&+Ml",
+        "key_words": ("Sword", "Coral", "sc"),
+        "room_description": "&WA &CSword &Wof &+RC&+Yo&+Cr&+Ba&+Ml &Wlays here untouched, or mildly worn",
+        "description": """&WA sword made out of various colorations of &+RC&+Yo&+Cr&+Ba&+Ml
+&WIt seems strong yet weak
+&WVery colorful as well&N""",
+        "weight": 7,
+        "dice": "40d80",
+        "hitroll": 12,
+        "damroll": 24,
     },
 }
 
