@@ -155,6 +155,7 @@ ROOMS: dict[int, Room] = {
         "terrain": "ground",
         "exits": [
             {"direction": "north", "roomId": 16},
+            {"direction": "down", "roomId": 5},
         ],
         "objects": [],
         "mobs": [],
