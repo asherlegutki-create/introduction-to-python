@@ -52,9 +52,9 @@ TEMPLATES: dict[str, dict] = {
 &WIt looks like it can shoot &Ybullets &Wof pure {m&Mplasma&N
 &WIt is &Mmagenta&N, not &Rpink&N""",
         "weight": 7,
-        "dice": "20d40",
-        "hitroll": 36,
-        "damroll": 50,
+        "dice": "2d4",
+        "hitroll": 1,
+        "damroll": 2,
     },
     "Uranium Rod": {
         "spawn_as": Item,
@@ -73,9 +73,9 @@ TEMPLATES: dict[str, dict] = {
 &WIt seems strong yet weak
 &WVery colorful as well&N""",
         "weight": 7,
-        "dice": "40d80",
-        "hitroll": 12,
-        "damroll": 24,
+        "dice": "4d4",
+        "hitroll": 2,
+        "damroll": 4,
     },
 }
 
