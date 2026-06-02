@@ -14,14 +14,6 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "whiteboard_marker": {
-        "spawn_as":         Object,
-        "name":             "whiteboard marker",
-        "key_words":        ("green", "whiteboard", "marker"),
-        "room_description": "an &gw&Nh&gi&Nt&ge&Nb&go&Na&gr&Nd &Bm&Na&Br&Nk&Be&Nr sits here&N.",
-        "description":      "A &gf&No&gr&Ne&gs&Nt &gg&Nr&ge&Ne&gn&N low-scent dry-erase marker, about half used.",
-    },
-
     "pencil": {
         "spawn_as":         Item,
         "name":             "pencil",
@@ -49,32 +41,19 @@ TEMPLATES: dict[str, dict] = {
          'description': "a light bottle of water, seems &Wclean&N and &Bdrinkable&N, could possibly cause &rdamage&N with its &Xmetal&N exterior",
          "weight":           1,
      },
-      "pitch fork" : {
+      
+      "math sword" : {
          "spawn_as":         Weapon,
-         'name': "pitch fork",
-         'key_words': ('pitch fork', 'fork'),
+         'name': "math sword",
+         'key_words': ('math', 'sword'),
          'room_description': "a &rrusty &ypitch fork&N sits propped against th wall\n could cause sufficient &rdamage&N to an opponent",
          'description': "this old wooden fork stands taller than the average student, would most likely bring &ytetanus&N upon its victim",
          "weight":           4,
      },
-    # # #  "" : {
-    # # #     "spawn_as":         ,
-    # # #     'name': "",
-    # # #     'key_words': ('', ''),
-    # # #     'room_description': "",
-    # # #     'description': "",
-    # # #     "weight":           4,
-    # # # },
-    # # #  "" : {
-    # # #     "spawn_as":         ,
-    # # #     'name': "",
-    # # #     'key_words': ('', ''),
-    # # #     'room_description': "",
-    # # #     'description': "",
-    # # #     "weight":           4,
-    # # # },
+    },
 
-}
+
+
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")
 spawn = make_spawner(TEMPLATES, lambda: Object)
