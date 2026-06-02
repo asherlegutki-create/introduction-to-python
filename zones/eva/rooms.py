@@ -23,6 +23,9 @@ ROOMS: dict[int, Room] = {
         ],
         "mobs": [M.spawn("mob_template")],
     }),
+
+
+
     1: Room({
         "number": 1,
         "name": "The Withered-Rose Tavern",
@@ -33,7 +36,7 @@ ROOMS: dict[int, Room] = {
             {"direction": "east", "roomId": 99003,"external": True}, 
             #to the other rooms ^
 
-            #{"direction": "north", "roomId": 1}, #to dark woods at a later point
+            #{"direction": "north", "roomId": 3}, #to dark woods at a later point
             {"direction": "south", "roomId": 2},
         ],
         "objects": [
@@ -65,6 +68,116 @@ ROOMS: dict[int, Room] = {
             M.spawn("Large_Orange_Cat"),
             M.spawn("Eclectic_Rouge"),
          ], 
-    }),
+##############################################################################################################################################
 
-}
+    # 3: Room({
+    #     "number": 3,
+    #     "name": "Dark Woods Entrance",
+    #     "description": "        12345       ",
+    #     "indoors": False,
+    #     "terrain": "woodland",
+    #     "exits": [
+    #         {"direction": "north", "roomId": 4},
+    #         {"direction": "south", "roomId": 2},
+    #     ],
+    #     "objects": [
+    #         O.spawn("Dark_Wood_trees"),
+    #     ], 
+    #     "mobs": [
+    #         M.spawn("Sheep"),
+    #         M.spawn("Sheep"),
+    #      ], 
+
+    # 4: Room({
+    #     "number": 4,
+    #     "name": "Dark Woods Continued",
+    #     "description": "        12345       ",
+    #     "indoors": False,
+    #     "terrain": "woodland",
+    #     "exits": [
+    #         {"direction": "north", "roomId": 6},
+    #         {"direction": "south", "roomId": 3},
+    #         {"direction": "down", "roomId": 5},
+    #     ],
+    #     "objects": [
+    #         O.spawn("Dark_Wood_trees"),
+    #     ], 
+    #     "mobs": [
+    #         M.spawn("Sheep"),
+    #         M.spawn("Cow"),
+    #      ], 
+
+    # 5: Room({
+    #     "number": 5,
+    #     "name": "Woodland Crypt",
+    #     "description": "        12345       ",
+    #     "indoors": True,
+    #     "terrain": "stone",
+    #     "exits": [
+    #         {"direction": "up", "roomId": 4},
+           
+    #     ],
+    #     "objects": [
+    #         O.spawn("Wooden_Chest"),
+    #     ], 
+    #     "mobs": [
+    #         M.spawn("Abolish"),
+           
+    #      ], 
+
+    # 6: Room({
+    #         "number": 6,
+    #         "name": "End of Dark Woods",
+    #         "description": "        12345       ",
+    #         "indoors": False,
+    #         "terrain": "woodland",
+    #         "exits": [
+    #             {"direction": "north", "roomId": 7},
+    #             {"direction": "south", "roomId": 4},
+                
+    #         ],
+    #         "objects": [
+    #             O.spawn("Dark_Wood_trees"),
+    #         ], 
+    #         "mobs": [
+    #             M.spawn("Nervous_Sheep"),
+                
+    #         ], 
+
+    # 7: Room({
+    #         "number": 7,
+    #         "name": "Beginning of the Crumbling Bridge",
+    #         "description": "        12345       ",
+    #         "indoors": False,
+    #         "terrain": "crumbling stone",
+    #         "exits": [
+    #             {"direction": "west", "roomId": 6},
+    #             {"direction": "east", "roomId": 8},
+    #         ],
+    #         "objects": [
+    #             O.spawn("crumbling stone"),
+            
+    #         ],
+            
+    #  8: Room({
+    #         "number": 8,
+    #         "name": "End of the Crumbling Bridge",
+    #         "description": "        12345       ",
+    #         "indoors": False,
+    #         "terrain": "crumbling stone",
+    #         "exits": [
+    #             {"direction": "west", "roomId": 7},
+    #             {"direction": "east", "roomId": 9},
+    #         ],
+    #         "objects": [
+    #             O.spawn("crumbling stone"),
+            
+    #         ],
+            
+    #     }),
+
+
+
+
+    }),
+ }
