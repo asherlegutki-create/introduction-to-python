@@ -131,4 +131,5 @@ def get_ac(target) -> int:
         else:
             ac += getattr(item, "ac_bonus", 0)
 
-    return min(100, ac)
+    base_ac =  min(100, ac)
+    return base_ac + getattr(target, "effect_ac", 0)

@@ -84,7 +84,15 @@ TEMPLATES: dict[str, dict] = {
                     "&c{name}'s scimitar &Wflares&N&c as waves of "
                     "energy surge through it!&N"
                 ),
-            }
+            },
+            {
+                "keywords":       ("poison", "po"),
+                "name":           "Poison",
+                "cooldown_ticks": 3,
+                "effect":         "apply_poison",
+                "user_msg":       "&cYou envenom your strike with deadly poison!&N",
+                "room_msg":       "&c{name} envenoms their strike with poison!&N",
+}
         ],
     },
 }

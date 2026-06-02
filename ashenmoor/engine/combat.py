@@ -174,6 +174,8 @@ def one_attack(attacker, defender) -> tuple[int, int, str]:
 
     if roll == 20:
         dmg         = calc_damage(attacker, crit=True)
+        from ..world.effects import apply_dr
+        dmg         = apply_dr(defender, dmg)
         defender.hp = max(0, defender.hp - dmg)
         return (dmg, CRIT,
                 f"&+W[CRITICAL HIT!] &w{attacker.name}&N devastates "
@@ -188,6 +190,8 @@ def one_attack(attacker, defender) -> tuple[int, int, str]:
                 f"(score &W{attack_score}&w vs AC &W{ac}&w).&N")
 
     dmg         = calc_damage(attacker, crit=False)
+    from ..world.effects import apply_dr
+    dmg         = apply_dr(defender, dmg)
     defender.hp = max(0, defender.hp - dmg)
     verb        = _damage_verb(dmg, getattr(defender, "max_hp", dmg))
 

@@ -1,6 +1,6 @@
 """
 ashenmoor.engine.persist
-─────────────────────────
+-
 SQLite persistence for player character state.
 """
 
@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS characters (
     max_hp      INTEGER NOT NULL,
     hp          INTEGER NOT NULL,
     location    INTEGER NOT NULL,
-    updated_at  REAL    NOT NULL
+    updated_at  REAL    NOT NULL,
+    status_effects TEXT NOT NULL DEFAULT '[]'
 );
 
 CREATE TABLE IF NOT EXISTS inventory (
@@ -44,12 +45,24 @@ CREATE TABLE IF NOT EXISTS equipment (
 );
 """
 
+# Migrations -- run once at open_db time, ignored if column already exists
+_MIGRATIONS = [
+    "ALTER TABLE characters ADD COLUMN status_effects TEXT NOT NULL DEFAULT '[]'",
+]
+
 
 def open_db(path: str = "ashenmoor.db") -> sqlite3.Connection:
     conn = sqlite3.connect(path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.executescript(_SCHEMA)
     conn.commit()
+    # Run migrations -- ignore errors for columns that already exist
+    for stmt in _MIGRATIONS:
+        try:
+            conn.execute(stmt)
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass   # column already exists
     return conn
 
 
@@ -57,7 +70,7 @@ def _item_to_dict(item) -> dict:
     """
     Convert any Object / Item / Weapon / Container to a plain dict
     for JSON serialization.  All fields needed to reconstruct the item
-    are included — including the proc key on weapons so procs survive
+    are included -- including the proc key on weapons so procs survive
     save/load cycles.
     """
     from ..world.objects import Weapon, Container, Item
@@ -188,6 +201,18 @@ def save_character(
                     (char.name, slot, idx, json.dumps(_item_to_dict(item))),
                 )
 
+        # Save active status effects (serializable dicts, strip non-JSON flags set)
+        status_effects = getattr(char, "status_effects", [])
+        serializable   = []
+        for eff in status_effects:
+            e = dict(eff)
+            e["flags"] = list(e.get("flags", set()))   # set -> list for JSON
+            serializable.append(e)
+        conn.execute(
+            "UPDATE characters SET status_effects = ? WHERE name = ?",
+            (json.dumps(serializable), char.name),
+        )
+
 
 def load_character(
     conn: sqlite3.Connection,
@@ -206,6 +231,14 @@ def load_character(
     char.stats  = json.loads(row["stats"])
     char.max_hp = row["max_hp"]
     char.hp     = row["hp"]
+
+    # Restore active status effects, converting flags back to set
+    raw_effects = json.loads(row["status_effects"] or "[]")
+    for eff in raw_effects:
+        eff["flags"] = set(eff.get("flags", []))
+    char.status_effects = raw_effects
+    from ..world.effects import recalc_status
+    recalc_status(char)
 
     inv_rows = conn.execute(
         "SELECT item_data FROM inventory "

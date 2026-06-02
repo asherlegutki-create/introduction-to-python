@@ -109,8 +109,8 @@ _COMMAND_MAP: dict[str, str] = {
     "powers":    "powers", "spells":    "powers",
     "skills":    "powers", "abilities": "powers",
     "who":   "who",
-    "goto":  "goto",
     "scan":  "scan",
+    "wiz":   "wiz",
     "score": "score", "stats": "score", "sc": "score",
     "stand": "stand", "st": "stand", "wake": "stand",
     "sit":   "sit",
@@ -286,7 +286,7 @@ class GameState:
         elif verb == "powers":    return self._cmd_powers()
         elif verb == "who":       return self._who()
         elif verb == "scan":      return self._cmd_scan()
-        elif verb == "goto":      return self._cmd_goto(args)
+        elif verb == "wiz":       return self._cmd_wiz(args)
         elif verb == "score":     return self._cmd_score()
         elif verb == "stand":     return self._cmd_position("standing")
         elif verb == "sit":       return self._cmd_position("sitting")
@@ -325,19 +325,45 @@ class GameState:
                 _active_player.reset(tok)
         return self._combat_tick_inner()
 
-    def _combat_tick_inner(self) -> str | None:
-        target = self.fighting.get(self._player)
-        if not target: return None
+    def _effect_tick(self) -> str | None:
+        """Tick status effects for the current player every combat tick."""
         player = self.characters.get(self._player)
-        if not player: return None
+        if not player:
+            return None
+        from ..world.effects import tick_effects as _tick_fx
+        msgs = _tick_fx(player)
+        return "\n".join(msgs) if msgs else None
+
+    def _combat_tick_inner(self) -> str | None:
+        # Always tick effects regardless of combat state
+        effect_output = self._effect_tick()
+
+        target = self.fighting.get(self._player)
+        if not target:
+            return effect_output   # return effect messages even out of combat
+
+        player = self.characters.get(self._player)
+        if not player: return effect_output
         room = self.current_room
         if room is None or target not in room.mobs:
             self.fighting.pop(self._player, None)
-            return "&wYour opponent is no longer here.&N"
+            parts = ["&wYour opponent is no longer here.&N"]
+            if effect_output: parts.insert(0, effect_output)
+            return "\n".join(parts)
 
         ensure_hp(player)
         ensure_hp(target)
         msgs: list[str] = []
+
+        if effect_output:
+            msgs.append(effect_output)
+        # If effect killed the player
+        if player.hp <= 0:
+            self.fighting.pop(self._player, None)
+            player.hp = max(1, player.max_hp // 4)
+            msgs.append("&RTHE POISON CLAIMS YOU!&N")
+            msgs.append("&wYou somehow cling to life...&N")
+            return "\n".join(msgs)
 
         dnd_state  = getattr(player, "dnd", {}) or {}
         extra_atks = 0
@@ -639,8 +665,14 @@ class GameState:
             dmg = max(1, int(calc_damage(player) * power.get("damage_mult", 1.5)))
             target.hp = max(0, target.hp - dmg)
             return f"&+WYour power strikes &N{target.name}&+W for &W{dmg}&+W bonus damage!&N"
+        if effect == "apply_poison":
+            from ..world.effects import POISON, apply_effect
+            import copy
+            poison = copy.deepcopy(POISON)
+            if "duration" in power: poison["duration"] = power["duration"]
+            if "dot_dice"  in power: poison["dot_dice"] = power["dot_dice"]
+            return apply_effect(target, poison)
         if effect == "windsong_burst":
-            # Show the user_msg (already done by _execute_power), then
             # call windsong() with force=True so the full proc fires —
             # flash of light, extra swings, inner chaining — all of it.
             import ashenmoor.world.procs as _procs_mod
@@ -712,6 +744,163 @@ class GameState:
         if aggro: parts.append(aggro)
         return "\n".join(parts)
 
+    def _cmd_wiz(self, args) -> str:
+        """
+        Admin command for testing and debugging.
+
+        Usage:
+          wiz apply_effect <effect_id> [player]   -- apply a status effect
+          wiz remove_effect <effect_id> [player]  -- remove a status effect
+          wiz clear_effects [player]              -- remove all effects
+          wiz list_effects                        -- list available effect ids
+          wiz effects [player]                    -- show active effects
+          wiz heal [player]                       -- restore to full hp
+          wiz poison [player]                     -- shorthand: apply poison
+        """
+        from ..world.effects import EFFECTS, apply_effect, remove_effect, recalc_status, format_effects
+
+        if not args:
+            return (
+                "&wWiz commands:&N\n"
+                "  &Wwiz goto &w<vnum>&N\n"
+                "  &Wwiz xp &w<player> <amount>&N\n"
+                "  &Wwiz apply_effect &w<id> [player]&N\n"
+                "  &Wwiz remove_effect &w<id> [player]&N\n"
+                "  &Wwiz clear_effects &w[player]&N\n"
+                "  &Wwiz list_effects&N\n"
+                "  &Wwiz effects &w[player]&N\n"
+                "  &Wwiz heal &w[player]&N\n"
+                "  &Wwiz poison &w[player]&N"
+            )
+
+        sub  = args[0].lower()
+        rest = args[1:]
+
+        def _get_target(name_args):
+            """Resolve target char by name, defaulting to self."""
+            if name_args:
+                tname = name_args[0].lower()
+                # Check connected players
+                for pname, ch in self.characters.items():
+                    if pname.lower() == tname:
+                        return ch, pname
+                return None, tname
+            return self.characters.get(self._player), self._player
+
+        if sub == "goto":
+            if not rest:
+                return "&wUsage: wiz goto <vnum>&N"
+            try:
+                vnum = int(rest[0])
+            except ValueError:
+                return f"&w'{rest[0]}' is not a valid vnum.&N"
+            if vnum not in self.rooms:
+                return f"&wNo room with vnum &W{vnum}&w exists.&N"
+            self.locations[self._player] = vnum
+            self._save_location()
+            parts = [self._cmd_look([])]
+            aggro = self._check_aggro()
+            if aggro: parts.append(aggro)
+            return "\n".join(parts)
+
+        if sub == "xp":
+            if len(rest) < 2:
+                return "&wUsage: wiz xp <player> <amount>&N"
+            tname = rest[0].lower()
+            try:
+                amount = int(rest[1])
+            except ValueError:
+                return f"&w'{rest[1]}' is not a valid number.&N"
+            char = next(
+                (ch for pn, ch in self.characters.items()
+                 if pn.lower() == tname),
+                None
+            )
+            if char is None:
+                return f"&wPlayer &W{tname}&w not found.&N"
+            from ..dnd.xp import level_for_xp, apply_level_up, MAX_LEVEL
+            old_level = char.level
+            char.xp   = getattr(char, "xp", 0) + amount
+            msgs      = [f"&W{char.name}&w receives &W{amount:,}&w experience points.&N"]
+            # Apply all earned level-ups
+            level_msgs = apply_level_up(char)
+            msgs.extend(level_msgs)
+            if char.level != old_level:
+                msgs.append(
+                    f"&W{char.name}&w advances from level &W{old_level}&w "
+                    f"to level &W{char.level}&w!&N"
+                )
+            _, pct = level_for_xp(char.xp)
+            msgs.append(
+                f"&wTotal XP: &W{char.xp:,}&w  Level: &W{char.level}&w  "
+                f"Progress: &W{pct}&w%&N"
+            )
+            self._save_player()
+            return "\n".join(msgs)
+
+        if sub == "list_effects":
+            lines = ["&wAvailable effect ids:&N"]
+            for eid, eff in EFFECTS.items():
+                lines.append(f"  &c{eid:<20}&N {eff.get('name','')}")
+            return "\n".join(lines)
+
+        if sub in ("apply_effect", "ae"):
+            if not rest:
+                return "&wUsage: wiz apply_effect <effect_id> [player]&N"
+            eid  = rest[0].lower()
+            char, tname = _get_target(rest[1:])
+            if eid not in EFFECTS:
+                return f"&wUnknown effect &W{eid}&w. Use &Wwiz list_effects&w to see options.&N"
+            if char is None:
+                return f"&wPlayer &W{tname}&w not found.&N"
+            import copy
+            msg = apply_effect(char, copy.deepcopy(EFFECTS[eid]))
+            return f"&wApplied &W{eid}&w to &W{tname}&w.&N\n{msg}"
+
+        if sub in ("remove_effect", "re"):
+            if not rest:
+                return "&wUsage: wiz remove_effect <effect_id> [player]&N"
+            eid  = rest[0].lower()
+            char, tname = _get_target(rest[1:])
+            if char is None:
+                return f"&wPlayer &W{tname}&w not found.&N"
+            msg = remove_effect(char, eid)
+            if msg is None:
+                return f"&W{tname}&w does not have effect &W{eid}&w.&N"
+            return f"&wRemoved &W{eid}&w from &W{tname}&w.&N\n{msg}"
+
+        if sub in ("clear_effects", "ce"):
+            char, tname = _get_target(rest)
+            if char is None:
+                return f"&wPlayer &W{tname}&w not found.&N"
+            char.status_effects = []
+            recalc_status(char)
+            return f"&wAll effects cleared from &W{tname}&w.&N"
+
+        if sub in ("effects", "fx"):
+            char, tname = _get_target(rest)
+            if char is None:
+                return f"&wPlayer &W{tname}&w not found.&N"
+            block = format_effects(char)
+            return block if block else f"&W{tname}&w has no active effects.&N"
+
+        if sub == "heal":
+            char, tname = _get_target(rest)
+            if char is None:
+                return f"&wPlayer &W{tname}&w not found.&N"
+            char.hp = char.max_hp
+            return f"&W{tname}&w restored to full hp (&W{char.max_hp}&w).&N"
+
+        if sub == "poison":
+            char, tname = _get_target(rest)
+            if char is None:
+                return f"&wPlayer &W{tname}&w not found.&N"
+            import copy
+            msg = apply_effect(char, copy.deepcopy(EFFECTS["poisoned"]))
+            return f"&wPoisoned &W{tname}&w.&N\n{msg}"
+
+        return f"&wUnknown wiz subcommand &W{sub}&w. Type &Wwiz&w for help.&N"
+
     def _cmd_score(self) -> str:
         import time as _t
         char = self.characters.get(self._player)
@@ -771,13 +960,11 @@ class GameState:
         if rest_str:
             lines.append(rest_str)
 
-        effects  = getattr(char, "active_effects", [])
-        positive = [e for e in effects if e.get("type", "positive") == "positive"]
-        negative = [e for e in effects if e.get("type") == "negative"]
-        if positive or negative:
-            lines += ["", "&wActive Effects:&N", "&w---------------&N"]
-            for e in positive: lines.append(f"  &c{e['name']}&N")
-            for e in negative: lines.append(f"  &+R{e['name']}&N")
+        from ..world.effects import format_effects
+        effect_block = format_effects(char)
+        if effect_block:
+            lines.append("")
+            lines.append(effect_block)
 
         return "\n".join(lines)
 
