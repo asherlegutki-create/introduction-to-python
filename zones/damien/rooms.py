@@ -117,7 +117,7 @@ ROOMS: dict[int, Room] = {
                 {"direction": "east", "roomId": 3},
             ],
             "mobs": [
-                M.spawn("shadow_gremlin"),
+                M.spawn("shadow"),
             ],     
         }
     ),
@@ -130,6 +130,9 @@ ROOMS: dict[int, Room] = {
             "terrain": "stone",
             "exits": [
                 {"direction": "up", "roomId": 2},
+            ],
+            "objects": [
+                O.spawn("health_potion"),
             ],
             "mobs": [
                 M.spawn("dark_mage"),
