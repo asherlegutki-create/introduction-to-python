@@ -135,7 +135,7 @@ ROOMS: dict[int, Room] = {
                 {"direction": "up", "roomId": 2},
             ],
             "objects": [
-                O.spawn("health_potion"),
+                            #O.spawn("health_potion"),
             ],
             "mobs": [
                 M.spawn("dark_mage"),

@@ -176,6 +176,13 @@ class GameState:
                 stacklevel=2,
             )
         self.rooms.update(zone.rooms)
+        if not isinstance(zone.object_templates, dict):
+            raise TypeError(
+                f"Zone '{zone.name}' object_templates is "
+                f"{type(zone.object_templates).__name__}, expected dict. "
+                f"Check that TEMPLATES in that zone's objects.py is a "
+                f"{{vnum: {{...}} }} dict not a list."
+            )
         self.object_templates.update(zone.object_templates)
         self.mob_templates.update(zone.mob_templates)
 

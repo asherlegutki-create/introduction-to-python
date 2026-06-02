@@ -50,7 +50,7 @@ TEMPLATES: dict[str, dict] = {
          'description': "this old wooden fork stands taller than the average student, would most likely bring &ytetanus&N upon its victim",
          "weight":           4,
      },
-    },
+    }
 
 
 
