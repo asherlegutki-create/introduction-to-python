@@ -651,7 +651,7 @@ ROOMS: dict[int, Room] = {
             "number": 27,
             "name": "Highschool History classroom",
             "description": "This is Ms. Allison's highschool history \n classroom. Only boring highschoolers hang in here.\n To the west is a wall,to the north is a wall, east is a wall, up is the ceiling, \n down is the floor, and south is a door to the outside of the building.",         
-            "indoors" True,
+            "indoors": True,
             "terrain": "concrete",
             "exits": [
                 {"direction": "south", "roomId": 54},
