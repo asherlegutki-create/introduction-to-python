@@ -72,6 +72,18 @@ TEMPLATES: dict[str, dict] = {
             "aggro": False,
             "wander": False,
     },
+        "shadow": {
+            "name": "shadow",
+            "key_words": ("shadow", "something"),
+            "room_description": "Something moves about, silently.",
+            "description": ("A shadow moves around. It's hard to tell what it looks like. Actually, it's hard to tell if it's there."),
+            "race": "Shadow",
+            "class": "Shadow",
+            "level": 20,
+            "stats": [90, 90, 90, 90, 90, 90],
+            "aggro": False,
+            "wander": False,
+    },
 }
 
 
