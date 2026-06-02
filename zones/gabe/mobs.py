@@ -5,6 +5,8 @@ Mob templates for The Void zone.
 
 Add an entry to TEMPLATES for every NPC type that can appear in this zone.
 Call spawn(key) to get a fresh independent Mob instance — place as many
+
+
 copies in rooms as you like, each is independent.
 """
 
@@ -89,21 +91,23 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
         },
-    "the chez fih": {
-        "name": "the &Ychez&N &bfih&N",
-        "key_words": ("chez", "fih"),
-        "room_description": "&Wthe&N &Ychez&N &bfih&N swims around. ",
+
+    "the cheez fih": {
+        "name": "&Wthe&N &ycheez&N &bfih&N",
+        "key_words": ("cheese", "fih"),
+        "room_description": "&Wthe&N &ycheese&N &bfih&N&W swims here&N",
         "description": (
-            "a &Ychez&N &bfih&N swims around looking for his fren"
+            "a cheese fih swimming around "
+            "trying to find his fren."
         ),
-        "race": "chez",
-        "class": "fih",
-        "level": "4",
-        "stats": [10, 10, 10, 10, 10, 10],
+        "race": "cheese",
+        "class": "fih guy",
+        "level": 20,
+        "stats": [35, 10, 25, 15, 40, 100],
         "aggro": False,
         "wander": True,
-    },
-},
+    }
+}
 
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")

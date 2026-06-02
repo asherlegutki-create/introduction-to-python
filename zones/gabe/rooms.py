@@ -34,6 +34,11 @@ ROOMS: dict[int, Room] = {
                 O.spawn("cheese wheel"),
                 O.spawn("toy cheese"),
             ],
+            "mobs": [
+                M.spawn("the cheese monster"),
+                M.spawn("the cheez sniffer"),
+                M.spawn("the cheese spirit"),
+            ],
 
 
         },
@@ -60,6 +65,9 @@ ROOMS: dict[int, Room] = {
                 O.spawn("cheese surfboard"),
                 O.spawn("chez destroyer"),
             ],
+            "mobs": [
+                M.spawn("the cheesy bird"),
+            ],
 
         },
     ),
@@ -71,15 +79,18 @@ ROOMS: dict[int, Room] = {
             "indoors": False,
             "terrain": "under-the-sea",
             "exits": [
-                {"direction": "north",  "roomId":1},
-                 {"direction": "south", "roomId":1},
-                {"direction": "east",   "roomId":1},
-                {"direction": "west",   "roomId":1},
-                {"direction": "up",     "roomId":3},
-                {"direction": "down",   "roomId":1},
+                {"direction": "north",  "roomId":3},
+                 {"direction": "south", "roomId":3},
+                {"direction": "east",   "roomId":3},
+                {"direction": "west",   "roomId":3},
+                {"direction": "up",     "roomId":2},
+                {"direction": "down",   "roomId":3},
+            ],
+            "mobs": [
+                M.spawn("the cheez fih"),
             ],
 
 
-        }
-    )
+        },
+    ),
 }
