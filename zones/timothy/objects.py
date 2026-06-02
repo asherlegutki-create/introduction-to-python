@@ -54,6 +54,28 @@ TEMPLATES: dict[str, dict] = {
         "description":      "an unappealing steak"
                                 "&Wthe key to immortality, &Xbut not a good one",
     },
+     "Magnea Pounder" : {
+        "spawn_as":         Weapon,
+        'name': "Magnea pounder",
+        'key_words': ("Magnea", "pounder"),
+        'room_description': "A writhing leg with a large rock attached lies here.",
+        'description': "A long furry black leg with a large black rock stuck at the end",
+        "weight":           3,
+        "dice":             "2d10",
+        "hitroll":          2,
+        "damroll":          4,
+    },
+     "Ebony Cleaver" : {
+        "spawn_as":         Weapon,
+        'name': "Ebony Cleaver",
+        'key_words': ("Ebony", "Cleaver"),
+        'room_description': "An &XEbony Cleaver&n lies here.",
+        'description': "A &Mroyal&n cleaver made of ebony",
+        "weight":           10,
+        "dice":             "2d10",
+        "hitroll":          2,
+        "damroll":          4,
+    },
 
 }
 
