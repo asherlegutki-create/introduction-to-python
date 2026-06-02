@@ -20,7 +20,7 @@ ROOMS: dict[int, Room] = {
             "number": 1,
             "name": "&gThe Seomra&N",  # Irish for Room
             "description": (
-                "The floor is covered with ripped-up &Yyellow warning tape&N and littered with &ytraffic cones&N.\n"
+                "The floor is littered with &ytraffic cones&N.\n"
                 "The room is shaped like a triangle, painted &Ggreen&N with two &Xiron doors&N on the far walls."
             ),
             "indoors": False,
@@ -99,8 +99,10 @@ ROOMS: dict[int, Room] = {
             ],
             "objects": [
                 O.spawn("traffic_cone"),
-                # O.spawn("traffic_cone"),
-            ],  # objects include gears, pipes, springs, metal shards,
+                O.spawn("metal_pipe"),
+                O.spawn("gear"),
+                O.spawn("gear"),
+            ],  # objects include metal shards,
             "mobs": [],
         }
     ),
@@ -116,7 +118,7 @@ ROOMS: dict[int, Room] = {
                 # {"direction": "west", "roomId": 4},
                 {"direction": "down", "roomId": 2},
             ],
-            "objects": [],  # objects include gears, pipes, springs, metal shards,
+            "objects": [],
             "mobs": [],
         }
     ),
