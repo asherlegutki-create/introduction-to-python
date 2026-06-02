@@ -29,7 +29,7 @@ ROOMS: dict[int, Room] = {
                 {"direction": "west", "roomId": 1},
             ],
             "objects": [
-                O.spawn("Brumplin Seed"),
+                O.spawn("Ebony Cleaver"),
             ],
             "mobs": [
                 M.spawn("Brumplin Minor"),
