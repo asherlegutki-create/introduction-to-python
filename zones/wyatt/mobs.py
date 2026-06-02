@@ -147,6 +147,21 @@ TEMPLATES: dict[str, dict] = {
         "aggro": True,
         "wander": False,
     },
+    "Poison Thorn Bush": {
+        "name": "Poison Thorn Bush",
+        "key_words": ("Poison", "Thorn", "Bush", "PTB"),
+        "room_description": "&WA &GPoison Thorn Bush &Wstands here menacingly&N",
+        "description": (
+            "&WThe Thorn Bush has green radiance off of it\n"
+            "It is a very skinny tall plant with a flower on the top that shoots projectiles"
+        ),
+        "race": "plant",
+        "class": "Shooter",
+        "level": 27,
+        "stats": [81, 48, 53, 37, 24, 30],
+        "aggro": True,
+        "wander": False,
+    },
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
