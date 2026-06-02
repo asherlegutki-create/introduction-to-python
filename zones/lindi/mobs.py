@@ -74,7 +74,7 @@ TEMPLATES: dict[str, dict] = {
         "wander": True,
     },
     "The Beast of Geometry and Algebra": {
-        "name": "The Beast of Geometry and Algebra",
+        "name": "The Beast of &GGeometry&N and &BAlgebra&N",
         "key_words": ("beast", "geometry", "algebra"),
         "room_description": "&wa &Xdark&N and large dragon sits upon its spoil.&N",
         "description": (
