@@ -12,10 +12,10 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "Mrs.Stacey": {
+        "Mrs.Stacey": {
         "name": "&BM&N&R&R&N&BS&N&R.S&N&Bt&N&Ra&N&Bc&N&Re&N&By&N ",
         "key_words": ("Stacey"),
-        "room_description": "Mrs.Stacey wanders from here to there helping students and teachers.",
+        "room_description": "Mrs. Stacey wanders from here to there helping students and teachers.",
         "description": (
             "Mrs.Stacey is the secretary, She is the person who runs the office.\n"
             "She is always wearing a set of keys that may be use full for any door in this building."
@@ -49,57 +49,10 @@ TEMPLATES: dict[str, dict] = {
         "class": "Female",
         "level": 7,
         "stats": [70, 65, 81, 74, 89, 93],
-        "aggro": False,
+        "aggro": True,
         "wander": False,
     },
-    "": {
-        "name": "Slipery Serpent",
-        "key_words": ("Slippery","Serpant"),
-        "room_description": "The Serpant is resting on the end of the tree branch Tricking the woman.",
-        "description": ( "Satan takes the form of this serpant. \n The serpant is lying to the woman."),
-        "race": "Snake",
-        "class": "Male",
-        "level": 10,
-        "stats": [80, 90, 80, 84, 80, 0],
-        "aggro": False,
-        "wander": False,
-    }, 
-    "Joshua": {
-        "name": "Joshua",
-        "key_words": ("Joshua"),
-        "room_description": "Joshua is kneeling here praying to God.",
-        "description": ( "Joshua was chosen by God after moses died."),
-        "race": "Human",
-        "class": "Male",
-        "level": 19,
-        "stats": [90, 90, 80, 84, 80, 100],
-        "aggro": False,
-        "wander": False,
-    }, 
-    "Israelite": { 
-        "name": "Israelite",
-        "key_words": ("ISraelite"),
-        "room_description": "This Israelite wanders around the room.",
-        "description": ( "The Israelite is one of the men that walked around the city of Jericho."),
-        "race": "Human",
-        "class": "Female",
-        "level": 40,
-        "stats": [70, 60, 70, 64, 70, 100],
-        "aggro": False,
-        "wander": False,
-    },
-    "Trumpet Player": { 
-        "name": "Bob",
-        "key_words": ("Bob","Trumpet","Player"),
-        "room_description": "The Trumpet in his hand Bob stands here ready to play his trumpet for God.",
-        "description": ( "This man got to play his trumpet on the last lap around jericho. The city fell down slowly after."),
-        "race": "Human",
-        "class": "male",
-        "level": 3,
-        "stats": [80, 90, 80, 44, 60, 5],
-        "aggro": False,
-        "wander": False,
-    }
+    
 }
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)
