@@ -17,6 +17,7 @@ from . import mobs as M
 ROOMS: dict[int, Room] = {
     1: Room(
         {
+            'number': 1,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -38,6 +39,7 @@ ROOMS: dict[int, Room] = {
     ),
      2: Room(
         {
+            'number': 2,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -58,6 +60,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 3: Room(
         {
+            'number': 3,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -78,6 +81,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 4: Room(
         {
+            'number': 4,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -98,6 +102,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 5: Room(
         {
+            'number': 5,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -118,6 +123,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 6: Room(
         {
+            'number': 6,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -138,6 +144,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 7: Room(
         {
+            'number': 7,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -158,6 +165,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 8: Room(
         {
+            'number': 8,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -178,6 +186,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 9: Room(
         {
+            'number': 9,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -198,6 +207,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 10: Room(
         {
+            'number': 10,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -218,6 +228,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 11: Room(
         {
+            'number': 11,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -238,6 +249,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 12: Room(
         {
+            'number': 12,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -258,6 +270,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 13: Room(
         {
+            'number': 13,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -278,6 +291,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 14: Room(
         {
+            'number': 14,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -298,6 +312,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 15: Room(
         {
+            'number': 15,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -318,6 +333,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 16: Room(
         {
+            'number': 16,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -338,6 +354,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 17: Room(
         {
+            'number': 17,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -358,6 +375,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 18: Room(
         {
+            'number': 18,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -378,6 +396,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 19: Room(
         {
+            'number': 19,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
@@ -398,6 +417,7 @@ ROOMS: dict[int, Room] = {
         }
     ), 20: Room(
         {
+            'number': 20,
             "name": "&wDark Bramble Woods",
             "description": "A foggy woods with brambles scattered about.",
             "indoors": False,
