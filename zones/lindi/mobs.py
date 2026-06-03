@@ -118,6 +118,21 @@ TEMPLATES: dict[str, dict] = {
         "killable": False,
         "wander": False,
     },
+    "arlo": {
+        "name": "arlo",
+        "key_words": ("arlo"),
+        "room_description": "arlo stands menacingly.&N",
+        "description": (
+            "ps, hes a good xp farm mob"
+        ),
+        "race": "Human",
+        "class": "Bully",
+        "level": 8,
+        "stats": [500, 500, 500, 500, 500, 500],
+        "aggro": False,
+        "killable": True,
+        "wander": False,
+    },
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")

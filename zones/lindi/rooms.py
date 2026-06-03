@@ -51,7 +51,7 @@ ROOMS: dict[int, Room] = {
         "exits": [
             {"direction": "south", "roomId": 4},
         ],
-        "objects": [],
+        "objects": ["dagger of detriment"],
         "mobs": [],
     }),
     9: Room({
@@ -64,7 +64,7 @@ ROOMS: dict[int, Room] = {
             {"direction": "south", "roomId": 3},
         ],
         "objects": [],
-        "mobs": [],
+        "mobs": ["arlo"],
     }),
     10: Room({
         "number": 10,
