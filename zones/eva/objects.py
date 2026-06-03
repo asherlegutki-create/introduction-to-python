@@ -1,5 +1,5 @@
 """
-zones.the_planes.objects
+zones.Oakhurst.objects
 ──────────────────────
 Object templates for The Planes zone.
 
@@ -42,14 +42,14 @@ TEMPLATES: dict[str, dict] = {
 
 
 
-    "Assorted_Bottles__Full": {
+    "assorted_bottles__full": {
         "spawn_as":         Item,
         "name":             "Assorted bottles",
         "key_words":        ("bottles"),
         "room_description": "A few &gc&Bo&Yl&Co&Mr&Rf&Gu&bl&N &Wglass&N &Yb&co&mt&rt&gl&Be&Ms&N are on the &ycounter&N of the bar, they are all filled with different kinds of liquids.",
         "description":      "Five assorted &gc&Bo&Yl&Co&Mr&Rf&Gu&bl&N and &yunlabeled&N &Wglass bottles&N are siting on the counter.\nIt might &rnot&N be the best idea to drink these,as you don't know what is in them, but you do you.",
     },
-    "Silver_Sword" : {
+    "silver_sword" : {
         "spawn_as":         Weapon,
         'name': "Silver Sword",
         'key_words': ("sword", "silver", "silver sword"),
@@ -62,21 +62,21 @@ TEMPLATES: dict[str, dict] = {
     },
 
     
-"Giant_Oak_Tree": {
+"giant_oak_tree": {
         "spawn_as":         Object,
         "name":             "Giant Oak Tree",
         "key_words":        ("oak", "tree",),
         "room_description": "An extremely large &goak tree&N sits deeply rooted in the center of the courtyard.",
         "description":      "This &ggiant oak&N towers over all else near it, it's &gb&yr&ga&yn&gc&yh&ye&gs&N covering the courtyard in a pleasant dappled shade.\nIts &yroots&N have started to disrupt some of the &Xcobblestone bricks&N in the path surrounding it.",
     },
-    "Tables": {
+    "tables": {
         "spawn_as":         Object,
         "name":             "empty tables",
         "key_words":        ("table", "tables"),
         "room_description": "A few &ytables&N are strewn about the &Ggrass&N, all but one are empty.",
         "description":      "Four &ytables&N with varying amounts of &ychairs&N sit in the &Ggrassy&N part of the courtyard.\nAt one rests a solitary rouge, the rest remain empty.",
     },
-   "Wyldflowers": {
+   "wyldflowers": {
         "spawn_as":         Item,
         "name":             "Wyldflowers",
         "key_words":        ("wyldflowers","flowers",),

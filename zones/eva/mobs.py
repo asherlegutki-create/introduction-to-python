@@ -1,5 +1,5 @@
 """
-zones.the_planes.mobs
+zones.Oakhurst.mobs
 ───────────────────
 Mob templates for The Void zone.
 
@@ -43,7 +43,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
     },
-    "Red kobold": {
+    "red kobold": {
         "name": "Jremblen",
         "key_words": ("kobold", "Red"),
         "room_description": "A &rkobold&N stands here, looking through a &ybag&N full of &gm&Go&gs&Gs.&N",
@@ -58,7 +58,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
     },
-    "Excited_Child": {
+    "excited_child": {
         "name": "Urchin",
         "key_words": ("urchin", "child"),
         "room_description": "A child sits here playing excitedly with her cat in the flowers",
@@ -71,9 +71,9 @@ TEMPLATES: dict[str, dict] = {
         "level": 15,
         "stats": [90, 75, 95, 80, 70, 75],
         "aggro": False,
-        "wander": True,
+        "wander": False,
     },
-    "Large_Orange_Cat": {
+    "large_orange_cat": {
         "name": "Large Orange Cat",
         "key_words": ("cat", "orange", "large"),
         "room_description": "A large &yorange cat&N stands here playing with a child in the flowers.",
@@ -85,9 +85,9 @@ TEMPLATES: dict[str, dict] = {
         "level": 20,
         "stats": [90, 70, 90, 70, 70, 70],
         "aggro": False,
-        "wander": True,
+        "wander": False,
     },
-"Eclectic_Rouge": {
+"eclectic_rouge": {
         "name": "Veery",
         "key_words": ("rouge", "owlen", "veery"),
         "room_description": "An owlen &Xrouge&N sits alone at a &ytable&N sorting through various &Wsh&Ci&Wny &Ct&Wri&Cn&Wke&Ct&Ws&N.",
