@@ -14,13 +14,13 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "Titan Battery": {
+    "AAA Battery": {
         "spawn_as": Item,
-        "name": "a &CTitan &GBattery&N",
-        "key_words": ("Titan", "Battery"),
-        "room_description": "A &CTitan &GBattery&N lies here, discarded.",
+        "name": "a &CAAA &GBattery&N",
+        "key_words": ("AAA", "Battery"),
+        "room_description": "A &CAAA &GBattery&N lies here, discarded.",
         "description": "The battery seems worn",
-        "weight": 7,
+        "weight": 1,
     },
     "Dragons Talon": {
         "spawn_as": Weapon,
@@ -45,16 +45,37 @@ TEMPLATES: dict[str, dict] = {
     },
     "Arm canon": {
         "spawn_as": Weapon,
-        "name": "&RArm&N canon",
-        "key_words": ("Arm", "canon"),
-        "room_description": "&WAn &RArm&N canon &Wthat is able to sit on your arm lays here... obviously.",
+        "name": "&WDouble barrel &Rarm&N canon",
+        "key_words": ("Arm", "canon", "double"),
+        "room_description": "&WAn {m&RArm canon{n &Wthat is able to sit on your arm lays here... obviously.",
         "description": """&WIt's&N canon &Wis of &Mmagenta &Wcoloration and is a &Cstrong, &Wlightweight&N metal.
-&WIt looks like it can shoot &Ybullets &Wof pure &Mplasma&N
+&WIt looks like it can shoot &Ybullets &Wof pure {m&Mplasma&N
 &WIt is &Mmagenta&N, not &Rpink&N""",
         "weight": 7,
-        "dice": "2d6",
-        "hitroll": 4,
-        "damroll": 8,
+        "dice": "4d8",
+        "hitroll": 1,
+        "damroll": 2,
+    },
+    "Uranium Rod": {
+        "spawn_as": Item,
+        "name": "&GRadioactive Uranium&N rod",
+        "key_words": ("Radioactive", "Uranium", "rod"),
+        "room_description": "&WA {g&WRadioactive Uranium&N rod &Wlies here. please do not go near it.",
+        "description": "A &GRadioactive Uranium&N rod&W. what else to explain&N",
+        "weight": 2,
+    },
+    "Sword of Coral": {
+        "spawn_as": Weapon,
+        "name": "&WA &CSword &Wof &+RC&+Yo&+Cr&+Ba&+Ml",
+        "key_words": ("Sword", "Coral", "sc"),
+        "room_description": "&WA &CSword &Wof &+RC&+Yo&+Cr&+Ba&+Ml &Wlays here untouched, or mildly worn",
+        "description": """&WA sword made out of various colorations of &+RC&+Yo&+Cr&+Ba&+Ml
+&WIt seems strong yet weak
+&WVery colorful as well&N""",
+        "weight": 7,
+        "dice": "4d4",
+        "hitroll": 2,
+        "damroll": 4,
     },
 }
 

@@ -12,50 +12,143 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "wandering_student": {
-        "name": "a wandering student",
-        "key_words": ("student", "wandering"),
-        "room_description": "&wA wandering student meanders about aimlessly.&N",
+    "purple beanbag": {
+        "name": " purple beanbag",
+        "key_words": ("purple", "beanbag"),
+        "room_description": "&wa &Pbeanbag&N sits in a corner.&N",
         "description": (
-            "A student with a faraway look, clearly lost in thought.\n"
-            "Or possibly just lost."
+            "behold it is actually a monster.\n"
         ),
         "race": "Human",
         "class": "Student",
-        "level": 1,
-        "stats": [60, 65, 60, 80, 70, 75],
+        "level": 19,
+        "stats": [10, 10, 10, 10, 10, 10],
         "aggro": False,
-        "wander": True
+        "killable": True,
+        "wander": False
+    },
+    "grey beanbag": {
+        "name": "grey beanbag",
+        "key_words": ("grey", "beanbag"),
+        "room_description": "&wa &Xbeanbag&N sits in a corner.&N",
+        "description": (
+            "you have been fooled, tis a monster!\n"
+        ),
+        "race": "Human",
+        "class": "Student",
+        "level": 19,
+        "stats": [10, 10, 10, 10, 10, 10],
+        "aggro": False,
+        "killable": True,
+        "wander": False
     },
     "Mr. Carlson": {
         "name": "Mr. Carlson",
-        "key_words": ("student", "wandering"),
-        "room_description": "&wA wandering student meanders about aimlessly.&N",
+        "key_words": ("carlson", "principal"),
+        "room_description": "&wth principal, mr. carlson, stands ominously in the room.&N",
         "description": (
-            "A student with a faraway look, clearly lost in thought.\n"
-            "Or possibly just lost."
+            "Mr. C is the principal of this school.\n"
+            "a rather friendly man to those that aren't in trouble."
         ),
         "race": "Human",
         "class": "Student",
-        "level": 1,
-        "stats": [60, 65, 60, 80, 70, 75],
+        "level": 50,
+        "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
+        "killable": False,
         "wander": True
     },
-    "fellow_student": {
-        "name": "fellow student",
-        "key_words": ("fellow", "student"),
-        "room_description": "&wa friend of yours sits nearby.&N",
+    "Enemy": {
+        "name": "Enemy",
+        "key_words": ("Enemy"),
+        "room_description": "&wthe enemy stands here with &rhate&N in his posture.&N",
         "description": (
-            "she sits, focused upon her work."
+            "this being is the schools strongest nemesis, he has fought with the attendants for centuries."
+        ),
+        "race": "Celestial",
+        "class": "Enemy",
+        "level": 50,
+        "stats": [100, 100, 100, 100, 100, 100],
+        "aggro": True,
+        "killable": True,
+        "wander": True,
+    },
+    "The Beast of Geometry and Algebra": {
+        "name": "The Beast of &GGeometry&N and &BAlgebra&N",
+        "key_words": ("beast", "geometry", "algebra"),
+        "room_description": "&wa &Xdark&N and large dragon sits upon its spoil.&N",
+        "description": (
+            "its body is littered with shapes and letters, a steamy breath escapes its nose"
+        ),
+        "race": "Dragon",
+        "class": "Enemy",
+        "level": 60,
+        "stats": [1000, 100, 1000, 1000, 1000, 100],
+        "aggro": True,
+        "killable": True,
+        "wander": True,
+    },
+    "late work": {
+        "name": "late work",
+        "key_words": ("late", "work"),
+        "room_description": "a late work monster scurries in the room.&N",
+        "description": (
+            "this is a large eight legged piece of paper, is hisses like a roach"
+        ),
+        "race": "Monster",
+        "class": "Enemy",
+        "level": 30,
+        "stats": [50, 50, 50, 50, 50, 50],
+        "aggro": True,
+        "killable": True,
+        "wander": True,
+    },
+    "malcom": {
+        "name": "malcom",
+        "key_words": ("malcom"),
+        "room_description": "malcom sits near the closet.&N",
+        "description": (
+            "malcom is a small lego man, made of the more unusual of legos"
+        ),
+        "race": "Lego",
+        "class": "Peaceful",
+        "level": 50,
+        "stats": [50, 50, 50, 50, 50, 50],
+        "aggro": False,
+        "killable": False,
+        "wander": False,
+    },
+    "arlo": {
+        "name": "arlo",
+        "key_words": ("arlo"),
+        "room_description": "arlo stands menacingly.&N",
+        "description": (
+            "ps, hes a good xp farm mob"
         ),
         "race": "Human",
-        "class": "Student",
-        "level": 3,
-        "stats": [65, 65, 65, 80, 65, 65],
+        "class": "Bully",
+        "level": 8,
+        "stats": [500, 500, 500, 500, 500, 500],
         "aggro": False,
+        "killable": True,
         "wander": False,
-    }
+    },
+    "artenurite": {
+        "name": "artenurite",
+        "key_words": ("artenurite"),
+        "room_description": "artenurite stands with his bold frame.&N",
+        "description": (
+            "artenurite is a battle hardened warrior, awaiting a proper opponent"
+        ),
+        "race": "Human",
+        "class": "Bully",
+        "level": 50,
+        "stats": [90, 90, 90, 90, 90, 90],
+        "aggro": False,
+        "killable": True,
+        "wander": False,
+    },
 }
+
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)

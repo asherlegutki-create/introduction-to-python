@@ -1,3 +1,3 @@
 number = 3
-name="The bible"
+name="the school"
 author="charlotte"

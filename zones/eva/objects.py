@@ -1,5 +1,5 @@
 """
-zones.the_planes.objects
+zones.Oakhurst.objects
 ──────────────────────
 Object templates for The Planes zone.
 
@@ -54,7 +54,7 @@ TEMPLATES: dict[str, dict] = {
         'name': "Silver Sword",
         'key_words': ("sword", "silver", "silver sword"),
         'room_description': "A &Wsilver sword&N rests against the side of the bar.",
-        'description': "A &Wsilver sword&N leans, abandoned, against the tavern's counter.\nThis &Wsword&W seems like it would be effective against &rc&Xr&re&Xa&rt&Xu&rr&Xe&rs &Xo&rf &Xt&re&Xh &rn&Xi&rg&Xh&rt&N",
+        'description': "A &Wsilver sword&N leans, abandoned, against the tavern's counter.\nIt seems it would be effective against &rc&Xr&re&Xa&rt&Xu&rr&Xe&rs &Xo&rf &Xt&rh&Xe &rn&Xi&rg&Xh&rt&N",
         "weight":           3,
         "dice":             "1d6",
         "hitroll":          2,
@@ -62,7 +62,7 @@ TEMPLATES: dict[str, dict] = {
     },
 
     
-"Giant_Oak_Tree": {
+"Giant_Pine_Tree": {
         "spawn_as":         Object,
         "name":             "Giant Oak Tree",
         "key_words":        ("oak", "tree",),
@@ -73,7 +73,7 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as":         Object,
         "name":             "empty tables",
         "key_words":        ("table", "tables"),
-        "room_description": "A few empty &ytables&N are strewn about the &Ggrass&N, all but one are empty.",
+        "room_description": "A few &ytables&N are strewn about the &Ggrass&N, all but one are empty.",
         "description":      "Four &ytables&N with varying amounts of &ychairs&N sit in the &Ggrassy&N part of the courtyard.\nAt one rests a solitary rouge, the rest remain empty.",
     },
    "Wyldflowers": {

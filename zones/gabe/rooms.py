@@ -34,7 +34,12 @@ ROOMS: dict[int, Room] = {
                 O.spawn("cheese wheel"),
                 O.spawn("toy cheese"),
             ],
-            "mobs": [M.spawn("the cheese monster"), M.spawn("the cheez sniffer"), M.spawn("the cheese spirit")],
+            "mobs": [
+                M.spawn("the cheese monster"),
+                M.spawn("the cheez sniffer"),
+                M.spawn("the cheese spirit"),
+            ],
+
 
         },
 
@@ -54,12 +59,38 @@ ROOMS: dict[int, Room] = {
                 {"direction": "east", "roomId": 1},
                 {"direction": "west", "roomId": 3},
                 {"direction": "up", "roomId": 1},
-                {"direction": "down", "roomId": 1},
+                {"direction": "down", "roomId": 3},
             ],
             "objects": [
                 O.spawn("cheese surfboard"),
+                O.spawn("chez destroyer"),
             ],
-            "mobs": [M.spawn("the cheesy bird")],
+            "mobs": [
+                M.spawn("the cheesy bird"),
+            ],
+
+        },
+    ),
+    3: Room(
+        {
+            "number": 3,
+            "name": "The &bUnderwater&N &ycheese&N &Wof&N &BAtlantis&N",
+            "description": "The &bUnderwater&N &ycheese&N &Wof&N &BAtlantis&N &Wis a city under the&N &YCheese&N &BOasis&N &Wwhere the people who &RDARE&N surf in the&N &Ycheese&N &Boasis&N",
+            "indoors": False,
+            "terrain": "under-the-sea",
+            "exits": [
+                {"direction": "north",  "roomId":3},
+                 {"direction": "south", "roomId":3},
+                {"direction": "east",   "roomId":3},
+                {"direction": "west",   "roomId":3},
+                {"direction": "up",     "roomId":2},
+                {"direction": "down",   "roomId":3},
+            ],
+            "mobs": [
+                M.spawn("the cheez fih"),
+            ],
+
+
         },
     ),
 }
