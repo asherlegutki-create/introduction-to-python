@@ -86,13 +86,15 @@ TEMPLATES: dict[str, dict] = {
                 ),
             },
             {
-                "keywords":       ("poison", "po"),
-                "name":           "Poison",
+                "keywords":       ("envenom", "en"),
+                "name":           "Envenom",
                 "cooldown_ticks": 3,
                 "effect":         "apply_poison",
+                "duration":       8,
+                "dot_dice":       "1d6",
                 "user_msg":       "&cYou envenom your strike with deadly poison!&N",
                 "room_msg":       "&c{name} envenoms their strike with poison!&N",
-}
+            }
         ],
     },
 }

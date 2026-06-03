@@ -96,7 +96,8 @@ POISON: dict = {
     "hot_dice":  "",
     "hot_flat":  0,
     "dot_type":  "poison",
-    "tick_msg":  "&cYou feel a burning sensation in your blood.&N",
+    "tick_msg":    "&cYou feel a burning sensation in your blood.&N",
+    "room_msg":"&c{name} shivers as the poison spreads through its veins.&N",
     "apply_msg": "&cYou feel a burning sensation — you have been poisoned!&N",
     "expire_msg":"&GThe poison works its way out of your system.&N",
     "flags":     set(),
@@ -114,7 +115,8 @@ BLEED: dict = {
     "hot_dice":  "",
     "hot_flat":  0,
     "dot_type":  "bleed",
-    "tick_msg":  "&cYou bleed profusely from your wounds.&N",
+    "tick_msg":    "&cYou bleed profusely from your wounds.&N",
+    "room_msg":"&c{name} bleeds from its wounds.&N",
     "apply_msg": "&cYou begin to bleed!&N",
     "expire_msg":"&wYour wounds stop bleeding.&N",
     "flags":     set(),
@@ -133,6 +135,7 @@ HEALING_AURA: dict = {
     "hot_flat":  15,
     "dot_type":  "healing",
     "tick_msg":  "&GA warm glow surrounds you, mending your wounds.&N",
+    "room_msg":  "&G{name} glows with healing energy.&N",
     "apply_msg": "&GA healing aura envelops you.&N",
     "expire_msg":"&wThe healing aura fades.&N",
     "flags":     set(),
@@ -151,6 +154,7 @@ BARKSKIN: dict = {
     "hot_flat":  0,
     "dot_type":  "",
     "tick_msg":  "",
+    "room_msg":  "",
     "apply_msg": "&GYour skin hardens like bark.&N",
     "expire_msg":"&wYour skin softens back to normal.&N",
     "flags":     set(),
@@ -169,6 +173,7 @@ STONESKIN: dict = {
     "hot_flat":  0,
     "dot_type":  "",
     "tick_msg":  "",
+    "room_msg":  "",
     "apply_msg": "&WYour skin turns to stone.&N",
     "expire_msg":"&wYour skin returns to normal.&N",
     "flags":     set(),
@@ -218,17 +223,12 @@ def remove_effect(char, effect_id: str) -> str | None:
 
 # ── Tick ──────────────────────────────────────────────────────────────────────
 
-def tick_effects(char) -> list[str]:
+def tick_effects(char, observer_name: str | None = None) -> list[str]:
     """
-    Called every combat tick (4 seconds) for any character — PC or NPC.
+    Called every combat tick (4 seconds) for any character -- PC or NPC.
 
-    For each active effect:
-      - Rolls dot_dice + adds dot_flat for damage
-      - Rolls hot_dice + adds hot_flat for healing
-      - Decrements duration
-      - Expires at 0, recalculates derived stats
-
-    Returns list of messages to show the player.
+    mob_name: when set, uses mob_tick_msg instead of tick_msg so the
+    player sees third-person messages for the target mob.
     """
     effects = _ensure(char)
     if not effects:
@@ -243,15 +243,26 @@ def tick_effects(char) -> list[str]:
 
         if dmg > 0:
             char.hp = max(0, char.hp - dmg)
-            msg = eff.get("tick_msg")
-            if msg:
-                msgs.append(msg)
+            if observer_name:
+                msg = eff.get("room_msg", "")
+                if msg:
+                    msgs.append(msg.format(name=observer_name))
+            else:
+                msg = eff.get("tick_msg")
+                if msg:
+                    msgs.append(msg)
 
         if heal > 0:
             char.hp = min(getattr(char, "max_hp", char.hp), char.hp + heal)
-            msg = eff.get("tick_msg")
-            if msg and not dmg:   # avoid double message if both somehow set
-                msgs.append(msg)
+            if not dmg:
+                if observer_name:
+                    msg = eff.get("room_msg", "")
+                    if msg:
+                        msgs.append(msg.format(name=observer_name))
+                else:
+                    msg = eff.get("tick_msg")
+                    if msg:
+                        msgs.append(msg)
 
         # Countdown
         if eff["duration"] > 0:
@@ -261,9 +272,10 @@ def tick_effects(char) -> list[str]:
 
     for eff in expired:
         effects.remove(eff)
-        msg = eff.get("expire_msg")
-        if msg:
-            msgs.append(msg)
+        if not observer_name:
+            msg = eff.get("expire_msg")
+            if msg:
+                msgs.append(msg)
 
     if expired:
         recalc_status(char)

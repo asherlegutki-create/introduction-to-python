@@ -13,18 +13,24 @@ _SCHEMA = """
 PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;
 
+CREATE TABLE IF NOT EXISTS world_state (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS characters (
-    name        TEXT    PRIMARY KEY,
-    race        TEXT    NOT NULL,
-    class       TEXT    NOT NULL,
-    level       INTEGER NOT NULL DEFAULT 1,
-    xp          INTEGER NOT NULL DEFAULT 0,
-    stats       TEXT    NOT NULL,
-    max_hp      INTEGER NOT NULL,
-    hp          INTEGER NOT NULL,
-    location    INTEGER NOT NULL,
-    updated_at  REAL    NOT NULL,
-    status_effects TEXT NOT NULL DEFAULT '[]'
+    name           TEXT    PRIMARY KEY,
+    race           TEXT    NOT NULL,
+    class          TEXT    NOT NULL,
+    level          INTEGER NOT NULL DEFAULT 1,
+    xp             INTEGER NOT NULL DEFAULT 0,
+    stats          TEXT    NOT NULL,
+    max_hp         INTEGER NOT NULL,
+    hp             INTEGER NOT NULL,
+    location       INTEGER NOT NULL,
+    updated_at     REAL    NOT NULL,
+    status_effects TEXT    NOT NULL DEFAULT '[]',
+    toggles        TEXT    NOT NULL DEFAULT '{}'
 );
 
 CREATE TABLE IF NOT EXISTS inventory (
@@ -48,6 +54,7 @@ CREATE TABLE IF NOT EXISTS equipment (
 # Migrations -- run once at open_db time, ignored if column already exists
 _MIGRATIONS = [
     "ALTER TABLE characters ADD COLUMN status_effects TEXT NOT NULL DEFAULT '[]'",
+    "ALTER TABLE characters ADD COLUMN toggles TEXT NOT NULL DEFAULT '{}'",
 ]
 
 
@@ -143,6 +150,23 @@ def _dict_to_item(data: dict):
     return Object(data)
 
 
+def save_world_time(conn: sqlite3.Connection, total_minutes: int) -> None:
+    """Persist the game clock to the database."""
+    with conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO world_state (key, value) VALUES ('total_minutes', ?)",
+            (str(total_minutes),),
+        )
+
+
+def load_world_time(conn: sqlite3.Connection) -> int:
+    """Load the game clock, returning 0 (epoch) if not saved yet."""
+    row = conn.execute(
+        "SELECT value FROM world_state WHERE key = 'total_minutes'"
+    ).fetchone()
+    return int(row["value"]) if row else 0
+
+
 def save_character(
     conn:       sqlite3.Connection,
     char,
@@ -212,6 +236,10 @@ def save_character(
             "UPDATE characters SET status_effects = ? WHERE name = ?",
             (json.dumps(serializable), char.name),
         )
+        conn.execute(
+            "UPDATE characters SET toggles = ? WHERE name = ?",
+            (json.dumps(getattr(char, "toggles", {})), char.name),
+        )
 
 
 def load_character(
@@ -239,6 +267,8 @@ def load_character(
     char.status_effects = raw_effects
     from ..world.effects import recalc_status
     recalc_status(char)
+
+    char.toggles = json.loads(row["toggles"] or "{}")
 
     inv_rows = conn.execute(
         "SELECT item_data FROM inventory "

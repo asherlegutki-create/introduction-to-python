@@ -54,7 +54,7 @@ TEMPLATES: dict[str, dict] = {
         'name': "Silver Sword",
         'key_words': ("sword", "silver", "silver sword"),
         'room_description': "A &Wsilver sword&N rests against the side of the bar.",
-        'description': "A &Wsilver sword&N leans, abandoned, against the tavern's counter.\nIt seems it would be effective against &Rc&Xr&re&Xa&rt&Xu&rr&Xe&rs &Xo&rf &Xt&rh&Xe &rn&Xi&rg&Xh&rt&N",
+        'description': "A &Wsilver sword&N leans, abandoned, against the tavern's counter.\nIt seems it would be effective against &rc&Xr&re&Xa&rt&Xu&rr&Xe&rs &Xo&rf &Xt&rh&Xe &rn&Xi&rg&Xh&rt&N",
         "weight":           3,
         "dice":             "1d6",
         "hitroll":          2,

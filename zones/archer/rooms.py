@@ -19,13 +19,13 @@ ROOMS: dict[int, Room] = {
         {
             "number": 1,
             "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor",
-            "description": "A heavily fortified mansion, your currently surrounded by Illriggers, the exit is due &Yeast&N",
+            "description": "A heavily fortified mansion, your currently surrounded by Illriggers, the exit is due &BSouth&N",
             "indoors": True,
             "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
             "exits": [
                 {"direction": "north", "roomId": 2},
-                {"direction": "south", "roomId": 3},
-                {"direction": "east", "roomId": 99002, "external": True},
+                {"direction": "south", "roomId": 99001, "external": True},
+                {"direction": "east", "roomId": 3},
                 {"direction": "west", "roomId": 4},
                 {"direction": "up", "roomId": 6},
             ],
@@ -51,9 +51,6 @@ ROOMS: dict[int, Room] = {
                     {"direction": "east", "roomId": 4},
                     {"direction": "west", "roomId": 5},
                 ],
-                "objects": [
-                    O.spawn("Potion of Turtle Master"),
-                ],
                 "mobs": [ 
                     M.spawn("&RIllrigger Rogue&N"),
                 ],
@@ -69,7 +66,7 @@ ROOMS: dict[int, Room] = {
                 "indoors": True,
                 "terrain": "floors, cells, ceiling, and walls",
                 "exits": [
-                    {"direction": "north", "roomId": 1}
+                    {"direction": "west", "roomId": 1}
                 ],
                 "mobs": [ 
                     M.spawn("&yImprisoned Illrigger&N"),
@@ -101,9 +98,9 @@ ROOMS: dict[int, Room] = {
                 "exits": [
                     {"direction": "south", "roomId": 2},
                 ],
-                 "objects": [
-                    O.spawn("Potion of Strength II"),
-                 ],
+                "objects": [
+                    O.spawn("Copper Sword"),
+                ],
             }
         ),
         6: Room(
@@ -173,8 +170,102 @@ ROOMS: dict[int, Room] = {
                 "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
                 "exits": [
                     {"direction": "south", "roomId": 6},
+                    {"direction": "up", "roomId": 11},
                 ],
                 
+            }
+        ),
+        11: Room(
+            {
+                "number": 11,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor (Secret Room!)",
+                "description": "look! you found a secret room! but it doest look like your alone...",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "down", "roomId": 10},
+                    {"direction": "north", "roomId": 12},
+                    {"direction": "south", "roomId": 13},
+                    {"direction": "east", "roomId": 14},
+                    {"direction": "west", "roomId": 15},
+                ],
+                "mobs": [ 
+                    M.spawn("Zombie"),
+                    M.spawn("Zombie"),
+                    M.spawn("Zombie"),
+                ],
+            }
+        ),
+        12: Room(
+            {
+                "number": 12,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor (Secret Room!)",
+                "description": "just a room with a few slimes...",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "south", "roomId": 11},
+                ],
+                "mobs": [ 
+                    M.spawn("&MPink Slime&N"),
+                    M.spawn("&MPink Slime&N"),
+                    M.spawn("&MPink Slime&N"),
+                ],
+            }
+        ),
+        13: Room(
+            {
+                "number": 13,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor (Secret Room!)",
+                "description": "just an empty room...",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "north", "roomId": 11},
+                ],
+                "mobs": [ 
+                    M.spawn("&BBlue Slime&N"),
+                ],
+                "objects": [
+                    O.spawn("Sack of the Void"),
+                ],
+            }
+        ),
+        14: Room(
+            {
+                "number": 14,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor (Secret Arena Room!)",
+                "description": "its arena night, its time for your &RBoss Battle&N...",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "east", "roomId": 11},
+                ],
+                "mobs": [ 
+                    M.spawn("&YKing &MSlime&N"),
+                    M.spawn("Zombie"),
+                    M.spawn("Zombie"),
+                    M.spawn("&GGreen Slime&N"),
+                    M.spawn("&GGreen Slime&N"),
+                ],
+            }
+        ),
+        15: Room(
+            {
+                "number": 15,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor (Secret Room!)",
+                "description": "hey look! more &GX&MP&N!",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "west", "roomId": 11},
+                ],
+                "mobs": [ 
+                    M.spawn("&MPink Slime&N"),
+                    M.spawn("&MPink Slime&N"),
+                    M.spawn("&GGreen Slime&N"),
+                    M.spawn("&BBlue Slime&N"),
+                ],
             }
         ),
 }

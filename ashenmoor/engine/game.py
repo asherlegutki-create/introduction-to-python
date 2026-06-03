@@ -108,9 +108,11 @@ _COMMAND_MAP: dict[str, str] = {
     "equipment": "equipment", "eq":  "equipment",
     "powers":    "powers", "spells":    "powers",
     "skills":    "powers", "abilities": "powers",
-    "who":   "who",
-    "scan":  "scan",
-    "wiz":   "wiz",
+    "who":    "who",
+    "scan":   "scan",
+    "wiz":    "wiz",
+    "time":   "time",
+    "toggle": "toggle", "tog": "toggle",
     "score": "score", "stats": "score", "sc": "score",
     "stand": "stand", "st": "stand", "wake": "stand",
     "sit":   "sit",
@@ -153,6 +155,8 @@ class GameState:
         self._server           = None
         import time as _t2
         self._session_start: float = _t2.time()
+        from ..world.calendar import GameTime
+        self.game_time: GameTime = GameTime(0)
 
     @property
     def _player(self) -> str:
@@ -176,12 +180,21 @@ class GameState:
                 stacklevel=2,
             )
         self.rooms.update(zone.rooms)
+        if not isinstance(zone.object_templates, dict):
+            raise TypeError(
+                f"Zone '{zone.name}' object_templates is "
+                f"{type(zone.object_templates).__name__}, expected dict. "
+                f"Check that TEMPLATES in that zone's objects.py is a "
+                f"{{vnum: {{...}} }} dict not a list."
+            )
         self.object_templates.update(zone.object_templates)
         self.mob_templates.update(zone.mob_templates)
 
     def init_persistence(self, db_path: str = "ashenmoor.db") -> None:
-        from .persist import open_db, load_character
+        from .persist import open_db, load_character, load_world_time
         self._db = open_db(db_path)
+        # Restore game clock (defaults to epoch if DB is fresh)
+        self.game_time.total_minutes = load_world_time(self._db)
         char     = self.characters.get(self._player)
         if char is None:
             return
@@ -287,6 +300,8 @@ class GameState:
         elif verb == "who":       return self._who()
         elif verb == "scan":      return self._cmd_scan()
         elif verb == "wiz":       return self._cmd_wiz(args)
+        elif verb == "time":      return self._cmd_time()
+        elif verb == "toggle":    return self._cmd_toggle(args)
         elif verb == "score":     return self._cmd_score()
         elif verb == "stand":     return self._cmd_position("standing")
         elif verb == "sit":       return self._cmd_position("sitting")
@@ -316,6 +331,19 @@ class GameState:
 
     # ── Combat tick ───────────────────────────────────────────────────────────
 
+    def effect_tick(self, player_name: str | None = None) -> str | None:
+        """
+        Called every combat tick for ALL players regardless of combat state.
+        Handles status effect DoT/HoT/expiry separately from combat logic.
+        """
+        if player_name is not None:
+            tok = _active_player.set(player_name)
+            try:
+                return self._effect_tick()
+            finally:
+                _active_player.reset(tok)
+        return self._effect_tick()
+
     def combat_tick(self, player_name: str | None = None) -> str | None:
         if player_name is not None:
             tok = _active_player.set(player_name)
@@ -335,35 +363,19 @@ class GameState:
         return "\n".join(msgs) if msgs else None
 
     def _combat_tick_inner(self) -> str | None:
-        # Always tick effects regardless of combat state
-        effect_output = self._effect_tick()
-
         target = self.fighting.get(self._player)
         if not target:
-            return effect_output   # return effect messages even out of combat
-
+            return None
         player = self.characters.get(self._player)
-        if not player: return effect_output
+        if not player: return None
         room = self.current_room
         if room is None or target not in room.mobs:
             self.fighting.pop(self._player, None)
-            parts = ["&wYour opponent is no longer here.&N"]
-            if effect_output: parts.insert(0, effect_output)
-            return "\n".join(parts)
+            return "&wYour opponent is no longer here.&N"
 
         ensure_hp(player)
         ensure_hp(target)
         msgs: list[str] = []
-
-        if effect_output:
-            msgs.append(effect_output)
-        # If effect killed the player
-        if player.hp <= 0:
-            self.fighting.pop(self._player, None)
-            player.hp = max(1, player.max_hp // 4)
-            msgs.append("&RTHE POISON CLAIMS YOU!&N")
-            msgs.append("&wYou somehow cling to life...&N")
-            return "\n".join(msgs)
 
         dnd_state  = getattr(player, "dnd", {}) or {}
         extra_atks = 0
@@ -373,6 +385,11 @@ class GameState:
             dnd_state["action_surge_active"] = False
             msgs.append("&+W[ACTION SURGE]&N")
         msgs.extend(combat_round(player, target, extra_attacks=extra_atks))
+
+        # Tick the target mob's status effects (poison, bleed, etc.)
+        from ..world.effects import tick_effects as _tick_mob_fx
+        mob_fx = _tick_mob_fx(target, observer_name=target.name)
+        msgs.extend(mob_fx)
 
         if target.hp <= 0:
             self.fighting.pop(self._player, None)
@@ -515,19 +532,19 @@ class GameState:
 
         return "\n".join(msgs) if msgs else None
 
-    # ── HP regen tick (1-second, called by server) ────────────────────────────
+    # ── HP regen tick (4-second, called by server) ────────────────────────────
 
     def hp_regen_tick(self, player_name: str | None = None) -> None:
         """
-        Silent HP regeneration, 1 hp/sec base, scales with CON modifier.
+        HP regeneration every 4 seconds, out of combat only.
+        Amount is 1d(CON-scaled) — higher CON gives a larger die:
 
-          CON 75 (mod  0) → 1 hp/sec
-          CON 80 (mod +1) → 2 hp/sec
-          CON 85 (mod +2) → 3 hp/sec
-          CON 90 (mod +3) → 4 hp/sec  (cap)
+          CON mod <= 0  ->  1   hp  (flat)
+          CON mod   1   ->  1d2 hp  (1-2)
+          CON mod   2   ->  1d3 hp  (1-3)
+          CON mod  3+   ->  1d4 hp  (1-4)
 
-        No output — HP ticks up quietly.
-        Does nothing in combat or when already at full HP.
+        Silent — no message sent. Does nothing at full HP or in combat.
         """
         name = player_name or self._player
         if name in self.fighting:
@@ -535,10 +552,12 @@ class GameState:
         char = self.characters.get(name)
         if not char or char.hp >= char.max_hp:
             return
+        import random
         from ..dnd.abilities import modifier
-        con_mod = modifier(char.computed_stat("con"))
-        regen   = max(1, min(4, 1 + con_mod))
-        char.hp = min(char.max_hp, char.hp + regen)
+        con_mod  = modifier(char.computed_stat("con"))
+        die_max  = max(1, min(4, 1 + con_mod))
+        regen    = random.randint(1, die_max)
+        char.hp  = min(char.max_hp, char.hp + regen)
 
     # ── Powers ────────────────────────────────────────────────────────────────
 
@@ -671,7 +690,8 @@ class GameState:
             poison = copy.deepcopy(POISON)
             if "duration" in power: poison["duration"] = power["duration"]
             if "dot_dice"  in power: poison["dot_dice"] = power["dot_dice"]
-            return apply_effect(target, poison)
+            apply_effect(target, poison)
+            return f"&cThe poison takes hold of &N{target.name}&c!&N"
         if effect == "windsong_burst":
             # call windsong() with force=True so the full proc fires —
             # flash of light, extra swings, inner chaining — all of it.
@@ -900,6 +920,52 @@ class GameState:
             return f"&wPoisoned &W{tname}&w.&N\n{msg}"
 
         return f"&wUnknown wiz subcommand &W{sub}&w. Type &Wwiz&w for help.&N"
+
+    def _cmd_time(self) -> str:
+        return self.game_time.full_display()
+
+    def _cmd_toggle(self, args) -> str:
+        """
+        Toggle player preferences on or off.
+
+          toggle              -- list all toggles and their state
+          toggle <name>       -- flip a toggle
+          tog timeofday       -- turn time-of-day announcements off/on
+        """
+        KNOWN_TOGGLES = {
+            "timeofday":  ("time_announce",
+                           "Time-of-day announcements (dawn, dusk, midnight)"),
+        }
+        char = self.characters.get(self._player)
+        if not char:
+            return "&RNo character found.&N"
+        if not hasattr(char, "toggles") or char.toggles is None:
+            char.toggles = {}
+
+        if not args:
+            lines = [
+                "&wYour toggles:&N",
+                "&w" + "-" * 44 + "&N",
+            ]
+            for key, (field, desc) in KNOWN_TOGGLES.items():
+                state   = char.toggles.get(field, True)
+                color   = "&G" if state else "&R"
+                setting = "ON " if state else "OFF"
+                lines.append(f"  &w{key:<16}&N {color}{setting}&N  {desc}")
+            return "\n".join(lines)
+
+        key = args[0].lower()
+        if key not in KNOWN_TOGGLES:
+            opts = ", ".join(KNOWN_TOGGLES)
+            return f"&wUnknown toggle &W{key}&w. Options: &W{opts}&N"
+
+        field, desc = KNOWN_TOGGLES[key]
+        current     = char.toggles.get(field, True)
+        char.toggles[field] = not current
+        new_state   = char.toggles[field]
+        color       = "&G" if new_state else "&R"
+        state_str   = "ON" if new_state else "OFF"
+        return f"&w{desc}: {color}{state_str}&N"
 
     def _cmd_score(self) -> str:
         import time as _t

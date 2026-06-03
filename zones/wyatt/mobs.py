@@ -117,6 +117,51 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": True,
     },
+    "Malice": {
+        "name": "Malice",
+        "key_words": ("malice", "m", "ma"),
+        "room_description": "&mMalice &Wstands at the other end of the &+Rarena agitated\n She seems aggressive&N",
+        "description": (
+            "&WShe has a robot body made out of titanium\n"
+            "She is kinda sorta strong. Just beat her at a later level though to prevent humiliation&N"
+        ),
+        "race": "Robot",
+        "class": "Fighter",
+        "level": 57,
+        "stats": [84, 79, 54, 86, 78, 67],
+        "aggro": True,
+        "wander": False,
+    },
+    "Mayhem": {
+        "name": "Mayhem",
+        "key_words": ("Mayhem", "my"),
+        "room_description": "&RMayhem &Wstands right next to &mMalice, looking equally as aggressive&N",
+        "description": (
+            "&WHe is not skinny and is instead massive\n"
+            "Instead of an agile type, he is a power type"
+        ),
+        "race": "Robot",
+        "class": "Fighter",
+        "level": 61,
+        "stats": [102, 79, 53, 78, 64, 69],
+        "aggro": True,
+        "wander": False,
+    },
+    "Poison Thorn Bush": {
+        "name": "Poison Thorn Bush",
+        "key_words": ("Poison", "Thorn", "Bush", "PTB"),
+        "room_description": "&WA &GPoison Thorn Bush &Wstands here menacingly&N",
+        "description": (
+            "&WThe Thorn Bush has green radiance off of it\n"
+            "It is a very skinny tall plant with a flower on the top that shoots projectiles"
+        ),
+        "race": "plant",
+        "class": "Shooter",
+        "level": 27,
+        "stats": [81, 48, 53, 37, 24, 30],
+        "aggro": True,
+        "wander": False,
+    },
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")

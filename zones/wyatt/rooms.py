@@ -99,10 +99,62 @@ ROOMS: dict[int, Room] = {
             "terrain": "water, rock",
             "exits": [
                 {"direction": "south", "roomId": 4},
+                {"direction": "up", "roomId": 6},
             ],
-            "objects": [O.spawn("Sword of Coral"),],
+            "objects": [
+                O.spawn("Sword of Coral"),
+            ],
             "mobs": [
                 M.spawn("Flappers the Super Dolphin"),
+            ],
+        }
+    ),
+    6: Room(
+        {
+            "number": 6,
+            "name": "Oceania beach",
+            "description": "&WA &yBeach &W with a buried metal sign that says &BOceania &yBeach&N",
+            "indoors": False,
+            "terrain": "sand",
+            "exits": [
+                {"direction": "north", "roomId": 7},
+                {"direction": "down", "roomId": 5},
+            ],
+            "objects": [],
+            "mobs": [],
+        }
+    ),
+    7: Room(
+        {
+            "number": 7,
+            "name": "Forest Path",
+            "description": "&WIt is a long &GForest path &Wthat seems to lead somewhere strange&N",
+            "indoors": False,
+            "terrain": "dirt, wood",
+            "exits": [
+                {"direction": "west", "roomId": 8},
+                {"direction": "south", "roomId": 6},
+            ],
+            "objects": [],
+            "mobs": [M.spawn("Poison Thorn Bush")],
+        }
+    ),
+    8: Room(
+        {
+            "number": 8,
+            "name": "&GForest&N Arena",
+            "description": "&WIt is a large arena, around 4.5 football fields, with a &mpurple crystal &Wcenter and two stone pillars displaying health&N",
+            "indoors": False,
+            "terrain": "stone",
+            "exits": [
+                {"direction": "east", "roomId": 7},
+            ],
+            "objects": [
+                O.spawn("Arm canon"),
+            ],
+            "mobs": [
+                M.spawn("Malice"),
+                M.spawn("Mayhem"),
             ],
         }
     ),

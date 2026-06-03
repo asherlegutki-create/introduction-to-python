@@ -187,6 +187,11 @@ class MudServer:
                 char  = state.characters.get(name)
                 wimpy = getattr(char, "wimpy", None) if char else None
 
+                # Status effects tick every 4 seconds regardless of combat state
+                effect_out = state.effect_tick(player_name=name)
+                if effect_out:
+                    await client.send(effect_out)
+
                 if name in state.fighting:
                     if wimpy and char and char.hp <= wimpy:
                         flee_out = state.handle("flee", player_name=name)
@@ -207,14 +212,42 @@ class MudServer:
     # ── 1-second tick: HP regeneration ────────────────────────────────────────
 
     async def _hp_regen_loop(self) -> None:
-        """Silent HP regen every second for all out-of-combat players."""
+        """HP regen and game clock tick every 4 seconds."""
+        from ..world.calendar import HOUR_ANNOUNCES
+        from ..engine.persist import save_world_time
+
         while True:
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(TICK_INTERVAL)
+
+            # -- Advance game clock ------------------------------------------
+            gt       = self._state.game_time
+            prev_hr  = gt.hour
+            gt.advance(4)          # 4 real seconds = 4 game minutes
+            new_hr   = gt.hour
+
+            # Save time to DB every real minute (15 ticks)
+            if gt.total_minutes % 15 == 0 and self._state._db is not None:
+                try:
+                    save_world_time(self._state._db, gt.total_minutes)
+                except Exception:
+                    pass
+
+            # -- Broadcast hour announcements --------------------------------
+            announce = HOUR_ANNOUNCES.get(new_hr) if new_hr != prev_hr else None
+
+            # -- HP regen for all connected players --------------------------
             for name in list(self._clients):
                 client = self._clients.get(name)
                 if client is None or client._closed:
                     continue
                 self._state.hp_regen_tick(player_name=name)
+
+                # Send time announcement if the hour changed and toggle is on
+                if announce:
+                    char    = self._state.characters.get(name)
+                    toggles = getattr(char, "toggles", {}) if char else {}
+                    if toggles.get("time_announce", True):
+                        await client.send(announce)
 
     # ── Per-client wrapper ────────────────────────────────────────────────────
 
@@ -255,6 +288,16 @@ class MudServer:
             races = RACES
 
         tasks = []
+
+        # Pre-load world clock from DB if available
+        try:
+            from ..engine.persist import open_db, load_world_time
+            _tmp_conn = open_db(db_path)
+            self._state.game_time.total_minutes = load_world_time(_tmp_conn)
+            if self._state._db is None:
+                self._state._db = _tmp_conn
+        except Exception:
+            pass  # fresh DB or unavailable -- stays at epoch
 
         tick_task           = asyncio.create_task(self._tick_loop())
         regen_task          = asyncio.create_task(self._hp_regen_loop())

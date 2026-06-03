@@ -26,7 +26,7 @@ TEMPLATES: dict[str, dict] = {
         "level": 5,
         "stats": [60, 75, 65, 80, 70, 75],
         "aggro": False,
-        "wander": True,
+        "wander": False,
     },
     "fanciful_Bard": {
         "name": "Marloe the Bard",
@@ -41,7 +41,7 @@ TEMPLATES: dict[str, dict] = {
         "level": 30,
         "stats": [70, 75, 60, 80, 70, 100],
         "aggro": False,
-        "wander": True,
+        "wander": False,
     },
     "Red kobold": {
         "name": "Jremblen",
@@ -71,7 +71,6 @@ TEMPLATES: dict[str, dict] = {
         "level": 15,
         "stats": [90, 75, 95, 80, 70, 75],
         "aggro": False,
-        "killable": False,
         "wander": True,
     },
     "Large_Orange_Cat": {
@@ -86,7 +85,6 @@ TEMPLATES: dict[str, dict] = {
         "level": 20,
         "stats": [90, 70, 90, 70, 70, 70],
         "aggro": False,
-        "killable": False,
         "wander": True,
     },
 "Eclectic_Rouge": {
