@@ -1,5 +1,5 @@
 """
-zones.the_planes.mobs
+zones.Oakhurst.mobs
 ───────────────────
 Mob templates for The Void zone.
 
@@ -28,7 +28,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
     },
-    "fanciful_Bard": {
+    "Fanciful_Bard": {
         "name": "Marloe the Bard",
         "key_words": ("Bard", "Marloe", "Siren"),
         "room_description": "A bard sits here, plucking at her &ylyre&N and wearing a mildly board expression",
@@ -43,7 +43,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
     },
-    "Red kobold": {
+    "Red_Kobold": {
         "name": "Jremblen",
         "key_words": ("kobold", "Red"),
         "room_description": "A &rkobold&N stands here, looking through a &ybag&N full of &gm&Go&gs&Gs.&N",
@@ -66,12 +66,12 @@ TEMPLATES: dict[str, dict] = {
             "A little girl that looks about 11 roughhouses with a &ybig orange cat&N in a patch of &YW&yy&Wl&Yd&yf&Wl&Yo&yw&We&Yr&ys&N.\n"
             "She wears a manic grin across her face as she plays."
         ),
-        "race": "half siren",
+        "race": "Half-Siren",
         "class": "free loader",
         "level": 15,
         "stats": [90, 75, 95, 80, 70, 75],
         "aggro": False,
-        "wander": True,
+        "wander": False,
     },
     "Large_Orange_Cat": {
         "name": "Large Orange Cat",
@@ -80,12 +80,12 @@ TEMPLATES: dict[str, dict] = {
         "description": ("A fluffy &yorange tomcat&N of considerable size rolls in the &YW&yy&Wl&Yd&yf&Wl&Yo&yw&We&Yr&ys&N with an excited little girl.\n" 
                        "His &ggreen eyes&N follow you as he roughhouses." 
                         ),
-        "race": "cat",
+        "race": "Cat",
         "class": "pet",
         "level": 20,
         "stats": [90, 70, 90, 70, 70, 70],
         "aggro": False,
-        "wander": True,
+        "wander": False,
     },
 "Eclectic_Rouge": {
         "name": "Veery",
@@ -94,7 +94,7 @@ TEMPLATES: dict[str, dict] = {
         "description": ("The owlen continues to grab various things from pockets and bags she is wearing and sort them into piles on the table.\n"
             "None of the items on the table seem to have originally been hers. &RIt may be a good idea to keep a close eye on your&N &Yvaluables&N."
         ),
-        "race": "owlen",
+        "race": "Owlen",
         "class": "rouge",
         "level": 25,
         "stats": [80, 75, 65, 80, 70, 75],

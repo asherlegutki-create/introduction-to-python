@@ -127,7 +127,7 @@ ROOMS: dict[int, Room] = {
     7: Room(
         {
             "number": 7,
-            "name": "Forest Path",
+            "name": "Poison Forest Path",
             "description": "&WIt is a long &GForest path &Wthat seems to lead somewhere strange&N",
             "indoors": False,
             "terrain": "dirt, wood",
@@ -136,7 +136,11 @@ ROOMS: dict[int, Room] = {
                 {"direction": "south", "roomId": 6},
             ],
             "objects": [],
-            "mobs": [M.spawn("Poison Thorn Bush")],
+            "mobs": [
+                M.spawn("Poison Thorn Bush"),
+                M.spawn("Poison Thorn Bush"),
+                M.spawn("Poison Thorn Bush"),
+            ],
         }
     ),
     8: Room(
@@ -148,6 +152,7 @@ ROOMS: dict[int, Room] = {
             "terrain": "stone",
             "exits": [
                 {"direction": "east", "roomId": 7},
+                {"direction": "north", "roomId": 9},
             ],
             "objects": [
                 O.spawn("Arm canon"),
@@ -155,6 +160,56 @@ ROOMS: dict[int, Room] = {
             "mobs": [
                 M.spawn("Malice"),
                 M.spawn("Mayhem"),
+            ],
+        }
+    ),
+    9: Room(
+        {
+            "number": 9,
+            "name": "Oak Forest Path",
+            "description": "&WA narrow path in the forest right next to the &GForest Arena&N. &WIt is almost overgrown and seems like it has been unkempt for years.&N",
+            "indoors": False,
+            "terrain": "dirt, wood",
+            "exits": [
+                {"direction": "south", "roomId": 8},
+                {"direction": "west", "roomId": 10},
+            ],
+            "objects": [O.spawn("AAA Battery")],
+            "mobs": [M.spawn("Skellington")],
+        }
+    ),
+    10: Room(
+        {
+            "number": 10,
+            "name": "&YSand &WDunes&N",
+            "description": "&WIt is a &YSand Dune &W desert that has some small and large footsteps in the &Ysand&N&N",
+            "indoors": False,
+            "terrain": "sand, dirt",
+            "exits": [
+                {"direction": "east", "roomId": 9},
+            ],
+            "objects": [],
+            "mobs": [],
+        }
+    ),
+    11: Room(
+        {
+            "number": 11,
+            "name": "&yOak &CVillage&N",
+            "description": "&WIt is a small &yOak &CVillage &Wwith around 15-20 villagers&N",
+            "indoors": False,
+            "terrain": "wood, dirt",
+            "stone"
+            "exits": [
+                {"direction": "west", "roomId": 9},
+            ],
+            "objects": [],
+            "mobs": [
+                M.spawn("Villager"),
+                M.spawn("Villager"),
+                M.spawn("Villager"),
+                M.spawn("Villager"),
+                M.spawn("Villager"),
             ],
         }
     ),

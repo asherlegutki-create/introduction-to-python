@@ -30,7 +30,7 @@ TEMPLATES: dict[str, dict] = {
     "Green Nessie": {
         "name": "Green Nessie",
         "key_words": ("Green", "Nessie"),
-        "room_description": "&CThe Nessie. It wades in the shallow water staring into space&N",
+        "room_description": "&CThe Nessie.&N &WIt wades in the shallow &Bwater&N &Wstaring into space&N",
         "description": (
             "It is a very strange creature and sits there wisely\n"
             "Or it is just sitting there without a single thought in that head."
@@ -161,6 +161,36 @@ TEMPLATES: dict[str, dict] = {
         "stats": [81, 48, 53, 37, 24, 30],
         "aggro": True,
         "wander": False,
+    },
+    "Skellington": {
+        "name": "Skellington",
+        "key_words": ("Skellington", "Skelly"),
+        "room_description": "&WA Skellington stands here with a &ybow &Wand &Narrow",
+        "description": (
+            "he is just a Skellington\n" 
+            "He looks aggressive... not friendly"
+        ),
+        "race": "Skeleton",
+        "class": "Archer",
+        "level": 18,
+        "stats": [76, 80, 56, 13, 20, 24],
+        "aggro": True,
+        "wander": False,
+    },
+    "Villager": {
+        "name": "Villager",
+        "key_words": ("Villager", "V"),
+        "room_description": "&WA &GVillager &Wwalks around helping with people and whatnot",
+        "description": (
+            "An innocent villager\n" 
+            "I swear, if you kill him like you did the other mobs it will not end well"
+        ),
+        "race": "Human",
+        "class": "Villager",
+        "level": 7,
+        "stats": [83, 64, 56, 76, 81, 73],
+        "aggro": False,
+        "wander": True,
     },
 }
 

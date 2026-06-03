@@ -84,6 +84,18 @@ TEMPLATES: dict[str, dict] = {
             "aggro": False,
             "wander": False,
     },
+        "umburb_soldier": {
+            "name": "Umburb Soldier",
+            "key_words": ("umburb", "soldier"),
+            "room_description": "An Umburb soldier stands here at attention.",
+            "description": ("A soldier trained for nearly anything they may encounter."),
+            "race": "Human",
+            "class": "Soldier",
+            "level": 25,
+            "stats": [90, 90, 90, 90, 90, 90],
+            "aggro": False,
+            "wander": False,
+    },
 }
 
 
