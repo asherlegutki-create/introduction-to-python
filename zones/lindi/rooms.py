@@ -100,7 +100,7 @@ ROOMS: dict[int, Room] = {
             {"direction": "east", "roomId": 2},
             {"direction": "south", "roomId": 9},
             {"direction": "north", "roomId": 5},
-            {"direction": "west", "roomId": 99004},
+            {"direction": "west", "roomId": 99004, "external": True},
         ],
         "objects": [],
         "mobs": [],
