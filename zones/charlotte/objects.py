@@ -14,19 +14,19 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "green leaf": {
+    "Pencil": {
         "spawn_as": Item,
-        "name": "a &ggreen&N &Gleaf&N",
-        "key_words": ("green", "leaf"),
-        "room_description": "a &Gg&N&gr&N&Ge&N&ge&N&Gn&N &gl&N&Ge&N&ga&N&Gf&N has been carelessly &Rdiscarded&N here.",
-        "description": "A forest green leaf is lying on the ground.",
+        "name": "Pencil",
+        "key_words": ("pencil"),
+        "room_description": "A pencil lies here waiting to be used!",
+        "description": "This pencil is Charlotte's missing pencil that keeps going missing. It is a yellow ticonderoga pencil.",
     },
 
     "Banana": {
         "spawn_as": Item,
         "name": " &Ybanana&N",
         "key_words": ("banana"),
-        "room_description": "A &Yb&N&ya&N&Yn&N&yn&N&Ya&N&yn&N&Yn&N&yn&N&Ya&N is hanging of a &Gb&N&gu&N&Gs&N&gh&N.",
+        "room_description": "A &Yb&N&ya&N&Yn&N&yn&N&Ya&N&yn&N&Yn&N&yn&N&Ya&N is lying on the floor. I dare you to eat it",
         "description": "This &Yb&N&ya&N&Yn&N&yn&N&Ya&N&yn&N&Yn&N&yn&N&Ya&N seems to be very tasty.",
     },
 
