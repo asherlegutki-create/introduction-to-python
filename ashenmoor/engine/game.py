@@ -386,6 +386,11 @@ class GameState:
             msgs.append("&+W[ACTION SURGE]&N")
         msgs.extend(combat_round(player, target, extra_attacks=extra_atks))
 
+        # Tick the target mob's status effects (poison, bleed, etc.)
+        from ..world.effects import tick_effects as _tick_mob_fx
+        mob_fx = _tick_mob_fx(target, observer_name=target.name)
+        msgs.extend(mob_fx)
+
         if target.hp <= 0:
             self.fighting.pop(self._player, None)
             room.mobs.remove(target)
@@ -685,7 +690,8 @@ class GameState:
             poison = copy.deepcopy(POISON)
             if "duration" in power: poison["duration"] = power["duration"]
             if "dot_dice"  in power: poison["dot_dice"] = power["dot_dice"]
-            return apply_effect(target, poison)
+            apply_effect(target, poison)
+            return f"&cThe poison takes hold of &N{target.name}&c!&N"
         if effect == "windsong_burst":
             # call windsong() with force=True so the full proc fires —
             # flash of light, extra swings, inner chaining — all of it.
