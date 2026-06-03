@@ -48,7 +48,10 @@ TEMPLATES: dict[str, dict] = {
          'key_words': ('math', 'sword'),
          'room_description': "a &rrusty &ypitch fork&N sits propped against th wall\n could cause sufficient &rdamage&N to an opponent",
          'description': "this old wooden fork stands taller than the average student, would most likely bring &ytetanus&N upon its victim",
-         "weight":           4,
+         "weight":           2,
+         "dice":             "8d8",
+         "hitroll":          8,
+         "damroll":          8,
      },
     }
 

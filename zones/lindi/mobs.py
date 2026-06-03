@@ -47,13 +47,13 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("carlson", "principal"),
         "room_description": "&wth principal, mr. carlson, stands ominously in the room.&N",
         "description": (
-            "a .\n"
-            "."
+            "Mr. C is the principal of this school.\n"
+            "a rather friendly man to those that aren't in trouble."
         ),
         "race": "Human",
         "class": "Student",
-        "level": 1,
-        "stats": [60, 65, 60, 80, 70, 75],
+        "level": 50,
+        "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
         "killable": False,
         "wander": True
@@ -61,7 +61,7 @@ TEMPLATES: dict[str, dict] = {
     "Enemy": {
         "name": "Enemy",
         "key_words": ("Enemy"),
-        "room_description": "&wa &Xdark&N figure stands with &rhate&N in his posture.&N",
+        "room_description": "&wthe enemy stands here with &rhate&N in his posture.&N",
         "description": (
             "this being is the schools strongest nemesis, he has fought with the attendants for centuries."
         ),
@@ -74,7 +74,7 @@ TEMPLATES: dict[str, dict] = {
         "wander": True,
     },
     "The Beast of Geometry and Algebra": {
-        "name": "The Beast of Geometry and Algebra",
+        "name": "The Beast of &GGeometry&N and &BAlgebra&N",
         "key_words": ("beast", "geometry", "algebra"),
         "room_description": "&wa &Xdark&N and large dragon sits upon its spoil.&N",
         "description": (
