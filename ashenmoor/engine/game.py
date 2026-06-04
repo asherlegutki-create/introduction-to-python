@@ -355,7 +355,13 @@ class GameState:
                 _active_player.reset(tok)
         return self._effect_tick()
 
-    def combat_tick(self, player_name: str | None = None) -> str | None:
+    def combat_tick(self, player_name: str | None = None) -> tuple[str | None, str | None, str | None]:
+        """
+        Returns (player_combat, room_broadcast, hp_status).
+        player_combat:  personalized attack messages for the fighting player.
+        room_broadcast: 3rd-person messages for others in the same room.
+        hp_status:      HP bar line sent last, after all broadcasts.
+        """
         if player_name is not None:
             tok = _active_player.set(player_name)
             try:
@@ -373,34 +379,56 @@ class GameState:
         msgs = _tick_fx(player)
         return "\n".join(msgs) if msgs else None
 
-    def _combat_tick_inner(self) -> str | None:
+    def _combat_tick_inner(self) -> tuple[str | None, str | None, str | None]:
         target = self.fighting.get(self._player)
         if not target:
-            return None
+            return None, None, None
         player = self.characters.get(self._player)
-        if not player: return None
+        if not player: return None, None, None
         room = self.current_room
         if room is None or target not in room.mobs:
             self.fighting.pop(self._player, None)
-            return "&wYour opponent is no longer here.&N"
+            return "&wYour opponent is no longer here.&N", None, None
 
         ensure_hp(player)
         ensure_hp(target)
-        msgs: list[str] = []
+
+        # First attacker becomes the mob's primary target.
+        # The mob only counter-attacks its primary target.
+        hp_status_line: str | None = None
+
+        if not getattr(target, "primary_target", None):
+            target.primary_target = self._player
+        is_primary = (getattr(target, "primary_target", None) == self._player)
 
         dnd_state  = getattr(player, "dnd", {}) or {}
         extra_atks = 0
+        surge_msg  = None
         if dnd_state.get("action_surge_active"):
             from ..dnd.classes.warrior import attack_count
             extra_atks = attack_count(player.level)
             dnd_state["action_surge_active"] = False
-            msgs.append("&+W[ACTION SURGE]&N")
-        msgs.extend(combat_round(player, target, extra_attacks=extra_atks))
+            surge_msg = "&+W[ACTION SURGE]&N"
 
-        # Tick the target mob's status effects (poison, bleed, etc.)
+        # Raw 3rd-person messages — mob only retaliates against primary target
+        raw_round = combat_round(player, target, extra_attacks=extra_atks,
+                                 mob_retaliates=is_primary)
+
+        # Player sees personalized 2nd-person version
+        player_msgs: list[str] = []
+        if surge_msg: player_msgs.append(surge_msg)
+        player_msgs.extend(_personalize_msg(m, player.name) for m in raw_round)
+
+        # Room observers see 3rd-person version
+        room_msgs: list[str] = []
+        if surge_msg: room_msgs.append(surge_msg)
+        room_msgs.extend(raw_round)
+
+        # Mob status effect ticks
         from ..world.effects import tick_effects as _tick_mob_fx
         mob_fx = _tick_mob_fx(target, observer_name=target.name)
-        msgs.extend(mob_fx)
+        player_msgs.extend(mob_fx)
+        room_msgs.extend(mob_fx)
 
         if target.hp <= 0:
             self.fighting.pop(self._player, None)
@@ -409,19 +437,32 @@ class GameState:
             exp = mob_xp_award(target.level, player.level)
             player.xp = getattr(player, "xp", 0) + exp
             _, pct = level_for_xp(player.xp)
-            msgs.append(f"&+W{target.name}&w crumples and dies!&N")
-            msgs.append(f"&wYou gain &W{exp:,}&w xp  (&W{player.xp:,}&w total | &W{pct}&w% into level)&N")
-            msgs.extend(apply_level_up(player))
+            kill_msg = f"&+W{target.name}&w crumples and dies!&N"
+            player_msgs.append(kill_msg)
+            room_msgs.append(kill_msg)
+            xp_msg = f"&wYou gain &W{exp:,}&w xp  (&W{player.xp:,}&w total | &W{pct}&w% into level)&N"
+            player_msgs.append(xp_msg)
+            player_msgs.extend(apply_level_up(player))
             self._save_player()
         elif player.hp <= 0:
             self.fighting.pop(self._player, None)
             player.hp = max(1, player.max_hp // 4)
-            msgs.append("&+RYOU HAVE BEEN SLAIN!&N")
-            msgs.append("&wYou somehow cling to life...&N")
+            # Transfer mob focus to another attacker if this was the primary
+            if getattr(target, "primary_target", None) == self._player:
+                other = next(
+                    (n for n, m in self.fighting.items() if m is target),
+                    None,
+                )
+                target.primary_target = other
+            player_msgs.append("&+RYOU HAVE BEEN SLAIN!&N")
+            player_msgs.append("&wYou somehow cling to life...&N")
+            room_msgs.append(f"&+R{player.name} has been slain!&N")
         else:
-            msgs.append(f"{hp_status(player)}   {hp_status(target)}")
+            hp_status_line = f"{hp_status(player)}   {hp_status(target)}"
 
-        return "\n".join(msgs)
+        player_out = "\n".join(player_msgs) if player_msgs else None
+        room_out   = "\n".join(room_msgs)   if room_msgs   else None
+        return player_out, room_out, hp_status_line
 
     # ── Mob aggro tick ────────────────────────────────────────────────────────
 
@@ -467,9 +508,18 @@ class GameState:
 
             self.fighting[self._player] = mob
             self._resting.pop(self._player, None)
-            if mob.aggressive:
-                return f"&+R{mob.name}&w spots you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
-            return f"&+R{mob.name}&w sees you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
+            if not getattr(mob, "primary_target", None):
+                mob.primary_target = self._player
+            aggro_msg = (
+                f"&+R{mob.name}&w spots you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
+                if mob.aggressive else
+                f"&+R{mob.name}&w sees you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
+            )
+            first_out, _, first_hp = self._combat_tick_inner()
+            parts = [aggro_msg]
+            if first_out: parts.append(first_out)
+            if first_hp:  parts.append(first_hp)
+            return "\n".join(parts)
 
         return None
 
@@ -1090,9 +1140,18 @@ class GameState:
 
             self.fighting[self._player] = mob
             self._resting.pop(self._player, None)
-            if mob.aggressive:
-                return f"&+R{mob.name}&w notices you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
-            return f"&+R{mob.name}&w recognises you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
+            if not getattr(mob, "primary_target", None):
+                mob.primary_target = self._player
+            aggro_msg = (
+                f"&+R{mob.name}&w notices you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
+                if mob.aggressive else
+                f"&+R{mob.name}&w recognises you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
+            )
+            first_out, _, first_hp = self._combat_tick_inner()
+            parts = [aggro_msg]
+            if first_out: parts.append(first_out)
+            if first_hp:  parts.append(first_hp)
+            return "\n".join(parts)
         return None
 
     def _cmd_kill(self, args) -> str:
@@ -1114,9 +1173,23 @@ class GameState:
         ensure_hp(char); ensure_hp(target)
         self._resting.pop(self._player, None)
         self.fighting[self._player] = target
-        return (f"&wYou engage &+W{target.name}&w in combat!&N\n"
-                f"&wThey appear to be &N{condition_str(target)}&w.&N\n"
-                f"&x(Auto-attack fires every 4 seconds. Type a power to use it immediately.)&N")
+        if not getattr(target, "primary_target", None):
+            target.primary_target = self._player
+
+        engage_msg = (
+            f"&wYou engage &+W{target.name}&w in combat!&N\n"
+            f"&wThey appear to be &N{condition_str(target)}&w.&N\n"
+            f"&x(Auto-attack fires every 4 seconds. Type a power to use it immediately.)&N"
+        )
+
+        # Fire the first round immediately
+        first_out, first_room, first_hp = self._combat_tick_inner()
+        parts = [engage_msg]
+        if first_out:
+            parts.append(first_out)
+        if first_hp:
+            parts.append(first_hp)
+        return "\n".join(parts)
 
     def _cmd_flee(self) -> str:
         import random
@@ -1151,6 +1224,15 @@ class GameState:
         angry_mob = self.fighting.get(self._player)
         if angry_mob is not None and hasattr(angry_mob, "remember"):
             angry_mob.remember(self._player)
+
+        # Transfer mob focus if this was the primary target
+        if angry_mob and getattr(angry_mob, "primary_target", None) == self._player:
+            other = next(
+                (n for n, m in self.fighting.items()
+                 if m is angry_mob and n != self._player),
+                None,
+            )
+            angry_mob.primary_target = other
 
         self.fighting.pop(self._player, None)
         self.locations[self._player] = exit_choice["roomId"]
@@ -2084,6 +2166,52 @@ _SLOT_FULL: dict[str, str] = {
 
 def _slot_full_msg(slot: str) -> str:
     return _SLOT_FULL.get(slot, "&wThat slot is already in use.&N")
+
+# Verb map: 3rd-person → 2nd-person. Longer phrases must come first.
+_VERB_MAP: list[tuple[str, str]] = [
+    ("fumbles and misses completely", "fumble and miss completely"),
+    ("barely scratches",              "barely scratch"),
+    ("hits very hard",                "hit very hard"),
+    ("hits hard",                     "hit hard"),
+    ("scratches",                     "scratch"),
+    ("hits",                          "hit"),
+    ("misses",                        "miss"),
+    ("devastates",                    "devastate"),
+    ("massacres",                     "massacre"),
+    ("nearly slays",                  "nearly slay"),
+    ("obliterates",                   "obliterate"),
+]
+
+def _personalize_msg(msg: str, player_name: str) -> str:
+    """
+    Rewrite a combat message to second person when the player is the actor
+    OR the target.
+
+    Attacker:  &w{name}&N's off-hand...   →  &wYour&N off-hand...
+               &w{name}&N barely scratches →  &wYou&N barely scratch
+    Defender:  &N{name}&w (dmg | ...)     →  &Nyou&w (dmg | ...)
+    """
+    # Possessive attacker: "{name}'s" → "Your"
+    possessive = f"&w{player_name}&N's"
+    if possessive in msg:
+        return msg.replace(possessive, "&wYour&N", 1)
+
+    # Subject attacker: "{name} verb" → "You verb"
+    subject = f"&w{player_name}&N"
+    if subject in msg:
+        msg = msg.replace(subject, "&wYou&N", 1)
+        for third, second in _VERB_MAP:
+            if third in msg:
+                return msg.replace(third, second, 1)
+        return msg
+
+    # Object/defender: mob hits the player
+    defender_ref = f"&N{player_name}&w"
+    if defender_ref in msg:
+        return msg.replace(defender_ref, "&Nyou&w", 1)
+
+    return msg
+
 
 def _max_inventory(char) -> int:
     """

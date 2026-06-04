@@ -75,7 +75,7 @@ class MudClient(ABC):
         await self._raw_send("\r\n")
         await self._raw_send("\033[1;37m╔══════════════════════════════╗\033[0m\r\n")
         await self._raw_send("\033[1;37m║      W e l c o m e  t o      ║\033[0m\r\n")
-        await self._raw_send("\033[1;37m║      A s h e n m o o r       ║\033[0m\r\n")
+        await self._raw_send("\033[1;37m║      R i v e r m o o r       ║\033[0m\r\n")
         await self._raw_send("\033[1;37m╚══════════════════════════════╝\033[0m\r\n\r\n")
 
         while True:
@@ -86,6 +86,18 @@ class MudClient(ABC):
                 return False
 
             if not raw.strip():
+                continue
+
+            if raw.strip().lower() in ("quit", "exit", "q"):
+                await self._raw_send("Are you sure you want to quit? (yes/no) ")
+                try:
+                    answer = await self._raw_readline()
+                except (EOFError, ConnectionResetError):
+                    return False
+                if answer.strip().lower() in ("yes", "y"):
+                    await self._raw_send("Farewell!\r\n")
+                    return False
+                await self._raw_send("\r\n")
                 continue
 
             name = raw.strip()[0].upper() + raw.strip()[1:].lower()
