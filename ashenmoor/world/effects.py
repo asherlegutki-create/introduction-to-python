@@ -223,18 +223,20 @@ def remove_effect(char, effect_id: str) -> str | None:
 
 # ── Tick ──────────────────────────────────────────────────────────────────────
 
-def tick_effects(char, observer_name: str | None = None) -> list[str]:
+def tick_effects(char) -> tuple[list[str], list[str]]:
     """
     Called every combat tick (4 seconds) for any character -- PC or NPC.
 
-    mob_name: when set, uses mob_tick_msg instead of tick_msg so the
-    player sees third-person messages for the target mob.
+    Returns (self_msgs, room_msgs):
+      self_msgs  -- tick_msg strings shown to the affected character
+      room_msgs  -- room_msg strings (with {name} formatted) shown to observers
     """
     effects = _ensure(char)
     if not effects:
-        return []
+        return [], []
 
-    msgs    = []
+    self_msgs:  list[str] = []
+    room_msgs_: list[str] = []
     expired = []
 
     for eff in effects:
@@ -243,28 +245,19 @@ def tick_effects(char, observer_name: str | None = None) -> list[str]:
 
         if dmg > 0:
             char.hp = max(0, char.hp - dmg)
-            if observer_name:
-                msg = eff.get("room_msg", "")
-                if msg:
-                    msgs.append(msg.format(name=observer_name))
-            else:
-                msg = eff.get("tick_msg")
-                if msg:
-                    msgs.append(msg)
+            tick = eff.get("tick_msg")
+            if tick: self_msgs.append(tick)
+            room = eff.get("room_msg", "")
+            if room: room_msgs_.append(room.format(name=char.name))
 
         if heal > 0:
             char.hp = min(getattr(char, "max_hp", char.hp), char.hp + heal)
             if not dmg:
-                if observer_name:
-                    msg = eff.get("room_msg", "")
-                    if msg:
-                        msgs.append(msg.format(name=observer_name))
-                else:
-                    msg = eff.get("tick_msg")
-                    if msg:
-                        msgs.append(msg)
+                tick = eff.get("tick_msg")
+                if tick: self_msgs.append(tick)
+                room = eff.get("room_msg", "")
+                if room: room_msgs_.append(room.format(name=char.name))
 
-        # Countdown
         if eff["duration"] > 0:
             eff["duration"] -= 1
             if eff["duration"] == 0:
@@ -272,15 +265,13 @@ def tick_effects(char, observer_name: str | None = None) -> list[str]:
 
     for eff in expired:
         effects.remove(eff)
-        if not observer_name:
-            msg = eff.get("expire_msg")
-            if msg:
-                msgs.append(msg)
+        msg = eff.get("expire_msg")
+        if msg: self_msgs.append(msg)
 
     if expired:
         recalc_status(char)
 
-    return msgs
+    return self_msgs, room_msgs_
 
 
 # ── Stat recalculation ────────────────────────────────────────────────────────

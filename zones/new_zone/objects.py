@@ -35,16 +35,11 @@ TEMPLATES: dict[str, dict] = {
         "capacity":        50.0,
         "weight":          20.0,
         "contents": [                  # template keys — spawned automatically
-           "windsong",
-           "windsong",
+           "windsong", "windsong",
+            "cap", "visor", "armor", "cloak", "belt", "vambraces", "gloves", "leggings", "boots",
            "dimensional_vault",
-           "stoneskin_scroll", 
-           "stoneskin_scroll", 
-           "stoneskin_scroll", 
-           "stoneskin_scroll", 
-           "stoneskin_scroll", 
-           "stoneskin_scroll", 
-           "stoneskin_scroll" 
+           "stoneskin_scroll", "stoneskin_scroll", "stoneskin_scroll", "stoneskin_scroll", 
+           "stoneskin_scroll", "stoneskin_scroll", "stoneskin_scroll" 
         ],
     },
 
@@ -141,6 +136,170 @@ TEMPLATES: dict[str, dict] = {
             }
         ],
     },
+    "cap" : {
+        "spawn_as":        Item,
+        "name":        "&Xa sturdy &N&yleather &Xcap&N",
+        "room_desc":   "&XA sturdy &N&yleather &Xcap has been left here.&N",
+        "key_words":   ("cap", "leather", "hat"),
+        "description": (
+            "A well-stitched leather cap with a short brim.  "
+            "Simple, tough, and shaped to fit snugly without blocking your sight."
+        ),
+        "wear_on":   "head",
+        "ac_bonus":  4,
+        "weight":    1.0,
+        "cost":      15,
+        "stat_mods": {"dex": 5},
+        "save_mods": {},
+    },
+
+    # ── FACE — 1 AC ──────────────────────────────────────────────────────────
+    "visor" : {
+        "spawn_as":        Item,
+        "name":        "&Xa sturdy &N&yleather &Xvisor&N",
+        "room_desc":   "&XA sturdy &N&yleather &Xvisor has been left here.&N",
+        "key_words":   ("visor", "leather", "mask", "face"),
+        "description": (
+            "A narrow strip of hardened leather that guards the brow and cheeks.  "
+            "Reinforced rivets run along the edge."
+        ),
+        "wear_on":   "face",
+        "ac_bonus":  1,
+        "weight":    0.5,
+        "cost":      12,
+        "stat_mods": {"dex": 3, "con": 2},
+        "save_mods": {},
+    },
+
+    # ── ON_BODY — 15 AC ───────────────────────────────────────────────────────
+    # armor_type gives the base AC from the armor table (studded = 40 + DEX).
+    # ac_bonus is added on top of that.
+    "armor" : {
+        "spawn_as":        Item,
+        "name":        "&Xa studded &N&yleather &Xarmor&N",
+        "room_desc":   "&XA studded &N&yleather &Xarmor has been left here.&N",
+        "key_words":   ("studded", "armor", "leather", "jacket"),
+        "description": (
+            "Thick hide stitched with close-set metal studs.  "
+            "Heavier than plain leather but still light enough to move freely."
+        ),
+        "wear_on":    "on_body",
+        "armor_type": "studded",
+        "ac_bonus":   15,
+        "weight":     13.0,
+        "cost":       95,
+        "stat_mods":  {"str": 3},
+        "save_mods":  {"par": 1},
+    },
+
+    # ── ABOUT_BODY — 4 AC ─────────────────────────────────────────────────────
+    "cloak" : {
+        "spawn_as":        Item,
+        "name":        "&Xa sturdy &N&yleather &Xcloak&N",
+        "room_desc":   "&XA sturdy &N&yleather &Xcloak has been left here.&N",
+        "key_words":   ("cloak", "leather", "cape"),
+        "description": (
+            "A knee-length cloak of oiled leather.  "
+            "Rolls off rain and wind alike, with a broad hood stitched firm."
+        ),
+        "wear_on":   "about_body",
+        "ac_bonus":  4,
+        "weight":    3.0,
+        "cost":      40,
+        "stat_mods": {"str": 2, "con": 3},
+        "save_mods": {},
+    },
+
+    # ── WAIST — 2 AC ──────────────────────────────────────────────────────────
+    "belt" : {
+        "spawn_as":        Item,
+        "name":        "&Xa sturdy &N&yleather &Xbelt&N",
+        "room_desc":   "&XA sturdy &N&yleather &Xbelt has been left here.&N",
+        "key_words":   ("belt", "leather", "girdle"),
+        "description": (
+            "A broad belt of double-layered leather with a heavy iron buckle.  "
+            "Good for keeping your kit tight and your back supported."
+        ),
+        "wear_on":   "waist",
+        "ac_bonus":  2,
+        "weight":    1.0,
+        "cost":      20,
+        "stat_mods": {"str": 5},
+        "save_mods": {},
+    },
+
+    # ── ARMS — 3 AC ───────────────────────────────────────────────────────────
+    "vambraces" : {
+        "spawn_as":        Item,
+        "name":        "&Xsome sturdy &N&yleather &Xvambraces&N",
+        "room_desc":   "&XSome sturdy &N&yleather &Xvambraces have been left here.&N",
+        "key_words":   ("vambraces", "vambrace", "leather", "arms", "bracers"),
+        "description": (
+            "Paired leather guards lashed from wrist to elbow.  "
+            "The inside is padded with soft linen to prevent chafing."
+        ),
+        "wear_on":   "arms",
+        "ac_bonus":  3,
+        "weight":    2.0,
+        "cost":      25,
+        "stat_mods": {"dex": 2, "con": 2},
+        "save_mods": {},
+    },
+
+    # ── HANDS — 3 AC ─────────────────────────────────────────────────────────
+    "gloves" : {
+        "spawn_as":        Item,
+        "name":        "&Xa pair of sturdy &N&yleather &Xgloves&N",
+        "room_desc":   "&XA pair of sturdy &N&yleather &Xgloves have been left here.&N",
+        "key_words":   ("gloves", "glove", "leather", "gauntlets", "hands"),
+        "description": (
+            "Close-fitting leather gloves with reinforced knuckles.  "
+            "They improve your grip without dulling your feel for the weapon."
+        ),
+        "wear_on":   "hands",
+        "ac_bonus":  3,
+        "weight":    0.5,
+        "cost":      18,
+        "stat_mods": {"str": 3, "dex": 3},
+        "save_mods": {},
+    },
+
+    # ── LEGS — 5 AC ───────────────────────────────────────────────────────────
+    "leggings" : {
+        "spawn_as":        Item,
+        "name":        "&Xa pair of sturdy &N&yleather &Xleggings&N",
+        "room_desc":   "&XA pair of sturdy &N&yleather &Xleggings have been left here.&N",
+        "key_words":   ("leggings", "legging", "leather", "pants", "legs"),
+        "description": (
+            "Thick leather leggings reinforced at the knee and thigh.  "
+            "They move with you and take a lot of punishment."
+        ),
+        "wear_on":   "legs",
+        "ac_bonus":  5,
+        "weight":    4.0,
+        "cost":      45,
+        "stat_mods": {"con": 5},
+        "save_mods": {},
+    },
+
+    # ── FEET — 3 AC ───────────────────────────────────────────────────────────
+    "boots" : {
+        "spawn_as":        Item,
+        "name":        "&Xa pair of sturdy &N&yleather &Xboots&N",
+        "room_desc":   "&XA pair of sturdy &N&yleather &Xboots have been left here.&N",
+        "key_words":   ("boots", "boot", "leather", "shoes", "feet"),
+        "description": (
+            "Ankle-high boots with thick soles and steel-capped toes.  "
+            "Worn enough to be broken in, tough enough to last another year."
+        ),
+        "wear_on":   "feet",
+        "ac_bonus":  3,
+        "weight":    2.5,
+        "cost":      35,
+        "stat_mods": {"str": 2, "dex": 2, "con": 3},
+        "save_mods": {},
+    },
+
 }
 
 spawn = make_spawner(TEMPLATES, lambda: Object)

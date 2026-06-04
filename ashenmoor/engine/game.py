@@ -237,6 +237,27 @@ class GameState:
         except Exception:
             pass
 
+    def _broadcast_to_room(self, msg: str, room_id: int | None = None) -> None:
+        """
+        Queue msg to all OTHER players in the given room (or current player's room).
+        Uses put_nowait so it can be called from synchronous code.
+        """
+        srv = getattr(self, "_server", None)
+        if srv is None:
+            return
+        rid = room_id if room_id is not None else self.locations.get(self._player)
+        if rid is None:
+            return
+        sender = self._player
+        for name, client in list(getattr(srv, "_clients", {}).items()):
+            if name == sender or getattr(client, "_closed", True):
+                continue
+            if self.locations.get(name) == rid:
+                try:
+                    client._outbox.put_nowait(msg)
+                except Exception:
+                    pass
+
     @property
     def current_room(self):
         room_id = self.locations.get(self._player)
@@ -289,10 +310,34 @@ class GameState:
                 return "&wYou cannot move while in combat — use &Wflee&w to escape!&N"
             self._resting.pop(self._player, None)
             direction = args[0] if (verb == "go" and args) else verb
+            char = self.characters.get(self._player)
+            old_room_id = self.locations.get(self._player)
+
             result = go(self._player, self.locations, self.rooms, direction)
             if isinstance(result, str):
                 return result
+
+            # Broadcast departure to old room
+            if char and old_room_id is not None:
+                self._broadcast_to_room(
+                    f"&w{char.name}&N leaves to the {direction}.&N",
+                    room_id=old_room_id,
+                )
+
             self._save_location()
+
+            # Broadcast arrival to new room
+            if char:
+                _OPPOSITE = {
+                    "north": "south", "south": "north",
+                    "east":  "west",  "west":  "east",
+                    "up":    "down",  "down":  "up",
+                }
+                from_dir = _OPPOSITE.get(direction, direction)
+                self._broadcast_to_room(
+                    f"&w{char.name}&N arrives from the {from_dir}.&N"
+                )
+
             parts = [self._cmd_look([])]
             aggro = self._check_aggro()
             if aggro:
@@ -376,8 +421,10 @@ class GameState:
         if not player:
             return None
         from ..world.effects import tick_effects as _tick_fx
-        msgs = _tick_fx(player)
-        return "\n".join(msgs) if msgs else None
+        self_msgs, room_msgs = _tick_fx(player)
+        if room_msgs:
+            self._broadcast_to_room("\n".join(room_msgs))
+        return "\n".join(self_msgs) if self_msgs else None
 
     def _combat_tick_inner(self) -> tuple[str | None, str | None, str | None]:
         target = self.fighting.get(self._player)
@@ -410,25 +457,23 @@ class GameState:
             dnd_state["action_surge_active"] = False
             surge_msg = "&+W[ACTION SURGE]&N"
 
-        # Raw 3rd-person messages — mob only retaliates against primary target
-        raw_round = combat_round(player, target, extra_attacks=extra_atks,
-                                 mob_retaliates=is_primary)
+        round_player, round_room = combat_round(player, target,
+                                               extra_attacks=extra_atks,
+                                               mob_retaliates=is_primary)
 
-        # Player sees personalized 2nd-person version
         player_msgs: list[str] = []
         if surge_msg: player_msgs.append(surge_msg)
-        player_msgs.extend(_personalize_msg(m, player.name) for m in raw_round)
+        player_msgs.extend(_personalize_msg(m, player.name) for m in round_player)
 
-        # Room observers see 3rd-person version
         room_msgs: list[str] = []
         if surge_msg: room_msgs.append(surge_msg)
-        room_msgs.extend(raw_round)
+        room_msgs.extend(round_room)
 
         # Mob status effect ticks
         from ..world.effects import tick_effects as _tick_mob_fx
-        mob_fx = _tick_mob_fx(target, observer_name=target.name)
-        player_msgs.extend(mob_fx)
-        room_msgs.extend(mob_fx)
+        mob_self, mob_room = _tick_mob_fx(target)
+        player_msgs.extend(mob_room)
+        room_msgs.extend(mob_room)
 
         if target.hp <= 0:
             self.fighting.pop(self._player, None)
@@ -685,7 +730,8 @@ class GameState:
         room_msg = power.get("room_msg", "").format(name=n)
         parts: list[str] = []
         if user_msg: parts.append(user_msg)
-        if room_msg: parts.append(f"&w(others see)&N {room_msg}")
+        if room_msg:
+            self._broadcast_to_room(room_msg)
 
         if self._player in self.fighting and char:
             target = self.fighting.get(self._player)
@@ -759,16 +805,27 @@ class GameState:
             apply_effect(target, poison)
             return f"&cThe poison takes hold of &N{target.name}&c!&N"
         if effect == "windsong_burst":
-            # call windsong() with force=True so the full proc fires —
-            # flash of light, extra swings, inner chaining — all of it.
             import ashenmoor.world.procs as _procs_mod
+            weapon = (player.equipment.get("primary_hand")
+                      if hasattr(player, "equipment") else None)
             old_force = _procs_mod._windsong_force
             _procs_mod._windsong_force = True
             try:
-                msgs = _procs_mod.windsong(player, target)
+                raw = _procs_mod.windsong(player, target, weapon=weapon)
             finally:
                 _procs_mod._windsong_force = old_force
-            return "\n".join(msgs) if msgs else None
+            player_out, room_out = [], []
+            for m in (raw or []):
+                if isinstance(m, tuple) and len(m) == 2:
+                    player_out.append(m[0])
+                    room_out.append(m[1])
+                else:
+                    s = str(m)
+                    player_out.append(s)
+                    room_out.append(s)
+            if room_out:
+                self._broadcast_to_room("\n".join(room_out))
+            return "\n".join(player_out) if player_out else None
         return None
 
     def _cmd_powers(self):
