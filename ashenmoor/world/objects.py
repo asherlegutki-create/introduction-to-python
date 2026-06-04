@@ -133,3 +133,79 @@ class Container(Item):
         return (f"Container({self.name!r}, "
                 f"{self.contents_weight:.1f}/{self.capacity:.1f} lbs, "
                 f"open={self.is_open})")
+
+class Potion(Item):
+    """
+    A consumable liquid item used via the 'quaff' command.
+
+    Subject to 6-per-12-hours limit across all potions.
+    A full rest resets the counter.
+
+    Template example:
+        {
+            "type":      "Potion",
+            "name":      "a health potion",
+            "key_words": ("health", "potion", "red"),
+            "room_description": "A small red health potion sits here.",
+            "description": "A vial of crimson liquid that smells of cherries.",
+            "weight":    0.5,
+            "effect":    "heal",
+            "heal_pct":  0.5,
+            "apply_msg": "&GYou quaff the potion and feel strength surge through you!&N",
+        }
+
+    Supported effects (same keys as power/scroll effects):
+        heal          -- restore heal_pct of max HP + heal_flat flat HP
+        cure_poison   -- remove poisoned status
+        apply_X       -- apply status effect X from world.effects.EFFECTS
+        damage        -- deal damage_mult * weapon_damage to self (niche)
+    """
+
+    def __init__(self, d: dict) -> None:
+        super().__init__(d)
+        self.effect    = d.get("effect", "")
+        self.apply_msg = d.get("apply_msg", "&GYou quaff the potion.&N")
+        self._data     = d   # kept for _apply_item_effect reuse
+
+    def __repr__(self):
+        return f"Potion({self.name!r}, effect={self.effect!r})"
+
+
+class Scroll(Item):
+    """
+    A one-use inscribed item used via the 'recite' command.
+
+    No per-day limit but cannot be used in combat.
+    Consumed (removed from inventory) on use.
+    Can target any character or mob in the room.
+
+    Template example:
+        {
+            "type":      "Scroll",
+            "name":      "a scroll of healing",
+            "key_words": ("scroll", "healing"),
+            "room_description": "A rolled scroll lies here.",
+            "description": "Words of healing are inscribed on this parchment.",
+            "weight":    0.1,
+            "effect":    "heal",
+            "heal_pct":  0.35,
+            "apply_msg": "&GHolylight flows from the scroll into {target}!&N",
+            "room_msg":  "&G{caster} reads from a scroll, light flowing toward {target}.&N",
+        }
+
+    apply_msg supports {target} placeholder.
+    room_msg supports {caster} and {target} placeholders.
+
+    Supported effects: same as Potion (heal, cure_poison, apply_X, damage).
+    """
+
+    def __init__(self, d: dict) -> None:
+        super().__init__(d)
+        self.effect    = d.get("effect", "")
+        self.apply_msg = d.get("apply_msg",
+                               "&GThe scroll crumbles to dust as you read it.&N")
+        self.room_msg  = d.get("room_msg", "")
+        self._data     = d
+
+    def __repr__(self):
+        return f"Scroll({self.name!r}, effect={self.effect!r})"

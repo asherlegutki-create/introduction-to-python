@@ -2,7 +2,7 @@
 zones.new_zone.objects
 """
 
-from ashenmoor.world import Object, Item, Weapon, Container
+from ashenmoor.world import Object, Item, Weapon, Container, Scroll
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
@@ -46,6 +46,16 @@ TEMPLATES: dict[str, dict] = {
         "weight":              0,
         "is_open":             True,
     },
+
+    "stoneskin_scroll": {
+        "spawn_as": Scroll,
+        "name": "&wa &Yscroll&N of &Lstoneskin&N",
+        "key_words": ("parchment", "rolled", "stoneskin", "scroll"),
+        "room_description": "&wa rolled up piece of &Yparchment&N lies here&N",
+        "effects": [{"effect": "apply_stoneskin", "duration": 150},]
+
+    },
+
 
     "windsong": {
         "spawn_as":         Weapon,

@@ -123,6 +123,8 @@ _COMMAND_MAP: dict[str, str] = {
     "flee":     "flee",     "fl":  "flee",
     "consider": "consider", "con": "consider",
     "ask":      "ask",
+    "quaff":    "quaff",    "qu": "quaff",
+    "recite":   "recite",   "re": "recite",
 }
 
 
@@ -276,6 +278,8 @@ class GameState:
         if verb == "kill":     return self._cmd_kill(args)
         if verb == "flee":     return self._cmd_flee()
         if verb == "ask":      return self._cmd_ask(args)
+        if verb == "quaff":    return self._cmd_quaff(args)
+        if verb == "recite":   return self._cmd_recite(args)
         if verb == "consider": return self._cmd_consider(args)
         if verb == "rest":     return self._cmd_rest(args)
 
@@ -522,6 +526,11 @@ class GameState:
             if char.hp < char.max_hp:
                 char.hp = char.max_hp
                 msgs.append(f"&+GYou feel fully rested. (&W{char.max_hp}&+G hp restored)&N")
+
+            # Full rest resets the potion counter
+            if getattr(char, "potion_log", []):
+                char.potion_log = []
+                msgs.append("&+GYou feel ready to benefit from potions again.&N")
 
             if player_name is not None:
                 tok = _active_player.set(player_name)
@@ -1242,7 +1251,14 @@ class GameState:
                 break
 
         if response:
-            if isinstance(response, (tuple, list)):
+            if callable(response):
+                # Function receives (game_state, asking_char, mob) and
+                # returns a string to show or None for no output.
+                char   = self.characters.get(self._player)
+                result = response(self, char, target)
+                if result:
+                    parts.append(result)
+            elif isinstance(response, (tuple, list)):
                 parts.append("\n".join(response))
             else:
                 parts.append(response)
@@ -1250,6 +1266,193 @@ class GameState:
         return "\n".join(parts)
 
     # ── get / drop / put ──────────────────────────────────────────────────────
+
+    _POTION_WINDOW = 12 * 3600   # 12 real hours in seconds
+    _POTION_MAX    = 6
+
+    def _cmd_quaff(self, args) -> str:
+        if not args:
+            return "&wQuaff what?&N"
+        char = self.characters.get(self._player)
+        if not char:
+            return "&RNo character found.&N"
+
+        from ..world.objects import Potion
+        keyword = args[0].lower()
+        potion  = next(
+            (i for i in char.inventory
+             if isinstance(i, Potion)
+             and any(keyword in kw.lower() for kw in i.key_words)),
+            None,
+        )
+        if potion is None:
+            return f"&wYou don't have any '&W{keyword}&w' to quaff.&N"
+
+        # Check 12-hour limit using real time (survives server restarts)
+        import time as _rt
+        now = _rt.time()
+        log = [t for t in getattr(char, "potion_log", [])
+               if now - t < self._POTION_WINDOW]
+
+        if len(log) >= self._POTION_MAX:
+            return (
+                "&cYou couldn't possibly use another now, "
+                "your blood is half potion already!&N"
+            )
+
+        # Consume potion
+        char.inventory.remove(potion)
+        log.append(now)
+        char.potion_log = log
+
+        msgs = self._apply_item_effects(potion._data, char, char)
+        return "\n".join(msgs) if msgs else ""
+
+    def _cmd_recite(self, args) -> str:
+        if not args:
+            return "&wRecite what?&N"
+
+        if self._player in self.fighting:
+            return "&wYou cannot recite scrolls while in combat!&N"
+
+        char = self.characters.get(self._player)
+        if not char:
+            return "&RNo character found.&N"
+        room = self.current_room
+        if room is None:
+            return "&RYou are nowhere.&N"
+
+        from ..world.objects import Scroll
+        scroll_kw = args[0].lower()
+        scroll    = next(
+            (i for i in char.inventory
+             if isinstance(i, Scroll)
+             and any(scroll_kw in kw.lower() for kw in i.key_words)),
+            None,
+        )
+        if scroll is None:
+            return f"&wYou don't have any scroll matching '&W{scroll_kw}&w'.&N"
+
+        # Resolve target — "me", "self", "myself" resolve to self
+        target_args = args[1:]
+        if target_args:
+            target_str = " ".join(target_args).lower()
+            if target_str in ("me", "self", "myself", "i"):
+                target = char
+            else:
+                target = find_target(
+                    target_str, room, self.locations, self.characters
+                )
+                if target is None:
+                    return f"&wYou don't see '&W{target_str}&w' here.&N"
+        else:
+            target = char
+
+        target_name_str = getattr(target, "name", "you")
+
+        # Consume scroll
+        char.inventory.remove(scroll)
+
+        parts = []
+
+        # Recite announcement
+        if target is char:
+            parts.append(f"&wYou recite &W{scroll.name}&w.&N")
+        else:
+            parts.append(
+                f"&wYou recite &W{scroll.name}&w looking at &W{target_name_str}&w.&N"
+            )
+
+        # Scroll consume message
+        if scroll.apply_msg:
+            parts.append(scroll.apply_msg)
+
+        parts.extend(self._apply_item_effects(scroll._data, char, target))
+        return "\n".join(p for p in parts if p)
+
+    def _apply_item_effects(self, data: dict, caster, target) -> list[str]:
+        """
+        Apply all effects from a potion or scroll data dict.
+
+        Supports two formats:
+
+          Single effect (old style, still works):
+            {"effect": "heal", "heal_pct": 0.5}
+
+          Multiple effects (new style):
+            {"effects": [
+                {"effect": "heal",           "heal_pct": 0.5},
+                {"effect": "apply_barkskin", "duration": 10},
+            ]}
+
+        Each effect dict is handled by _apply_one_effect.
+        """
+        effects = data.get("effects")
+        if effects is None:
+            # Single effect — treat root dict as the effect spec
+            effects = [data] if data.get("effect") else []
+
+        msgs = []
+        for eff in effects:
+            msg = self._apply_one_effect(eff, caster, target)
+            if msg:
+                msgs.append(msg)
+        return msgs
+
+    def _apply_one_effect(self, data: dict, caster, target) -> str | None:
+        """
+        Apply a single effect spec to target.
+        caster  -- the character using the item (may equal target)
+        target  -- the character or mob receiving the effect
+
+        Supported effect values:
+            heal          -- restore heal_pct of max HP + heal_flat
+            damage        -- deal damage_mult * caster weapon damage to target
+            cure_X        -- remove status effect X from target
+            apply_X       -- apply status effect X to target (from EFFECTS registry)
+        """
+        import copy
+        effect = data.get("effect", "")
+
+        if effect == "heal":
+            pct    = data.get("heal_pct",  0.0)
+            flat   = data.get("heal_flat", 0)
+            amount = int(getattr(target, "max_hp", 0) * pct) + flat
+            amount = max(1, amount)
+            target.hp = min(getattr(target, "max_hp", target.hp),
+                            target.hp + amount)
+            name = "You" if target is caster else target.name
+            verb = "recover" if target is caster else "recovers"
+            return f"&G{name} {verb} &W{amount}&G hit points.&N"
+
+        if effect == "damage":
+            from ..engine.combat import calc_damage
+            mult = data.get("damage_mult", 1.5)
+            dmg  = max(1, int(calc_damage(caster) * mult))
+            target.hp = max(0, target.hp - dmg)
+            return (
+                f"&RThe magic strikes &N{target.name}&R "
+                f"for &W{dmg}&R damage!&N"
+            )
+
+        if effect.startswith("cure_"):
+            effect_id = effect[5:]
+            from ..world.effects import remove_effect
+            return remove_effect(target, effect_id) or \
+                   f"&G{target.name} is cleansed of {effect_id}.&N"
+
+        if effect.startswith("apply_"):
+            effect_id = effect[6:]
+            from ..world.effects import EFFECTS, apply_effect
+            template = EFFECTS.get(effect_id)
+            if template is None:
+                return f"&R[Unknown effect: {effect_id}]&N"
+            override = copy.deepcopy(template)
+            if "duration" in data:
+                override["duration"] = data["duration"]
+            return apply_effect(target, override)
+
+        return None
 
     def _cmd_get(self, args):
         if not args: return "&wGet what?&N"

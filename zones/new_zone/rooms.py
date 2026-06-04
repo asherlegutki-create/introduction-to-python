@@ -22,6 +22,7 @@ ROOMS: dict[int, Room] = {
             {"direction": "down",  "roomId": 6}
         ],
         "objects": [
+            O.spawn("stoneskin_scroll"),
             O.spawn("silken_sack"),
             O.spawn("windsong"),
         ],
