@@ -126,7 +126,7 @@ def windsong(attacker, defender, weapon=None) -> list:
         msgs.append((
             "&cIn a &wb&Llur&N&c of strikes, you turn on your heel "
             "reversing your swing.&N",
-            f"&cIn a &wb&Llur&N&c of strikes, &w{attacker.name}&N&c turns on his heel "
+            "&cIn a &wb&Llur&N&c of strikes, &w{attacker.name}&N&c turns on his heel "
             "reversing his swing.&N",
         ))
 

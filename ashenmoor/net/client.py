@@ -108,7 +108,7 @@ class MudClient(ABC):
             ).fetchone()
 
             if row is None:
-                await self._raw_send(f"\r\nThat character does not exist.\r\n")
+                await self._raw_send(f"\r\n\033[1;37mCharacter {name} does not exist.\033[0m\r\n")
                 await self._raw_send(f"Would you like to create {name} now? (yes/no) ")
                 try:
                     answer = await self._raw_readline()
@@ -118,6 +118,22 @@ class MudClient(ABC):
                 if answer.strip().lower() not in ("yes", "y"):
                     await self._raw_send("Very well. Enter another name.\r\n\r\n")
                     continue
+
+                # Sex selection
+                sex = "male"
+                while True:
+                    await self._raw_send("Are you Male or Female (M/F)? ")
+                    try:
+                        sex_raw = await self._raw_readline()
+                    except (EOFError, ConnectionResetError):
+                        return False
+                    s = sex_raw.strip().lower()
+                    if s in ("m", "male"):
+                        sex = "male"; break
+                    elif s in ("f", "female"):
+                        sex = "female"; break
+                    else:
+                        await self._raw_send("Please enter M or F.\r\n")
 
                 char = Character({
                     "name":      name,
@@ -129,6 +145,7 @@ class MudClient(ABC):
                     "powers":    WARRIOR_POWERS,
                     "alignment": "True Neutral",
                     "position":  "standing",
+                    "sex":       sex,
                 }, races=races)
 
                 save_character(conn, char, location=start_room, include_hp=True)

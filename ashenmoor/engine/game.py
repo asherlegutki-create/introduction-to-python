@@ -913,7 +913,8 @@ class GameState:
                 "  &Wwiz list_effects&N\n"
                 "  &Wwiz effects &w[player]&N\n"
                 "  &Wwiz heal &w[player]&N\n"
-                "  &Wwiz poison &w[player]&N"
+                "  &Wwiz poison &w[player]&N\n"
+                "  &Wwiz change_sex &w[male|m|female|f] <player>&N"
             )
 
         sub  = args[0].lower()
@@ -1042,6 +1043,24 @@ class GameState:
             msg = apply_effect(char, copy.deepcopy(EFFECTS["poisoned"]))
             return f"&wPoisoned &W{tname}&w.&N\n{msg}"
 
+        if sub in ("change_sex", "sex"):
+            if not rest:
+                return "&wUsage: &Wwiz change_sex &w[male|m|female|f] <player>&N"
+            sex_arg  = rest[0].lower()
+            name_arg = rest[1:]
+            if sex_arg in ("m", "male"):
+                new_sex = "male"
+            elif sex_arg in ("f", "female"):
+                new_sex = "female"
+            else:
+                return f"&wUnknown sex '&W{sex_arg}&w'. Use &Wmale&w/&Wm&w or &Wfemale&w/&Wf&w.&N"
+            char, tname = _get_target(name_arg)
+            if char is None:
+                return f"&wPlayer &W{tname}&w not found.&N"
+            char.sex = new_sex
+            self._save_player()
+            return f"&W{tname}&w is now &W{new_sex}&w.&N"
+
         return f"&wUnknown wiz subcommand &W{sub}&w. Type &Wwiz&w for help.&N"
 
     def _cmd_time(self) -> str:
@@ -1134,7 +1153,7 @@ class GameState:
 
         lines = [
             f"&+WScore information for &N{char.name}\n",
-            f"&wLevel:&N {level:<5} &wRace:&N {char.race:<14} &wClass:&N {char.cclass}",
+            f"&wLevel:&N {level:<5} &wRace:&N {char.race:<10} &wSex:&N {getattr(char,'sex','male').capitalize():<8} &wClass:&N {char.cclass}",
             f"&wHit points:&N &W{hp}&w(&W{mhp}&w)  &wMoves:&N &W{moves}&w(&W{mmoves}&w)",
             f"&wExperience Progress:&N &W{xp_pct}&w %  &x({xp:,} / {XP_TABLE.get(level+1, xp):,} xp)&N",
             _coin_line("Coins carried:   ", coins),
@@ -2003,7 +2022,7 @@ class GameState:
 
         return "\n".join([
             f"&+WCharacter attributes for &N{char.name}\n",
-            f"&wLevel:&N {char.level:<5} &wRace:&N {char.race:<14} &wClass:&N {char.cclass}",
+            f"&wLevel:&N {char.level:<5} &wRace:&N {char.race:<10} &wSex:&N {getattr(char,'sex','male').capitalize():<8} &wClass:&N {char.cclass}",
             f"&wSize:&N {size}",
             f"&wSTR:&N {str_eff:>4}  &wDEX:&N {dex_eff:>4}  &wCON:&N {con_eff:>4}",
             f"&wINT:&N {int_eff:>4}  &wWIS:&N {wis_eff:>4}  &wCHA:&N {cha_eff:>4}",
@@ -2268,6 +2287,21 @@ def _personalize_msg(msg: str, player_name: str) -> str:
         return msg.replace(defender_ref, "&Nyou&w", 1)
 
     return msg
+
+
+def _pronouns(char) -> dict[str, str]:
+    """
+    Return pronoun dict for a character based on their sex.
+
+    Keys: subject, object, possessive, reflexive
+      male:   he / him / his / himself
+      female: she / her / her / herself
+    """
+    if getattr(char, "sex", "male").lower() == "female":
+        return {"subject": "she", "object": "her",
+                "possessive": "her", "reflexive": "herself"}
+    return {"subject": "he", "object": "him",
+            "possessive": "his", "reflexive": "himself"}
 
 
 def _max_inventory(char) -> int:
