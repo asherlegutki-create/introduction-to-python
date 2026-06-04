@@ -7,6 +7,9 @@ Add an entry to TEMPLATES for every NPC type that can appear in this zone.
 Call spawn(key) to get a fresh independent Mob instance — place as many
 copies in rooms as you like, each is independent.
 """
+def _flappers_attack(state, char, mob):
+    state.fighting[char.name] = mob
+    return "&CFlappers &Wlooks at you offended 'Well thats not very nice, I might have to kill you now.' becomes a jacked dolphin and attempts to &rkill you.&N"
 
 from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
@@ -41,6 +44,16 @@ TEMPLATES: dict[str, dict] = {
         "stats": [120, 100, 100, 100, 100, 100],
         "aggro": False,
         "wander": False,
+        "responses": {
+            "hi": (
+                "&GNessie &Wlooks at you happily.",
+                "&GNessie &Wmakes a 'euurrggh' noise... hard to tell if he is happy or not.&N",
+            ),
+            "What are you doing": (
+                "&GNessie &Wjust stares blankly at you.",
+                "It is kinda creepy.&N",
+            ),
+        },
     },
     "Alisa Macailnov": {
         "name": "Alisa Macailnov",
@@ -56,6 +69,12 @@ TEMPLATES: dict[str, dict] = {
         "stats": [64, 80, 78, 84, 87, 70],
         "aggro": False,
         "wander": False,
+        "responses": {
+            "hi": ("&CAlisa &Wlooks at you kindly.",
+                   "She replies to you 'What do you need... or want'&N"),
+            "job": ("&CAlisa &Wlooks at you with boredom",
+                    "She replies 'serving people that enter this old place'&N")
+        }
     },
     "Gobbles the Learnosaur": {
         "name": "Gobbles the Learnosaur",
@@ -71,6 +90,12 @@ TEMPLATES: dict[str, dict] = {
         "stats": [87, 80, 78, 84, 87, 63],
         "aggro": False,
         "wander": True,
+        "responses": {
+            "hi": ("&MGobbles &Wlooks at you joyfully",
+                   "He replies 'Hello there'&N"),
+            "job": ("&MGobbles &Wlooks at you nervously",
+                    "He gives a nervous laugh 'I just learn... and read'&N")
+        }
     },
     "Pedro the Sea Urchin": {
         "name": "&WPedro the &CSea &WUrchin",
@@ -86,6 +111,18 @@ TEMPLATES: dict[str, dict] = {
         "stats": [47, 56, 89, 67, 19, 29],
         "aggro": False,
         "wander": True,
+        "responses": {
+            "hi": ("&WPedro looks at you",
+                   "He replies 'hi there, wanna play soccer'&N"),
+            "no": ("&WPedro looks at you",
+                    "He replies 'Aw man... wanna play soccer'&N"),
+            "nope": ("&WPedro looks at you",
+                    "He replies 'dang it... wanna play soccer'&N"),
+            "nuh-uh": ("&WPedro looks at you",
+                    "He replies 'Crap... wanna play soccer'&N"),
+            "yes": ("&WPedro looks at you",
+                    "He replies 'YIPPEE!!! I'll be the ball, kick me, KICK ME!!'&N"),
+        }
     },
     "Doug the Hermit Crab": {
         "name": "&WDoug the &YHermit &RCrab",
@@ -116,6 +153,13 @@ TEMPLATES: dict[str, dict] = {
         "stats": [98, 89, 92, 67, 43, 97],
         "aggro": False,
         "wander": True,
+        "responses": {
+            "hi": ("&CFlappers &Wlooks at you happily",
+                    "He replies 'Wow, hey there friend'&N"),
+            "dolphin": ("&CFlappers looks at you strangely",
+                    "&CFlappers &Wmakes dolphin noises&N"),
+            "idiot": _flappers_attack
+        }
     },
     "Malice": {
         "name": "Malice",
@@ -167,8 +211,7 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("Skellington", "Skelly"),
         "room_description": "&WA Skellington stands here with a &ybow &Wand &Narrow",
         "description": (
-            "he is just a Skellington\n" 
-            "He looks aggressive... not friendly"
+            "he is just a Skellington\n" "He looks aggressive... not friendly"
         ),
         "race": "Skeleton",
         "class": "Archer",
@@ -182,7 +225,7 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("Villager", "V"),
         "room_description": "&WA &GVillager &Wwalks around helping with people and whatnot",
         "description": (
-            "An innocent villager\n" 
+            "An innocent villager\n"
             "I swear, if you kill him like you did the other mobs it will not end well"
         ),
         "race": "Human",
@@ -191,6 +234,16 @@ TEMPLATES: dict[str, dict] = {
         "stats": [83, 64, 56, 76, 81, 73],
         "aggro": False,
         "wander": True,
+        "responses": {
+            "hi": (
+                "&WThe villager looks at you strangely",
+                "He replies 'An outsider, huh. What do you want?'&N",
+            ),
+            "job": (
+                "&WThe villager looks excited",
+                "He replies 'My job is supporting the &Rbeets &Wand &ypotatoes &Win the ground'&N",
+            ),
+        },
     },
 }
 
