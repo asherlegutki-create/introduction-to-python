@@ -163,7 +163,10 @@ class Mob(Character):
         # ── Respawn reference ─────────────────────────────────────────────
         self._template: dict = template
 
-    # ── D&D Passive Perception ────────────────────────────────────────────────
+        # ── Interraction with Mobs ────────────────────────────────────────
+        self.responses = {k.lower(): v for k, v in template.get("responses", {}).items()}
+
+    # ── D&D Passive Perception ────────────────────────────────────────────
 
     def passive_perception(self) -> int:
         """

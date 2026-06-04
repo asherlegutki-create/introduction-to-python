@@ -13,11 +13,11 @@ from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
     "wandering_student": {
-        "name": "a wandering student",
+        "name": "&wa wandering student&N",
         "key_words": ("student", "wandering"),
         "room_description": "&wA wandering student meanders about aimlessly.&N",
         "description": (
-            "A student with a faraway look, clearly lost in thought.\n"
+            "A student with a faraway look, clearly lost in thought.",
             "Or possibly just lost."
         ),
         "race": "Human",
@@ -26,6 +26,12 @@ TEMPLATES: dict[str, dict] = {
         "stats": [60, 65, 60, 80, 70, 75],
         "aggro": False,
         "wander": True,
+        "responses": {
+            "hi": ("&wa wandering student&W looks at you helplessly.&N",
+                   "She asks you '&LCan you help me find my way to class?&N'"),
+            "class": ("She replies '&LI am a student in Mrs. Allison's class, or is it Miss Allison?&N'"),
+            "grade": ("She replies '&L'Oh I'm in 7th grade thank you!&N'")
+            }
     }
 }
 

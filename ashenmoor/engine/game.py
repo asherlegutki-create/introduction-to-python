@@ -122,6 +122,7 @@ _COMMAND_MAP: dict[str, str] = {
     "kill":     "kill",     "k":   "kill",
     "flee":     "flee",     "fl":  "flee",
     "consider": "consider", "con": "consider",
+    "ask":      "ask",
 }
 
 
@@ -274,6 +275,7 @@ class GameState:
 
         if verb == "kill":     return self._cmd_kill(args)
         if verb == "flee":     return self._cmd_flee()
+        if verb == "ask":      return self._cmd_ask(args)
         if verb == "consider": return self._cmd_consider(args)
         if verb == "rest":     return self._cmd_rest(args)
 
@@ -1193,6 +1195,59 @@ class GameState:
             f"  &wRace:&N       {target.race}",
             f"  &wClass:&N      {target.cclass}",
         ])
+
+    def _cmd_ask(self, args) -> str:
+        """
+        ask <target> <message>
+
+        Prints 'You ask <mob> '<message>'.' to the room.
+        If the mob has a responses dict and any keyword in its keys
+        appears as a whole word in the message, the response is echoed.
+
+        Mob template example:
+            "responses": {
+                "hi":   "&wThe guard nods curtly. 'Move along.'&N",
+                "help": "&wThe guard points toward the market.&N",
+            }
+
+        Add to Mob.__init__:
+            self.responses = d.get("responses", {})
+        """
+        if len(args) < 2:
+            return "&wAsk whom, and what?&N"
+
+        room = self.current_room
+        if room is None:
+            return "&RYou are nowhere.&N"
+
+        from ..world.mob import Mob
+        target = find_target(args[0], room, self.locations, self.characters)
+        if target is None:
+            return f"&wYou don't see '&W{args[0]}&w' here.&N"
+        if not isinstance(target, Mob):
+            return f"&w{target_name(target)}&w looks at you blankly.&N"
+
+        message   = " ".join(args[1:]).lower()
+        msg_words = set(message.split())
+
+        parts = [f"&wYou ask &W{target.name}&w '&w{message}&w'.&N"]
+
+        # Check for a matching response keyword (whole-word, case-insensitive)
+        # Keys are normalized to lowercase at match time
+        responses = getattr(target, "responses", {})
+        response  = None
+        for key, reply in responses.items():
+            if key.lower() in msg_words:
+                response = reply
+                break
+
+        if response:
+            if isinstance(response, (tuple, list)):
+                parts.append("\n".join(response))
+            else:
+                parts.append(response)
+
+        return "\n".join(parts)
 
     # ── get / drop / put ──────────────────────────────────────────────────────
 
