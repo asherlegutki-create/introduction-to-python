@@ -48,6 +48,7 @@ ROOMS: dict[int, Room] = {
             "exits": [
                 {"direction": "south", "roomId": 1},
                 {"direction": "west", "roomId": 5},
+                {"direction": "east", "roomId": 10},
                 {"direction": "down", "roomId": 7},
             ],
             "objects": [
@@ -64,6 +65,7 @@ ROOMS: dict[int, Room] = {
             "terrain": "stone",
             "exits": [
                 {"direction": "north", "roomId": 1},
+                {"direction": "east", "roomId": 11},
                 {"direction": "west", "roomId": 6},
             ],
         }
@@ -134,9 +136,6 @@ ROOMS: dict[int, Room] = {
             "exits": [
                 {"direction": "up", "roomId": 2},
             ],
-            "objects": [
-                            #O.spawn("health_potion"),
-            ],
             "mobs": [
                 M.spawn("dark_mage"),
             ],
@@ -165,14 +164,90 @@ ROOMS: dict[int, Room] = {
     9: Room(
         {
             "number": 9,
-            "name": "Invisible Room",
-            "description":  ("You enter a door and look around at nothingness.",
-                            "There is nothing here. It's empty.",
-                            "You take a tentative step and discover your feet become safely planted on the emptiness before you."),
+            "name": "Stone Pathway",
+            "description":  ("You follow a wide, stoney path to the large city gates of Umbrurb."),
             "indoors": False,
-            "terrain": "nothing",
+            "terrain": "stone",
             "exits": [
+                {"direction": "north", "roomId": 10},
+                {"direction": "south", "roomId": 11},                
+                {"direction": "east", "roomId": 12},
                 {"direction": "west", "roomId": 1},
+            ],
+        }
+    ),
+    10: Room(
+        {
+            "number": 10,
+            "name": "Garden",
+            "description":  ("Outside of the city next to the pathway is a large &ggarden&N.",
+                             "It is filled with many &mflowers."),
+            "indoors": False,
+            "terrain": "flowers",
+            "exits": [
+                {"direction": "south", "roomId": 9},
+                {"direction": "west", "roomId": 2},
+            ],
+        }
+    ),
+    11: Room(
+        {
+            "number":11,
+            "name": "Garden",
+            "description":  ("Outside of the city next to the pathway is a large &ggarden&N.",
+                             "It is filled with many &mflowers."),
+            "indoors": False,
+            "terrain": "flowers",
+            "exits": [
+                {"direction": "north", "roomId": 9},
+                {"direction": "west", "roomId": 3},
+            ],
+        }
+    ),
+    12: Room(
+        {
+            "number":12,
+            "name": "City Gates",
+            "description":  ("Before you is a large, black gate.",
+                             "Across the top of the gate are large letters that say 'Welcome to Umburb'."),
+            "indoors": False,
+            "terrain": "stone",
+            "exits": [
+                {"direction": "west", "roomId": 9},
+                {"direction": "east", "roomId": 13},
+            ],
+        }
+    ),
+    13: Room(
+        {
+            "number":13,
+            "name": "Inside the City Walls",
+            "description":  ("The thick protective wall are hollow, and soldiers stand at attention.",
+                             "You see doors on either side, and you hear the sound of swords clanking. Soldiers must be training."),
+            "indoors": True,
+            "terrain": "stone",
+            "exits": [
+                {"direction": "west", "roomId": 12},
+                {"direction": "up", "roomId": 14},
+            ],
+            "mobs": [
+                M.spawn("umburb_soldier"),
+                M.spawn("umburb_soldier"),
+                M.spawn("umburb_soldier"),
+                M.spawn("umburb_soldier"),
+            ],
+        }
+    ),
+    14: Room(
+        {
+            "number":14,
+            "name": "On Top of the City Walls",
+            "description":  ("You climb up the ladder and see archers, ready for an attack.",
+                             "The view is breathtaking, and you see the &ggardens&N below you."),
+            "indoors": False,
+            "terrain": "stone",
+            "exits": [
+                {"direction": "down", "roomId": 13},
             ],
         }
     ),

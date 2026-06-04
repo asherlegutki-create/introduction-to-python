@@ -20,13 +20,13 @@ _WINDSONG_ALLOWED: frozenset[str] = frozenset({
 })
 
 # Outer proc (normal attack): 1-in-20
-_WINDSONG_OUTER_CHANCE = 10
+_WINDSONG_OUTER_CHANCE = 20
 
 # Inner proc (proc-generated swing): 1-in-10
 _WINDSONG_INNER_CHANCE = 10
 
 # Hard recursion cap
-_WINDSONG_MAX_DEPTH = 7
+_WINDSONG_MAX_DEPTH = 6
 
 # Depth counter — safe in asyncio (single-threaded)
 _windsong_depth: int = 0
@@ -35,27 +35,13 @@ _windsong_depth: int = 0
 _windsong_force: bool = False
 
 
-def windsong(attacker, defender) -> list[str]:
+def windsong(attacker, defender, weapon=None) -> list:
     """
     The Windsong proc — a glittering elven scimitar.
 
-    Architecture
-    ────────────
-    Once the trigger fires (or is forced by the active power):
-      1. Flash of light message always shows.
-      2. At least 1 extra swing always fires.
-      3. Each extra swing independently rolls the inner 1-in-10 trigger.
-
-    Passive trigger rates:
-      Outer (depth 0, normal attack hit): 1-in-20
-      Inner (depth 1+, proc-generated):   1-in-10
-
-    Active power (_windsong_force = True): skips trigger check entirely.
-
-    Extra swings per trigger:
-      Grey Elf  +3 base, then three random rolls
-      Half Elf  +2 on first branch if 1/3 misses
-      All       1/3 +1,  1/3 +1,  1/4 +1  (floor at 1)
+    Returns a list where each element is either:
+      str          — same message shown to wielder and room observers
+      (str, str)   — (player_msg, room_msg) — different for each audience
     """
     global _windsong_depth, _windsong_force
     from ..engine.combat import one_attack, MISS
@@ -122,18 +108,27 @@ def windsong(attacker, defender) -> list[str]:
 
     # ── Visual message ─────────────────────────────────────────────────────
     if is_outer:
-        msgs.append(
+        weapon_name = getattr(weapon, "name", "the scimitar") if weapon else "the scimitar"
+        player_flash = (
             "&cThere is a &Wflash of light&N&c at the tip of your scimitar\n"
             "&cas &cw&Ca&N&cv&Ce&N&cs &Co&N&cf &Ce&N&cn&Ce&N&cr&Cg&N&cy&N&c "
             "flow down its blade and enter your body.\n"
             "&cYour vision &Lfad&N&wes t&Wo &N&wa b&Llur&N&c "
             "as your blade comes to life!&N"
         )
-    else:
-        msgs.append(
-            "&cIn a &Lblu&N&wr o&Wf&N &wstri&Lkes&n&c, you turn on your heel "
-            "reversing your swing.&N"
+        room_flash = (
+            f"&cThere is a &Wflash of light&N&c at the tip of {weapon_name}\n"
+            f"&cas waves of energy flow down its blade and enter &w{attacker.name}&N&c, whose\n"
+            f"&cmovements &Lfad&N&wes t&Wo &N&wa b&Llur&N&c as it comes to life!&N"
         )
+        msgs.append((player_flash, room_flash))
+    else:
+        msgs.append((
+            "&cIn a &wb&Llur&N&c of strikes, you turn on your heel "
+            "reversing your swing.&N",
+            "&cIn a &wb&Llur&N&c of strikes, &w{attacker.name}&N&c turns on his heel "
+            "reversing his swing.&N",
+        ))
 
     # ── Extra swings — each rolls the inner trigger ────────────────────────
     _windsong_depth += 1
@@ -144,7 +139,7 @@ def windsong(attacker, defender) -> list[str]:
             dmg, hit_type, hit_msg = one_attack(attacker, defender)
             msgs.append(hit_msg)
             if hit_type != MISS and defender.hp > 0:
-                chain_msgs = windsong(attacker, defender)
+                chain_msgs = windsong(attacker, defender, weapon=weapon)
                 msgs.extend(chain_msgs)
     finally:
         _windsong_depth -= 1

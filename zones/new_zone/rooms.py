@@ -19,11 +19,11 @@ ROOMS: dict[int, Room] = {
             {"direction": "west",  "roomId": 3},
             {"direction": "east",  "roomId": 4},
             {"direction": "south", "roomId": 5},
-            {"direction": "down",  "roomId": 6}
+            {"direction": "down",  "roomId": 6},
+            {"direction": "up",  "roomId": 7}
         ],
         "objects": [
-            O.spawn("silken_sack"),
-            O.spawn("windsong"),
+            O.spawn("chest_key")
         ],
         "mobs": [M.spawn("wandering_student")],   # escbaalion is not in this zone's mobs.py
     }),
@@ -97,6 +97,20 @@ ROOMS: dict[int, Room] = {
         "terrain": "abyss",
         "exits": [
             {"direction": "up", "roomId": 1}
+        ],
+    }),
+    7: Room({
+        "number": 7,
+        "name": "Treasure Room",
+        "description": (
+        ),
+        "indoors": False,
+        "terrain": "indoor",
+        "exits": [
+            {"direction": "down", "roomId": 1}
+        ],
+        "objects": [
+            O.spawn("treasure_chest")
         ],
     }),
 }

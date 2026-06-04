@@ -40,7 +40,7 @@ ROOMS: dict[int, Room] = {
             {"direction": "north", "roomId": 1},
         ],
         "objects": [],
-        #"mobs": ["The Beast of Geometry and Algebra"],
+        "mobs": ["The Beast of Geometry and Algebra"],
     }),
     8: Room({
         "number": 8,
@@ -51,7 +51,7 @@ ROOMS: dict[int, Room] = {
         "exits": [
             {"direction": "south", "roomId": 4},
         ],
-        "objects": [],
+        "objects": ["dagger of detriment"],
         "mobs": [],
     }),
     9: Room({
@@ -64,7 +64,7 @@ ROOMS: dict[int, Room] = {
             {"direction": "south", "roomId": 3},
         ],
         "objects": [],
-        "mobs": [],
+        "mobs": ["arlo"],
     }),
     10: Room({
         "number": 10,
@@ -87,7 +87,7 @@ ROOMS: dict[int, Room] = {
         "exits": [
             {"direction": "north", "roomId": 3},
         ],
-        "objects": [],
+        "objects": ["math sword"],
         "mobs": [],
     }),
     1: Room({
@@ -100,7 +100,7 @@ ROOMS: dict[int, Room] = {
             {"direction": "east", "roomId": 2},
             {"direction": "south", "roomId": 9},
             {"direction": "north", "roomId": 5},
-            {"direction": "west", "roomId": 99004},
+            {"direction": "west", "roomId": 99004, "external": True},
         ],
         "objects": [],
         "mobs": [],

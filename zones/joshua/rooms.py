@@ -24,11 +24,28 @@ ROOMS: dict[int, Room] = {
             "terrain": "A flat expanse of mostly flat ground",
             "exits": [
                 {"direction": "north", "roomId": 99004, "external": True},
+                {"direction": "south", "roomId": 2}
             ],
             "objects": [
                 O.spawn("mr_mob_sword"),
             ],
-            "mobs": [M.spawn("mr_mob")],  # two independent students
+            "mobs": [M.spawn("mr_mob")]
         }
     ),
+
+    2: Room(
+        {
+            "number": 2,
+            "name": "&CThe Land Of&N &BHope&N",
+            "description": "This is the beginning of your journey!",
+            "indoors": False,
+            "terrain": "A joyful looking area filled with a sense of &Bhope&N",
+            "exits": [
+                {"direction": "north", "roomId": 1}
+            ],
+            "objects": [
+                O.spawn("sword_of_the_way")
+            ]
+        }
+    )
 }

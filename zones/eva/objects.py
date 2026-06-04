@@ -1,5 +1,5 @@
 """
-zones.the_planes.objects
+zones.Oakhurst.objects
 ──────────────────────
 Object templates for The Planes zone.
 
@@ -62,7 +62,7 @@ TEMPLATES: dict[str, dict] = {
     },
 
     
-"Giant_Oak_Tree": {
+"Giant_Pine_Tree": {
         "spawn_as":         Object,
         "name":             "Giant Oak Tree",
         "key_words":        ("oak", "tree",),

@@ -62,8 +62,8 @@ TEMPLATES: dict[str, dict] = {
         'description': "A long furry black leg with a large black rock stuck at the end",
         "weight":           3,
         "dice":             "2d10",
-        "hitroll":          2,
-        "damroll":          4,
+        "hitroll":          4,
+        "damroll":          8,
     },
      "Ebony Cleaver" : {
         "spawn_as":         Weapon,
@@ -73,8 +73,8 @@ TEMPLATES: dict[str, dict] = {
         'description': "A &Mroyal&n cleaver made of ebony",
         "weight":           10,
         "dice":             "2d10",
-        "hitroll":          2,
-        "damroll":          4,
+        "hitroll":          4,
+        "damroll":          8,
     },
 
 }

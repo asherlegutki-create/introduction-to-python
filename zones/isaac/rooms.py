@@ -18,10 +18,11 @@ ROOMS: dict[int, Room] = {
     1: Room(
         {
             "number": 1,
-            "name": "&gThe Seomra&N",  # Irish for Room
+            "name": "&gOregon&N",
             "description": (
-                "The floor is littered with &ytraffic cones&N.\n"
-                "The room is shaped like a triangle, painted &Ggreen&N with two &Xiron doors&N on the far walls."
+                "Oregon",
+                "This room is covered in green trees.",
+                "Abundant grass and moss is soft under your feet.",
             ),
             "indoors": False,
             "terrain": "no ground",
@@ -31,10 +32,7 @@ ROOMS: dict[int, Room] = {
                 {"direction": "down", "roomId": 99003, "external": True},
             ],
             "objects": [
-                O.spawn("traffic_cone"),
-                O.spawn("traffic_cone"),
-                O.spawn("traffic_cone"),
-                O.spawn("traffic_cone"),
+                O.spawn("duckzooka"),
             ],
             "mobs": [
                 M.spawn("escbaalion"),
@@ -67,8 +65,11 @@ ROOMS: dict[int, Room] = {
     3: Room(
         {
             "number": 3,
-            "name": "This is a Random Room",
-            "description": "Hi.",
+            "name": "Washington",
+            "description": (
+                "Washington",
+                "",
+            ),
             "indoors": False,
             "terrain": "no ground",
             "exits": [
@@ -98,12 +99,13 @@ ROOMS: dict[int, Room] = {
                 {"direction": "south", "roomId": 12},
             ],
             "objects": [
-                O.spawn("traffic_cone"),
                 O.spawn("metal_pipe"),
                 O.spawn("gear"),
                 O.spawn("gear"),
             ],  # objects include metal shards,
-            "mobs": [],
+            "mobs": [
+                M.spawn("glitch"),
+            ],
         }
     ),
     12: Room(

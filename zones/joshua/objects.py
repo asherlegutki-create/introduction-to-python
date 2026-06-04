@@ -18,17 +18,21 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as":         Object,
         "name":             "a &RMr Mob's Sword&N",
         "key_words":        ("mr", "mob", "sword"),
-        "room_description": "Mr Mob's Sword lays here, seeming to long for him.",
-        "description":      "The great sword once wielded by Mr Mob.",
+        "room_description": "Mr Mob's &RSword&N lays here, seeming to long for him.",
+        "description":      "The great &Rsword&N once wielded by Mr Mob.",
     },
 
-    "green_marker": {
-        "spawn_as":         Object,
-        "name":             "a &ggreen expo marker&N",
-        "key_words":        ("green", "expo", "marker"),
-        "room_description": "a {g&wgreen expo marker&N has been carelessly discarded here.",
-        "description":      "A forest green low-scent dry-erase marker, about half used.",
-    },
+    "sword_of_the_way" : {
+        "spawn_as":         Weapon,
+        'name': "&RSword&N &BOf The Way&N",
+        'key_words': ('sword', 'sword of the way'),
+        'room_description': "A mighty &Rsword&N of &Btruth&N lays here, ready for use",
+        'description': "The &RSword&N Of The &BWay&N",
+        "weight":           6,
+        "dice":             "2d8",
+        "hitroll":          4,
+        "damroll":          8,
+    }
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")

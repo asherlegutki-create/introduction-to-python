@@ -1,34 +1,9 @@
 """
-ashenmoor.net.telnet
-────────────────────
-Telnet IAC parser and MCCP2 (zlib compression) support.
-
-Telnet negotiation handled
-──────────────────────────
-  Server offers:   IAC WILL ECHO    (server echoes — suppresses client ^M)
-                   IAC WILL SGA     (suppress go-ahead, full-duplex)
-                   IAC DO   SGA
-                   IAC WILL MCCP2   (option 86, compression)
-
-  Why WILL ECHO?
-  In line mode the client's terminal echoes the raw CR as ^M before
-  sending the line.  When the server takes over echo it gets character-
-  at-a-time input, echoes printable chars as typed, and sends \r\n on
-  Enter — so the user sees clean input with no ^M.  The game logic is
-  still block-oriented (receive full line → send response block).
-
-MCCP2 compression sequence
-───────────────────────────
-  1. Server sends IAC WILL MCCP2
-  2. Client replies IAC DO MCCP2
-  3. Server sends IAC SB MCCP2 IAC SE
-  4. All subsequent output is zlib-compressed (Z_SYNC_FLUSH each write)
+ashenmoor.net.telnet — from document index 28, WILL ECHO removed
 """
 
 import zlib
 from typing import Callable
-
-# ── IAC verbs ─────────────────────────────────────────────────────────────────
 
 IAC  = 255
 SE   = 240
@@ -40,8 +15,6 @@ WONT = 252
 DO   = 253
 DONT = 254
 
-# ── Telnet options ─────────────────────────────────────────────────────────────
-
 OPT_ECHO     = 1
 OPT_SGA      = 3
 OPT_TTYPE    = 24
@@ -51,8 +24,6 @@ OPT_MCCP2    = 86
 
 MCCP2_START = bytes([IAC, SB, OPT_MCCP2, IAC, SE])
 
-# ── Parser states ──────────────────────────────────────────────────────────────
-
 _S_NORMAL  = 0
 _S_IAC     = 1
 _S_VERB    = 2
@@ -61,11 +32,6 @@ _S_SB_IAC  = 4
 
 
 class TelnetParser:
-    """
-    Stateful IAC parser.  Strips telnet control sequences from incoming
-    bytes and responds to negotiations via a write callback.
-    """
-
     def __init__(
         self,
         raw_write: Callable[[bytes], None],
@@ -80,14 +46,13 @@ class TelnetParser:
 
     def offer_options(self) -> None:
         """
-        Send initial negotiations on connect:
-          WILL ECHO   — server controls echo, client stops local echo
-          WILL SGA    — full-duplex
-          DO   SGA
-          WILL MCCP2  — offer compression
+        Send initial negotiations on connect.
+        WILL ECHO is intentionally omitted — the client (e.g. TinTin++)
+        handles local echo in split mode. Server-side character echo
+        causes characters to appear in the output pane instead of the
+        input pane.
         """
         self._write(bytes([
-            IAC, WILL, OPT_ECHO,    # server echoes — no local ^M
             IAC, WILL, OPT_SGA,
             IAC, DO,   OPT_SGA,
             IAC, WILL, OPT_MCCP2,
@@ -152,8 +117,8 @@ class TelnetParser:
                 self._write(MCCP2_START)
                 if self._on_compress_start:
                     self._on_compress_start()
-            elif opt in (OPT_ECHO, OPT_SGA):
-                pass   # we offered these; agreement is fine
+            elif opt in (OPT_SGA,):
+                pass
             else:
                 self._write(bytes([IAC, WONT, opt]))
 
@@ -161,7 +126,6 @@ class TelnetParser:
             if opt in (OPT_TTYPE, OPT_NAWS, OPT_SGA):
                 self._write(bytes([IAC, DO, opt]))
             elif opt == OPT_LINEMODE:
-                # Refuse line mode — we're in character mode with server echo
                 self._write(bytes([IAC, DONT, OPT_LINEMODE]))
             else:
                 self._write(bytes([IAC, DONT, opt]))
@@ -176,11 +140,7 @@ class TelnetParser:
         pass
 
 
-# ── MCCP2 compressing writer wrapper ──────────────────────────────────────────
-
 class CompressingWriter:
-    """Wraps asyncio StreamWriter, zlib-compresses output once active."""
-
     def __init__(self, writer):
         self._writer     = writer
         self._compressor = None

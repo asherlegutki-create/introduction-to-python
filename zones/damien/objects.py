@@ -41,7 +41,7 @@ TEMPLATES: dict[str, dict] = {
         'name': "The Hanging Tree",
         'key_words': ('tree', 'hanging'),
         'room_description': "An &Xominous&N, sad looking tree towers above you.",
-        'description': "A &xhanging tree&N, where they strung up a man they say &rmurdered&N three.",
+        'description': "A &Xhanging tree&N, where they strung up a man they say &rmurdered&N three.",
     },
     "pile_of_goo" : {
         "spawn_as":         Item,

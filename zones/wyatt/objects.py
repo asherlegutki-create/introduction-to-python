@@ -14,13 +14,13 @@ from ashenmoor.world import Object, Item, Weapon
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "Titan Battery": {
+    "AAA Battery": {
         "spawn_as": Item,
-        "name": "a &CTitan &GBattery&N",
-        "key_words": ("Titan", "Battery"),
-        "room_description": "A &CTitan &GBattery&N lies here, discarded.",
+        "name": "a &CAAA &GBattery&N",
+        "key_words": ("AAA", "Battery"),
+        "room_description": "A &CAAA &GBattery&N lies here, discarded.",
         "description": "The battery seems worn",
-        "weight": 7,
+        "weight": 1,
     },
     "Dragons Talon": {
         "spawn_as": Weapon,
@@ -52,7 +52,7 @@ TEMPLATES: dict[str, dict] = {
 &WIt looks like it can shoot &Ybullets &Wof pure {m&Mplasma&N
 &WIt is &Mmagenta&N, not &Rpink&N""",
         "weight": 7,
-        "dice": "2d4",
+        "dice": "4d8",
         "hitroll": 1,
         "damroll": 2,
     },

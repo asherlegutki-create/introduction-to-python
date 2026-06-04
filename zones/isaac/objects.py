@@ -44,6 +44,22 @@ TEMPLATES: dict[str, dict] = {
         "hitroll": 3,
         "damroll": 1,
     },
+    "duckzooka": {
+        "spawn_as": Weapon,
+        "name": "The Duckzooka",
+        "key_words": ("duckzooka", "duck", "bazooka", "duck gun"),
+        "room_description": "The Duckzooka is locked and loaded.",
+        "description": (
+            "The Duckzooka is sleek white, with no hard edges.",
+            "It fires live ducks that explode on contact.",
+            "If a duck fails to fire, it will fall out and waddle away.",
+        ),
+        "two_handed": True,
+        "weight": 4,
+        "dice": "3d6",
+        "hitroll": 5,
+        "damroll": 5,
+    },
     "gear": {
         "spawn_as": Item,
         "name": "A &Xgear&N",

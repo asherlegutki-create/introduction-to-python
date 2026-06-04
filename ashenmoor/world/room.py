@@ -1,42 +1,31 @@
-"""
-ashenmoor.world.room
-────────────────────
-Room class and terrain constants.
-
-Exit format (backward compatible — door key is optional):
-
-    {"direction": "east", "roomId": 2}                         # open passage
-
-    {"direction": "east", "roomId": 2,
-     "door": {
-         "keyword":  "iron gate",   # word used with open/close/lock/unlock/pick
-         "state":    "open",        # "open" | "closed" | "locked"
-         "pickable": True,          # can a thief pick this lock?  default True
-         "key_id":   "iron_key",    # object template key whose instance unlocks
-     }}                             # this door.  None = no key required (bolt only)
-
-Door field reference
-────────────────────
-keyword   str           Target word for open/close/lock/unlock/pick commands.
-state     str           "open" | "closed" | "locked"
-pickable  bool          True (default) — the lock can be picked.
-                        False — only the correct key or a spell opens it.
-key_id    str | None    Template key of the Item that acts as a key.
-                        e.g. "iron_key" matches a zone object template.
-                        None means the door can be bolted but has no keyed lock
-                        (open/close work; lock/unlock/pick do not apply).
-
-Door states
-───────────
-"open"    Passage is clear — look and move both work normally.
-"closed"  Blocks sight and movement.  Use 'open <keyword>' to open.
-"locked"  Blocks sight and movement.  Requires key or pick to unlock first.
-"""
-
+"""ashenmoor.world.room — from document index 37, _objects_str updated for stacking"""
 TERRAIN = ("no ground", "water", "mountain", "plain", "stone", "forest",
            "desert", "swamp", "road", "inside")
 
 _BLOCKED_STATES = {"closed", "locked"}
+
+
+def _stack_room_objects(objects) -> list[str]:
+    """Group objects by room_description; return display lines with [N] prefix."""
+    order  = []
+    counts = {}
+    descs  = {}
+    for obj in objects:
+        key = obj.name   # stack by name; items of same template share a name
+        if key not in counts:
+            order.append(key)
+            counts[key] = 0
+            descs[key]  = getattr(obj, "room_description", obj.name)
+        counts[key] += 1
+    lines = []
+    for key in order:
+        n    = counts[key]
+        desc = descs[key]
+        if n > 1:
+            lines.append(f"&w[&W{n}&w]&N {desc}")
+        else:
+            lines.append(desc)
+    return lines
 
 
 class Room:
@@ -51,10 +40,7 @@ class Room:
         self.objects     = d.get("objects", [])
         self.mobs        = d.get("mobs",    [])
 
-    # -- Exit helpers --
-
     def get_exit(self, direction):
-        """Return the full exit dict for direction, or None."""
         for ex in self.exits:
             if ex["direction"].lower() == direction.lower():
                 return ex
@@ -65,7 +51,6 @@ class Room:
         return ex["roomId"] if ex else None
 
     def exit_is_blocked(self, direction):
-        """True if a closed/locked door blocks this exit."""
         ex = self.get_exit(direction)
         if ex is None:
             return False
@@ -73,7 +58,6 @@ class Room:
         return bool(door and door.get("state", "open") in _BLOCKED_STATES)
 
     def door_keyword(self, direction):
-        """Return the door keyword for direction, or None if no door."""
         ex = self.get_exit(direction)
         if ex is None:
             return None
@@ -81,32 +65,17 @@ class Room:
         return door.get("keyword") if door else None
 
     def door_is_pickable(self, direction) -> bool:
-        """
-        True if the door in *direction* can be picked by a thief.
-
-        Returns False when there is no door, no lock, or pickable is
-        explicitly set to False.  Defaults to True when a door exists
-        and pickable is not specified (most doors can be picked).
-        """
         ex = self.get_exit(direction)
         if ex is None:
             return False
         door = ex.get("door")
         if not door:
             return False
-        # No key_id means no keyed lock — nothing to pick
         if door.get("key_id") is None:
             return False
         return bool(door.get("pickable", True))
 
     def door_key_id(self, direction) -> str | None:
-        """
-        Return the object template key whose instance unlocks this door,
-        or None if the door has no keyed lock.
-
-        The engine's unlock/key command should check whether the player
-        is carrying an Item whose template key matches this value.
-        """
         ex = self.get_exit(direction)
         if ex is None:
             return None
@@ -114,31 +83,17 @@ class Room:
         return door.get("key_id") if door else None
 
     def peek(self, direction, rooms):
-        """
-        Look in direction from this room.
-
-        Returns (dest_room, blocked, message).
-          dest_room  -- Room if visible, else None
-          blocked    -- True when a door blocks the view
-          message    -- ready-to-cprint string when dest_room is None,
-                        else None (caller renders dest_room)
-        """
         ex = self.get_exit(direction)
         if ex is None:
             return None, False, "&wYou cannot see anything in that direction.&N"
-
         door = ex.get("door")
         if door and door.get("state", "open") in _BLOCKED_STATES:
             keyword = door.get("keyword", "door")
             return None, True, f"&wThe &W{keyword}&w is closed.&N"
-
         dest = rooms.get(ex["roomId"])
         if dest is None:
             return None, False, "&wYou cannot see anything in that direction.&N"
-
         return dest, False, None
-
-    # -- Exits display --
 
     def _exits_str(self):
         if not self.exits:
@@ -149,16 +104,14 @@ class Room:
             dname = ex["direction"].title()
             door  = ex.get("door")
             if door and door.get("state", "open") in _BLOCKED_STATES:
-                parts.append(f"{sep} &r{dname}&N")   # dark red = blocked
+                parts.append(f"{sep} &r{dname}&N")
             else:
-                parts.append(f"{sep} &c{dname}&N")   # cyan = open
+                parts.append(f"{sep} &c{dname}&N")
         return "".join(parts)
-
-    # -- Room content helpers --
 
     def _objects_str(self):
         if not self.objects: return ""
-        return "\n".join(obj.room_description for obj in self.objects)
+        return "\n".join(_stack_room_objects(self.objects))
 
     def _mobs_str(self):
         if not self.mobs: return ""
@@ -177,8 +130,6 @@ class Room:
         chars = self.get_characters(locations, characters)
         if not chars: return ""
         return "\n".join(f"{c.name.title()} stands here" for c in chars)
-
-    # -- Render --
 
     def render(self, locations=None, characters=None):
         parts = [f"&+W{self.name}&N", f"  {self.description}"]

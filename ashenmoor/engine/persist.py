@@ -30,7 +30,9 @@ CREATE TABLE IF NOT EXISTS characters (
     location       INTEGER NOT NULL,
     updated_at     REAL    NOT NULL,
     status_effects TEXT    NOT NULL DEFAULT '[]',
-    toggles        TEXT    NOT NULL DEFAULT '{}'
+    toggles        TEXT    NOT NULL DEFAULT '{}',
+    potion_log     TEXT    NOT NULL DEFAULT '[]',
+    sex            TEXT    NOT NULL DEFAULT 'male'
 );
 
 CREATE TABLE IF NOT EXISTS inventory (
@@ -55,6 +57,8 @@ CREATE TABLE IF NOT EXISTS equipment (
 _MIGRATIONS = [
     "ALTER TABLE characters ADD COLUMN status_effects TEXT NOT NULL DEFAULT '[]'",
     "ALTER TABLE characters ADD COLUMN toggles TEXT NOT NULL DEFAULT '{}'",
+    "ALTER TABLE characters ADD COLUMN potion_log TEXT NOT NULL DEFAULT '[]'",
+    "ALTER TABLE characters ADD COLUMN sex TEXT NOT NULL DEFAULT 'male'",
 ]
 
 
@@ -240,6 +244,14 @@ def save_character(
             "UPDATE characters SET toggles = ? WHERE name = ?",
             (json.dumps(getattr(char, "toggles", {})), char.name),
         )
+        conn.execute(
+            "UPDATE characters SET potion_log = ? WHERE name = ?",
+            (json.dumps(getattr(char, "potion_log", [])), char.name),
+        )
+        conn.execute(
+            "UPDATE characters SET sex = ? WHERE name = ?",
+            (getattr(char, "sex", "male"), char.name),
+        )
 
 
 def load_character(
@@ -268,7 +280,9 @@ def load_character(
     from ..world.effects import recalc_status
     recalc_status(char)
 
-    char.toggles = json.loads(row["toggles"] or "{}")
+    char.toggles    = json.loads(row["toggles"]    or "{}")
+    char.potion_log = json.loads(row["potion_log"] or "[]")
+    char.sex        = row["sex"] if row["sex"] else "male"
 
     inv_rows = conn.execute(
         "SELECT item_data FROM inventory "

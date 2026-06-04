@@ -15,7 +15,7 @@ TEMPLATES: dict[str, dict] = {
     "mr_mob": {
         "name": "Mr Mob",
         "key_words": ("mr", "mob"),
-        "room_description": "A mob wonders around in the forest",
+        "room_description": "&RA mob wonders around in the forest&N",
         "description": (
             "An interesting mob wonders around\n"
             "Maybe he was born of the homework?"
