@@ -60,6 +60,16 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
         "killable": True,
+        "responses": {
+            "hi": ("the Imprisoned Illrigger Bard looks at you with irritation.",
+                   "He asks you '&wthey put you in here too? Tch, typical&N'"),
+            "prison": ("He replies'&wI saw the &YKing &MSlime&N, &wI failed to play for him, but I will have my revenge&N.'"
+                   "he looks at you again '&wBut I guess you want to know where the &YKing &MSlime&N is, huh?&N'"),
+            "loser": ("he gets up, his blood is &Rboiling with rage&N 'WHAT DID YOU SAY, SHORTSTACK?!'"),
+            "cell": ("He replies'&wI saw the &YKing &MSlime&N, &wI failed to play for him, but I will have my revenge&N.'"
+                   "he looks at you again '&wBut I guess you want to know where the &YKing &MSlime&N is, huh?&N'"),
+            "directions": ("He sighs, deeply '&wif you go to the entrance, then go up, then go to the guest room with the &Ggreen bed&N. There you'll find multiple secret rooms'"),
+            }
 
     },
 
@@ -141,6 +151,27 @@ TEMPLATES: dict[str, dict] = {
         "aggro": True,
         "wander": True,
         "killable": True,
+    },
+
+     "Cap": {
+        "name": "Cap" ,
+        "key_words": ("cap", "spirit"),
+        "room_description": "looks like you found a stowaway",
+        "description": (
+            "Caps are little spirits that like hiding in chests"
+        ),
+        "race": "Spirit",
+        "class": "Unknown",
+        "level": 2,
+        "stats": [4, 5, 8, 9, 3, 0],
+        "aggro": False,
+        "wander": False,
+        "killable": True,
+        "responses": {
+            "hi": ("The Cap looks at you with big wide eyes, &Mmagenta&N body with tiny little wings.",
+                   "'squeek!'"),
+            "loser": ("it cries softly at you calling it a crude name"),
+        },
     },
 }
 

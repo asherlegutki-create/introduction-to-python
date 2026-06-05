@@ -79,6 +79,45 @@ TEMPLATES: dict[str, dict] = {
         "wander": True,
         "killable": True,
     },
+    "duck": {
+        "name": "Quack",
+        "key_words": ("Quack", "duck"),
+        "room_description": "Quack ruffles her tail.",
+        "description": (
+            "   Quack is a very cute duck.",
+            "She has pristine white feathers.",
+            "Her bill and feet are a &ydark-yellow&N.",
+        ),
+        "race": "Duck",
+        "killable": False,
+        "responses": {
+            "hi": ("Quack replies: 'Well, hello there! How are you?'"),
+            "good": (
+                "Quack replies: 'That's nice to here. What can I help you with? I love helping.'"
+            ),
+            "bad": ("Quack replies: 'Oh, I'm sorry. How can I make you feel better?'"),
+            "gun": (
+                "Quack replies: 'You must mean my Duckzooka! Yeah, I made it myself.'",
+                "'It's somewhere around here...'",
+            ),
+            "weapon": (
+                "Quack replies: 'You must mean my Duckzooka! Yeah, I made it myself.'",
+                "'It's somewhere around here...'",
+            ),
+            "isaac": ("Quack replies: 'I think I know an 'Isaac.' Do you know him?'"),
+            "bread": ("Quack replies: 'Oooh! Do you have any?'"),
+            "goodbye": ("Quack replies: 'Goodbye! See you later!'"),
+            "thank you": (
+                "Quack replies: 'You're so welcome! I'll be right here in case you need me. :) '"
+            ),
+            # "code": (
+            #   "Quack replies: 'Oh, I remember these words. at least I think I do.'"
+            #   "Quack pulls out reading glasses and clears her throat."
+            #   "(Put code here)"
+            #   "Quack replies: 'Did that help?'"
+            # ),
+        },
+    },
 }
 
 spawn = make_spawner(TEMPLATES, lambda: Mob)

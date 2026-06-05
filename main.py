@@ -25,6 +25,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from ashenmoor.core                import RACES
 from ashenmoor.engine              import GameState
 from ashenmoor.net.server          import MudServer
+from ashenmoor.net.websocket       import WebSocketServer
 
 from zones.the_void  import ZONE as THE_VOID
 from zones.archer    import ZONE as ARCHER
@@ -89,6 +90,19 @@ def parse_args() -> argparse.Namespace:
         metavar = "HOST",
         help    = "bind address for TCP server (default: 0.0.0.0)",
     )
+    parser.add_argument(
+        "--ws-port",
+        type    = int,
+        default = 4001,
+        metavar = "PORT",
+        help    = "WebSocket port for browser clients (default: 4001)",
+    )
+    parser.add_argument(
+        "--no-ws",
+        action  = "store_true",
+        default = False,
+        help    = "disable the WebSocket server",
+    )
     return parser.parse_args()
 
 
@@ -112,38 +126,87 @@ def load_world() -> GameState:
 # ── Async main ─────────────────────────────────────────────────────────────────
 
 async def async_main(args: argparse.Namespace) -> None:
-    state  = load_world()
-    server = MudServer(state, host=args.host, port=args.port)
-
+    state      = load_world()
+    mud_server = MudServer(state, host=args.host, port=args.port)
+    ws_server  = WebSocketServer(
+        state      = state,
+        mud_server = mud_server,
+        host       = args.host,
+        port       = args.ws_port,
+    )
+ 
     serve   = args.serve
     console = not args.no_console
-
+    run_ws  = serve and not args.no_ws   # WS only makes sense alongside --serve
+ 
     if not serve and not console:
         print(
-            "error: --no-console requires --serve  "
-            "(nothing to do without at least one client source)",
+            "error: --no-console requires --serve",
             file=sys.stderr,
         )
         sys.exit(1)
-
-    if args.no_console and not args.serve:
-        print(
-            "warning: --no-console has no effect without --serve",
-            file=sys.stderr,
-        )
-
+ 
     mode_parts = []
-    if console: mode_parts.append("local console")
-    if serve:   mode_parts.append(f"TCP server on {args.host}:{args.port}")
+    if console:  mode_parts.append("local console")
+    if serve:    mode_parts.append(f"TCP:{args.port}")
+    if run_ws:   mode_parts.append(f"WS:{args.ws_port}")
     print(f"[ashenmoor] starting: {' + '.join(mode_parts)}", flush=True)
+ 
+    tasks = [
+        mud_server.start(
+            serve      = serve,
+            console    = console,
+            start_room = START_ROOM,
+            races      = RACES,
+            db_path    = DB_PATH,
+        ),
+    ]
+ 
+    if run_ws:
+        tasks.append(
+            ws_server.start(
+                start_room = START_ROOM,
+                races      = RACES,
+                db_path    = DB_PATH,
+            )
+        )
+ 
+    await asyncio.gather(*tasks)
 
-    await server.start(
-        serve      = serve,
-        console    = console,
-        start_room = START_ROOM,
-        races      = RACES,
-        db_path    = DB_PATH,
-    )
+
+#async def async_main(args: argparse.Namespace) -> None:
+#    state  = load_world()
+#    server = MudServer(state, host=args.host, port=args.port)
+#
+#    serve   = args.serve
+#    console = not args.no_console
+#
+#    if not serve and not console:
+#        print(
+#            "error: --no-console requires --serve  "
+#            "(nothing to do without at least one client source)",
+#            file=sys.stderr,
+#        )
+#        sys.exit(1)
+#
+#    if args.no_console and not args.serve:
+#        print(
+#            "warning: --no-console has no effect without --serve",
+#            file=sys.stderr,
+#        )
+#
+#    mode_parts = []
+#    if console: mode_parts.append("local console")
+#    if serve:   mode_parts.append(f"TCP server on {args.host}:{args.port}")
+#    print(f"[ashenmoor] starting: {' + '.join(mode_parts)}", flush=True)
+#
+#    await server.start(
+#        serve      = serve,
+#        console    = console,
+#        start_room = START_ROOM,
+#        races      = RACES,
+#        db_path    = DB_PATH,
+#    )
 
 
 # ── Entry point ────────────────────────────────────────────────────────────────

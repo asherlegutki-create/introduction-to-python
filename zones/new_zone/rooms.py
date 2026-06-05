@@ -23,7 +23,8 @@ ROOMS: dict[int, Room] = {
             {"direction": "up",  "roomId": 7}
         ],
         "objects": [
-            O.spawn("chest_key")
+            O.spawn("chest_key"),
+            O.spawn("heal_potion")
         ],
         "mobs": [M.spawn("wandering_student")],   # escbaalion is not in this zone's mobs.py
     }),

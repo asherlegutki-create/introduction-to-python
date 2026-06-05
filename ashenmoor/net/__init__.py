@@ -1,16 +1,17 @@
 """
 ashenmoor.net
 ─────────────
-Async networking layer: telnet protocol, per-client game loop, TCP server.
+Async networking layer: telnet protocol, per-client game loop, TCP server,
+and WebSocket server for browser clients.
 
-    from ashenmoor.net.server import MudServer
-
-    server = MudServer(state, host="0.0.0.0", port=4000)
-    await server.start(serve=True, console=True, start_room=99001, races=RACES)
+    from ashenmoor.net.server    import MudServer, LocalConsoleClient, NetworkClient
+    from ashenmoor.net.websocket import WebSocketServer
+    from ashenmoor.net.telnet    import TelnetParser, CompressingWriter
 """
 
-from .server import MudServer, LocalConsoleClient, NetworkClient
-from .telnet import TelnetParser, CompressingWriter
+from .server    import MudServer, LocalConsoleClient, NetworkClient
+from .telnet    import TelnetParser, CompressingWriter
+from .websocket import WebSocketServer
 
 __all__ = [
     "MudServer",
@@ -18,4 +19,5 @@ __all__ = [
     "NetworkClient",
     "TelnetParser",
     "CompressingWriter",
+    "WebSocketServer",
 ]

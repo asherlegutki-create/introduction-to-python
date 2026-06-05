@@ -66,7 +66,7 @@ ROOMS: dict[int, Room] = {
         {
             "number": 3,
             "name": "Office",
-            "description": "This is the office where Mrs.stacey spends most of the day.\n To the west again is Mr.Carlson's office,\n east is the hallway, and north is the teachers lounge.",
+            "description": "This is the office where Mrs.stacey spends most of the day.\n To the west again is Mr. Carlson's office,\n east is the hallway, and north is the teachers lounge.",
             "indoors": True,
             "terrain": "carpet floor",
             "exits": [
@@ -79,7 +79,7 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
+              M.spawn("Mr. Carlson") ,
 #                M.spawn(""),
 #                M.spawn(""),
 #                

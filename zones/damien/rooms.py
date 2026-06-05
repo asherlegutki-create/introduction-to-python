@@ -209,7 +209,7 @@ ROOMS: dict[int, Room] = {
             "number":12,
             "name": "City Gates",
             "description":  ("Before you is a large, black gate.",
-                             "Across the top of the gate are large letters that say 'Welcome to Umburb'."),
+                             "Across the top of the gate are large letters that say 'Welcome to Vacivus'."),
             "indoors": False,
             "terrain": "stone",
             "exits": [
@@ -231,10 +231,10 @@ ROOMS: dict[int, Room] = {
                 {"direction": "up", "roomId": 14},
             ],
             "mobs": [
-                M.spawn("umburb_soldier"),
-                M.spawn("umburb_soldier"),
-                M.spawn("umburb_soldier"),
-                M.spawn("umburb_soldier"),
+                M.spawn("vacivus_soldier"),
+                M.spawn("vacivus_soldier"),
+                M.spawn("vacivus_soldier"),
+                M.spawn("vacivus_soldier"),
             ],
         }
     ),
@@ -248,6 +248,12 @@ ROOMS: dict[int, Room] = {
             "terrain": "stone",
             "exits": [
                 {"direction": "down", "roomId": 13},
+            ],
+            "mobs": [
+                M.spawn("vacivus_archer"),
+                M.spawn("vacivus_archer"),
+                M.spawn("vacivus_archer"),
+                M.spawn("vacivus_archer"),
             ],
         }
     ),

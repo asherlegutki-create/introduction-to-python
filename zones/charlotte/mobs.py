@@ -35,10 +35,13 @@ TEMPLATES: dict[str, dict] = {
 
         "race": "Human",
         "class": "Janitor",
-        "level": 10,
+        "level": 100,
         "stats": [71, 75, 80, 84, 79, 73],
         "aggro": False,
         "wander": False,
+        "responses":{
+            "hi": ("Hello child how are you today?")
+        }
     },
     "Mr. Carlson": {
         "name": "Mr. Carlson",
@@ -46,11 +49,20 @@ TEMPLATES: dict[str, dict] = {
         "room_description": "Mr.Carlson wanders from room to room.",
         "description": ( ". \n She has been givin the job of taking care of the earth. She is wearing nothing because she doesn't know what is right from wrong."),
         "race": "Human",
-        "class": "Female",
-        "level": 7,
+        "class": "Principal",
+        "level": 100,
         "stats": [70, 65, 81, 74, 89, 93],
         "aggro": True,
         "wander": False,
+        "responses":{
+            "hi":("Hi? What are you doing out of class?"),
+            "i don't Know": ("Do you need a quest?"),               
+            "yes": ("Ok then i need goo. the directions are for you to go to the beginning, and then go north, then up. then bring the goo to me."),  
+            "i have the goo" : ("Ok now do nothing i just needed you to leave so now i can write you up as tarty.")         
+                            
+                            
+                            
+        }
     },
     
 }

@@ -2,7 +2,7 @@
 zones.new_zone.objects
 """
 
-from ashenmoor.world import Object, Item, Weapon, Container, Scroll
+from ashenmoor.world import Object, Item, Weapon, Container, Scroll, Potion
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
@@ -52,6 +52,26 @@ TEMPLATES: dict[str, dict] = {
         "key_name":        "chest key",   # must match chest's key_name exactly
         "weight":          0.1,
     },
+    
+    "heal_potion": {
+    "spawn_as":    Potion,
+    "name":    "a health potion",
+    "key_words":       ("health", "potion"),
+    "room_description":"A potion of health lies here.",
+    "effect":  "heal",
+    "heal_pct": 0.5,
+},
+#{
+#    "type": "Potion",
+#    "name": "a potion of fortitude",
+#    "effects": [
+#        {"effect": "heal",           "heal_pct": 0.4},
+#        {"effect": "apply_barkskin", "duration": 8},
+#        {"effect": "apply_stoneskin","duration": 8},
+#    ],
+#}
+
+
     "silken_sack": {
         "spawn_as":         Container,
         "name":             "a &rtattered &csilken sack&N",
