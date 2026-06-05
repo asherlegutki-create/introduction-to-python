@@ -131,7 +131,7 @@ async def async_main(args: argparse.Namespace) -> None:
     ws_server  = WebSocketServer(
         state      = state,
         mud_server = mud_server,
-        host       = 127.0.0.1,
+        host       = "127.0.0.1",
         port       = args.ws_port,
     )
  
