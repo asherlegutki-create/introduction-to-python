@@ -55,19 +55,7 @@
     flex-shrink: 0;
   }
   #conn-form { display: flex; gap: 6px; flex: 1; align-items: center; }
-  #conn-form input {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 3px;
-    outline: none;
-    transition: border-color .2s;
-  }
-  #conn-form input:focus { border-color: var(--accent); }
-  #host-input { flex: 1; min-width: 200px; }
+  /* connection form — input removed, buttons only */
   .btn {
     background: transparent;
     border: 1px solid var(--accent);
@@ -340,9 +328,8 @@
 <div id="topbar">
   <h1>MUD//TERM</h1>
   <div id="conn-form">
-    <input id="host-input" type="text" placeholder="ws://host/ws  or  wss://host/ws" value="" />
-    <button class="btn success" onclick="connect()">Connect</button>
     <button class="btn danger" onclick="disconnect()">Disconnect</button>
+    <button class="btn success" onclick="reconnect()">Reconnect</button>
   </div>
   <div id="status-dot"></div>
   <span id="status-text">Disconnected</span>
@@ -460,21 +447,23 @@ let promptLineDiv  = null;   // the DOM node showing the current partial line
 // ─────────────────────────────────────────────
 //  WEBSOCKET
 // ─────────────────────────────────────────────
+// Always connect to the same origin — no user-supplied URL accepted.
+function _serverUrl() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  return `${proto}://${location.host}/ws`;
+}
+
+function reconnect() {
+  if (ws) { ws.close(); ws = null; }
+  connect();
+}
+
 function connect() {
-  let host = document.getElementById('host-input').value.trim();
+  if (ws && (ws.readyState === WebSocket.OPEN ||
+             ws.readyState === WebSocket.CONNECTING)) return;
   if (ws) ws.close();
 
-  // Accept full ws:// or wss:// URL, or bare hostname → ws://host/ws
-  let url;
-  if (host.startsWith('ws://') || host.startsWith('wss://')) {
-    url = host;
-  } else if (host === '') {
-    // Same origin: derive from current page location
-    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-    url = `${proto}://${location.host}/ws`;
-  } else {
-    url = `ws://${host}/ws`;
-  }
+  const url = _serverUrl();
   sysEcho(`Connecting to ${url}…`);
   log(`Connect attempt: ${url}`);
 
@@ -1021,11 +1010,12 @@ if (Notification && Notification.permission === 'default') {
 // ─────────────────────────────────────────────
 renderTriggers();
 renderAliases();
-sysEcho('MUD//TERM ready. Set host and port, then Connect.');
 sysEcho('Triggers, aliases and scripts are saved in your browser.');
-sysEcho('For scripting API: send(cmd), echo(msg), vars{}, match[]');
+sysEcho('Scripting API: send(cmd), echo(msg), vars{}, match[]');
 document.getElementById('cmd-input').focus();
 log('Client initialized');
+// Auto-connect on page load
+connect();
 </script>
 </body>
 </html>
