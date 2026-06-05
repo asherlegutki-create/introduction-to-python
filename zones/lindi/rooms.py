@@ -37,10 +37,10 @@ ROOMS: dict[int, Room] = {
         "indoors": True,
         "terrain": "ground",
         "exits": [
-            {"direction": "north", "roomId": 1},
+            {"direction": "south", "roomId": 3},
         ],
         "objects": [],
-        "mobs": ["The Beast of Geometry and Algebra"],
+        "mobs": [O.spawn("The Beast of Geometry and Algebra")],
     }),
     8: Room({
         "number": 8,
@@ -61,7 +61,7 @@ ROOMS: dict[int, Room] = {
         "indoors": True,
         "terrain": "ground",
         "exits": [
-            {"direction": "south", "roomId": 3},
+            {"direction": "north", "roomId": 1},
         ],
         "objects": [],
         "mobs": ["arlo"],

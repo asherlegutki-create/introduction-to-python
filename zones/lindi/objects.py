@@ -76,6 +76,18 @@ TEMPLATES: dict[str, dict] = {
          "hitroll":          15,
          "damroll":          20,
      },
+     
+     "despicable duo" : {
+         "spawn_as":         Weapon,
+         'name': "despicable dou",
+         'key_words': ('despicable', 'duo'),
+         'room_description': "a short twin blade sits on a stand missing the other half.",
+         'description': "this is a well crafted blade handled with care.where might another half be? &xhint M__. K_______&N",
+         "weight":           2,
+         "dice":             "10d10",
+         "hitroll":          15,
+         "damroll":          20,
+     },
     }
 
 
