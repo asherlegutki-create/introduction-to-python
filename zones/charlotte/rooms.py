@@ -79,7 +79,7 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-              M.spawn("Mr.Carlson") ,
+              M.spawn("Mr. Carlson") ,
 #                M.spawn(""),
 #                M.spawn(""),
 #                
