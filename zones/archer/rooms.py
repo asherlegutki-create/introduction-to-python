@@ -41,12 +41,12 @@ ROOMS: dict[int, Room] = {
     2: Room(
             {
                 "number": 2,
-                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Chest Room",
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Chest Room (entrance)",
                 "description": "A giant room full of chests filled with treasures beyond your wildest dreams /nIt is guarded by an &RIllrigger&N",
                 "indoors": True,
                 "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
                 "exits": [
-                    {"direction": "north", "roomId": 3},
+                    {"direction": "north", "roomId": 16},
                     {"direction": "south", "roomId": 1},
                     {"direction": "east", "roomId": 4},
                     {"direction": "west", "roomId": 5},
@@ -265,6 +265,27 @@ ROOMS: dict[int, Room] = {
                     M.spawn("&MPink Slime&N"),
                     M.spawn("&GGreen Slime&N"),
                     M.spawn("&BBlue Slime&N"),
+                ],
+            }
+        ),
+
+        16: Room(
+            {
+                "number": 16,
+                "name": "&xW&yo&xo&yd&xl&xa&yn&xd&N Manor Chest Room",
+                "description": "A giant room full of chests filled with treasures beyond your wildest dreams /nIt is guarded by an &RIllrigger&N",
+                "indoors": True,
+                "terrain": "floors, rooms, stairs, hallways, ceiling, and walls",
+                "exits": [
+                    {"direction": "south", "roomId": 2},
+                     ],
+            "mobs": [ 
+                M.spawn("Cap"),
+                ],
+             "objects": [ 
+                 O.spawn("Spruce Chest"),
+                 O.spawn("Spruce Chest"),
+                 O.spawn("Spruce Chest"),
                 ],
             }
         ),

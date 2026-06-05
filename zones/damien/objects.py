@@ -29,7 +29,8 @@ TEMPLATES: dict[str, dict] = {
         "spawn_as":         Weapon,
         'name': "&CT&Bh&Ce &BS&Cw&Bo&Cr&Bd &Ct&Bh&Ca&Bt &CS&Be&Ca&Bl&Cs &Bt&Ch&Be &CD&Ba&Cr&Bk&Cn&Be&Cs&Bs&N",
         'key_words': ('sword', 'seals', 'darkness'),
-        'room_description': "&CT&Bh&Ce &BS&Cw&Bo&Cr&Bd &Ct&Bh&Ca&Bt &CS&Be&Ca&Bl&Cs &Bt&Ch&Be &CD&Ba&Cr&Bk&Cn&Be&Cs&Bs&N lies here. Its light &Willuminates&N the ground around it.",
+        'room_description': ("&CT&Bh&Ce &BS&Cw&Bo&Cr&Bd &Ct&Bh&Ca&Bt &CS&Be&Ca&Bl&Cs &Bt&Ch&Be &CD&Ba&Cr&Bk&Cn&Be&Cs&Bs&N lies here.", 
+                             "Its light &Willuminates&N the ground around it."),
         'description': "The sword is beautiful. It was forged by the &GElves&N as a tool against the &rGreat Darkness&N. It glows softly with &Bbluish&N &Wlight&N",
         "weight":           25,
         "dice":             "3d3",
@@ -71,21 +72,12 @@ TEMPLATES: dict[str, dict] = {
         "save_mods": {},
     },
     # "health_potion" : {
-    #     "spawn_as":           Item,
+    #     "spawn_as":          Potion,
     #     "name":      "a health potion",
     #     "key_words": ("health", "potion"),
     #     "room_description": "A glass bottle filled with a &Rlight red liquid&N lies here",
     #     "description": "A glass, round bottle filled with a potion that refills your health. It smells sweet, like cherries",
-    #     "wear_on":   "held",
-    #     "liquid":       "potion",
-    #     "capacity":     5,
-    #     "current":      5,
-    #     "poisoned":     False,
-    #     "thirst":       0,
-    #     "weight":    1,
-    #     "cost":      5,
-    #     "stat_mods": {},
-    #     "save_mods": {},
+        
     # },
 }
 

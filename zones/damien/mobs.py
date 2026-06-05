@@ -11,9 +11,13 @@ copies in rooms as you like, each is independent.
 from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
+def _mob_attack(state, char, mob):
+    state.fighting[char.name] = mob
+    return (f'{mob.name} did not like that. It attacks you fiercely.')
+
 TEMPLATES: dict[str, dict] = {
     "shadow_gremlin": {
-        "name": "a shadow gremlin",
+        "name": "The shadow gremlin",
         "key_words": ("shadow", "gremlin", "thing"),
         "room_description": "a small black thing scurries about",
         "description": ("This small creature is called a &Xshadow gremlin&N. It is almost completely black except for its tiny white eyes"),
@@ -37,9 +41,12 @@ TEMPLATES: dict[str, dict] = {
         "wander": False,
     },
         "dark_mage": {
-            "name": "a dark mage",
+            "name": "The dark mage",
             "key_words": ("dark", "mage"),
-            "room_description": "A &bdark mage&N cloaked in &Xblack&N stands here at attention. It looks angry, so you look away as to not anger it further.",
+            "responses": {
+                "hi": _mob_attack 
+            },
+            "room_description": "A &bdark mage&N cloaked in &Xblack&N stands here.",
             "description": ("This powerful looking being is a henchman of the &rGreat Darkness&N."),
             "race": "Fallen Elf",
             "class": "Mage",
@@ -49,7 +56,7 @@ TEMPLATES: dict[str, dict] = {
             "wander": False,
     },
         "dark_glob": {
-            "name": "a dark glob",
+            "name": "The dark glob",
             "key_words": ("dark", "glob"),
             "room_description": "A &bdark glob&N hops around, making a gross sound.",
             "description": ("The blob is entirely a &gstrange&N, &mpurplish goo."),
@@ -61,7 +68,7 @@ TEMPLATES: dict[str, dict] = {
             "wander": False,
     },
         "falcon_spy": {
-            "name": "a falcon spy",
+            "name": "The falcon spy",
             "key_words": ("falcon", "spy"),
             "room_description": "A &Xdarkly colored&N falcon sits alert.",
             "description": ("This bird was created to collect information for the &rGreat Darkness&N."),
@@ -73,7 +80,7 @@ TEMPLATES: dict[str, dict] = {
             "wander": False,
     },
         "shadow": {
-            "name": "shadow",
+            "name": "The shadow",
             "key_words": ("shadow", "something"),
             "room_description": "Something moves about, silently.",
             "description": ("A shadow moves around. It's hard to tell what it looks like. Actually, it's hard to tell if it's there."),
@@ -84,13 +91,32 @@ TEMPLATES: dict[str, dict] = {
             "aggro": False,
             "wander": False,
     },
-        "umburb_soldier": {
-            "name": "Umburb Soldier",
-            "key_words": ("umburb", "soldier"),
-            "room_description": "An Umburb soldier stands here at attention.",
+        "vacivus_soldier": {
+            "name": "The Vacivus Soldier",
+            "key_words": ("vacivus", "soldier"),
+            "responses": {
+                "hi": ("The soldier turns his head to look at you.",
+                       "He tells you in a firm voice, 'Move along, please.'")
+            },
+            "room_description": "An Vacivus soldier stands here at attention.",
             "description": ("A soldier trained for nearly anything they may encounter."),
             "race": "Human",
             "class": "Soldier",
+            "level": 25,
+            "stats": [90, 90, 90, 90, 90, 90],
+            "aggro": False,
+            "wander": False,
+    },
+        "vacivus_archer": {
+            "name": "The Vacivus Archer",
+            "key_words": ("vacivus", "archer"),
+            "responses": {
+                "hi": ("The archer looks at you, then looks away.")
+                },
+            "room_description": "A Vacivus archer stands here seemingly bored.",
+            "description": ("An archer is trained for range combat and scouting missions."),
+            "race": "Human",
+            "class": "Archer",
             "level": 25,
             "stats": [90, 90, 90, 90, 90, 90],
             "aggro": False,

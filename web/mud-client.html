@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUD Client</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inconsolata:wght@400;700&family=Orbitron:wght@400;700;900&display=swap');
+
+  :root {
+    --bg:       #0a0c0f;
+    --surface:  #0f1318;
+    --panel:    #131820;
+    --border:   #1e2a38;
+    --accent:   #00d4ff;
+    --accent2:  #00ff9d;
+    --warn:     #ffaa00;
+    --danger:   #ff4455;
+    --text:     #c8d8e8;
+    --dim:      #4a6070;
+    --mono:     'Share Tech Mono', 'Inconsolata', 'Cascadia Code', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+    --title:    'Orbitron', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 6px 14px;
+    flex-shrink: 0;
+  }
+  #topbar h1 {
+    font-family: var(--title);
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-shadow: 0 0 12px var(--accent);
+    flex-shrink: 0;
+  }
+  #conn-form { display: flex; gap: 6px; flex: 1; align-items: center; }
+  #conn-form input {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  #conn-form input:focus { border-color: var(--accent); }
+  #host-input { flex: 1; min-width: 200px; }
+  .btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 12px;
+    cursor: pointer;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: background .15s, color .15s, box-shadow .15s;
+  }
+  .btn:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 10px var(--accent); }
+  .btn.danger { border-color: var(--danger); color: var(--danger); }
+  .btn.danger:hover { background: var(--danger); color: #fff; box-shadow: 0 0 10px var(--danger); }
+  .btn.success { border-color: var(--accent2); color: var(--accent2); }
+  .btn.success:hover { background: var(--accent2); color: var(--bg); }
+
+  #status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 6px var(--danger);
+    flex-shrink: 0;
+    transition: background .3s, box-shadow .3s;
+  }
+  #status-dot.connected { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+  #status-text { font-size: 11px; color: var(--dim); min-width: 80px; }
+
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+  .tab {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all .15s;
+  }
+  .tab.active, .tab:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── MAIN AREA ── */
+  #main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── TERMINAL ── */
+  #terminal-pane {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  #output {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 14px;
+    line-height: 1.6;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-variant-ligatures: none;  /* keep MUD ASCII art intact */
+  }
+  #output::-webkit-scrollbar { width: 6px; }
+  #output::-webkit-scrollbar-track { background: transparent; }
+  #output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  #output::-webkit-scrollbar-thumb:hover { background: var(--dim); }
+
+  .line { white-space: pre-wrap; word-break: break-word; }
+  .line.echo    { color: var(--dim); }
+  .line.sys    { color: var(--accent); font-style: italic; }
+  .line.err    { color: var(--danger); }
+  .line.trig   { color: var(--warn); }
+  .line.prompt-line { color: var(--text); }  /* unterminated prompt */
+
+  /* ── INPUT BAR ── */
+  #input-bar {
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    gap: 8px;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  #prompt-label { color: var(--accent); font-size: 13px; flex-shrink: 0; }
+  #cmd-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 14px;
+    caret-color: var(--accent);
+  }
+  #send-btn { flex-shrink: 0; }
+
+  /* ── SIDE PANEL ── */
+  #side-panel {
+    width: 380px;
+    min-width: 280px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #side-panel.hidden { display: none; }
+
+  .panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .panel-tab {
+    flex: 1;
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+  }
+  .panel-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .panel-tab:hover { color: var(--text); }
+
+  .panel-section { display: none; flex-direction: column; flex: 1; overflow: hidden; padding: 10px; gap: 8px; }
+  .panel-section.active { display: flex; }
+
+  .panel-section label { font-size: 11px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
+  .panel-section input, .panel-section textarea, .panel-section select {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 5px 8px;
+    border-radius: 3px;
+    outline: none;
+    resize: vertical;
+    transition: border-color .2s;
+    width: 100%;
+  }
+  .panel-section input:focus,
+  .panel-section textarea:focus,
+  .panel-section select:focus { border-color: var(--accent); }
+
+  .row { display: flex; gap: 6px; align-items: flex-end; }
+  .row > * { flex: 1; }
+  .row > .btn { flex: 0 0 auto; }
+
+  .item-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .item-list::-webkit-scrollbar { width: 4px; }
+  .item-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .list-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 6px;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .list-item:hover { border-color: var(--dim); }
+  .list-item.disabled { opacity: 0.4; }
+  .list-item .info { flex: 1; min-width: 0; }
+  .list-item .name { font-size: 12px; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list-item .detail { font-size: 11px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list-item .actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .icon-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--dim); font-size: 13px; padding: 2px;
+    transition: color .15s;
+  }
+  .icon-btn:hover.toggle { color: var(--accent2); }
+  .icon-btn:hover.edit   { color: var(--accent); }
+  .icon-btn:hover.del    { color: var(--danger); }
+
+  /* ── SCRIPT EDITOR ── */
+  #script-editor {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px;
+    border-radius: 3px;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    min-height: 0;
+  }
+  #script-editor:focus { border-color: var(--accent); }
+  #script-output {
+    height: 80px;
+    overflow-y: auto;
+    background: #050709;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 6px 8px;
+    font-size: 11px;
+    color: var(--accent2);
+    flex-shrink: 0;
+  }
+  #script-output .script-err { color: var(--danger); }
+
+  /* ANSI color classes */
+  .ansi-30{color:#333} .ansi-31{color:#ff5555} .ansi-32{color:#55ff55}
+  .ansi-33{color:#ffff55} .ansi-34{color:#5599ff} .ansi-35{color:#ff55ff}
+  .ansi-36{color:#55ffff} .ansi-37{color:#dddddd} .ansi-39{color:inherit}
+  .ansi-1{font-weight:bold} .ansi-3{font-style:italic} .ansi-4{text-decoration:underline}
+  .ansi-90{color:#666} .ansi-91{color:#ff8888} .ansi-92{color:#88ff88}
+  .ansi-93{color:#ffff88} .ansi-94{color:#88aaff} .ansi-95{color:#ff88ff}
+  .ansi-96{color:#88ffff} .ansi-97{color:#ffffff}
+
+  /* Resize handle */
+  #resize-handle {
+    width: 4px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  #resize-handle:hover { background: var(--accent); }
+
+  .hint { font-size: 11px; color: var(--dim); font-style: italic; }
+  .section-title {
+    font-family: var(--title);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* checkbox toggle */
+  input[type=checkbox] { accent-color: var(--accent); width: auto; }
+  .check-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <h1>MUD//TERM</h1>
+  <div id="conn-form">
+    <input id="host-input" type="text" placeholder="ws://host/ws  or  wss://host/ws" value="" />
+    <button class="btn success" onclick="connect()">Connect</button>
+    <button class="btn danger" onclick="disconnect()">Disconnect</button>
+  </div>
+  <div id="status-dot"></div>
+  <span id="status-text">Disconnected</span>
+  <div class="tab-bar">
+    <button class="tab active" onclick="showView('terminal')">Terminal</button>
+    <button class="tab" onclick="showView('settings')">Settings</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- TERMINAL PANE -->
+  <div id="terminal-pane">
+    <div id="output"></div>
+    <div id="input-bar">
+      <span id="prompt-label">&gt;</span>
+      <input id="cmd-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false"
+             placeholder="Type command…" onkeydown="handleInput(event)" />
+      <button class="btn" id="send-btn" onclick="sendCommand()">Send</button>
+    </div>
+  </div>
+
+  <!-- RESIZE HANDLE -->
+  <div id="resize-handle" onmousedown="startResize(event)"></div>
+
+  <!-- SIDE PANEL -->
+  <div id="side-panel">
+    <div class="panel-tabs">
+      <div class="panel-tab active" onclick="switchPanel('triggers')">Triggers</div>
+      <div class="panel-tab" onclick="switchPanel('aliases')">Aliases</div>
+      <div class="panel-tab" onclick="switchPanel('scripts')">Scripts</div>
+      <div class="panel-tab" onclick="switchPanel('log')">Log</div>
+    </div>
+
+    <!-- TRIGGERS -->
+    <div class="panel-section active" id="panel-triggers">
+      <div class="section-title">Triggers</div>
+      <label>Pattern (regex)</label>
+      <input id="trig-pattern" placeholder="e.g.  You have (\d+) gold" />
+      <label>Action</label>
+      <input id="trig-action" placeholder="send: north  |  echo: found gold!  |  script: myFunc()" />
+      <div class="row">
+        <div class="check-row"><input type="checkbox" id="trig-re" checked /><label>Regex</label></div>
+        <div class="check-row"><input type="checkbox" id="trig-ci" checked /><label>Case-insensitive</label></div>
+        <button class="btn success" onclick="addTrigger()">Add</button>
+      </div>
+      <div class="item-list" id="trigger-list"></div>
+      <div class="hint">Actions: send:&lt;cmd&gt; | echo:&lt;msg&gt; | script:&lt;fn()&gt; | notify:&lt;msg&gt;</div>
+    </div>
+
+    <!-- ALIASES -->
+    <div class="panel-section" id="panel-aliases">
+      <div class="section-title">Aliases</div>
+      <label>Alias name</label>
+      <input id="alias-name" placeholder="e.g.  h" />
+      <label>Expands to</label>
+      <input id="alias-expand" placeholder="e.g.  heal self  (use $1 $2… for args)" />
+      <div class="row">
+        <button class="btn success" onclick="addAlias()">Add</button>
+      </div>
+      <div class="item-list" id="alias-list"></div>
+      <div class="hint">Use $1, $2… for positional args. E.g. alias "k" → "kill $1"</div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <div class="panel-section" id="panel-scripts">
+      <div class="section-title">Script Console</div>
+      <div class="hint" style="margin-bottom:4px">
+        Full JS. API: <b>send(cmd)</b>, <b>echo(msg)</b>, <b>vars</b> (shared object), <b>match</b> (last trigger captures)
+      </div>
+      <textarea id="script-editor" rows="12" spellcheck="false">// Example: send a command every 30 seconds
+// setInterval(() => send("score"), 30000);
+
+// Example: heal when HP drops (set up a trigger with script:checkHp())
+// function checkHp() {
+//   if (parseInt(vars.hp) < 50) send("heal self");
+// }
+
+echo("Script engine ready.");</textarea>
+      <div class="row">
+        <button class="btn success" onclick="runScript()">Run</button>
+        <button class="btn" onclick="clearScriptOutput()">Clear</button>
+      </div>
+      <div id="script-output"></div>
+    </div>
+
+    <!-- LOG -->
+    <div class="panel-section" id="panel-log">
+      <div class="section-title">System Log</div>
+      <div class="row">
+        <button class="btn" onclick="clearLog()">Clear</button>
+        <button class="btn" onclick="exportLog()">Export</button>
+      </div>
+      <div class="item-list" id="system-log" style="font-size:11px;color:var(--dim);gap:2px;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let ws = null;
+let connected = false;
+let cmdHistory = [];
+let historyIndex = -1;
+let triggers = JSON.parse(localStorage.getItem('mud_triggers') || '[]');
+let aliases  = JSON.parse(localStorage.getItem('mud_aliases')  || '[]');
+let vars = {};         // shared scripting variables
+let match = [];        // last trigger regex captures
+let outputBuffer = '';      // partial line buffer
+let promptFlushTimer = null; // debounce timer for unterminated prompt lines
+let promptLineDiv  = null;   // the DOM node showing the current partial line
+
+// ─────────────────────────────────────────────
+//  WEBSOCKET
+// ─────────────────────────────────────────────
+function connect() {
+  let host = document.getElementById('host-input').value.trim();
+  if (ws) ws.close();
+
+  // Accept full ws:// or wss:// URL, or bare hostname → ws://host/ws
+  let url;
+  if (host.startsWith('ws://') || host.startsWith('wss://')) {
+    url = host;
+  } else if (host === '') {
+    // Same origin: derive from current page location
+    const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    url = `${proto}://${location.host}/ws`;
+  } else {
+    url = `ws://${host}/ws`;
+  }
+  sysEcho(`Connecting to ${url}…`);
+  log(`Connect attempt: ${url}`);
+
+  try {
+    ws = new WebSocket(url);
+    ws.binaryType = 'arraybuffer';
+
+    ws.onopen = () => {
+      connected = true;
+      setStatus(true);
+      sysEcho('Connected.');
+      log('WebSocket connected');
+    };
+
+    ws.onmessage = (e) => {
+      let text;
+      if (e.data instanceof ArrayBuffer) {
+        text = new TextDecoder('latin1').decode(e.data);
+      } else {
+        text = e.data;
+      }
+      handleServerData(text);
+    };
+
+    ws.onerror = () => {
+      sysEcho('Connection error.', 'err');
+      log('WebSocket error');
+    };
+
+    ws.onclose = () => {
+      connected = false;
+      setStatus(false);
+      sysEcho('Disconnected.', 'err');
+      log('WebSocket closed');
+    };
+  } catch(ex) {
+    sysEcho('Failed: ' + ex.message, 'err');
+  }
+}
+
+function disconnect() {
+  if (ws) { ws.close(); ws = null; }
+}
+
+function sendRaw(text) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(text + '\r\n');
+    return true;
+  }
+  return false;
+}
+
+// ─────────────────────────────────────────────
+//  DATA PROCESSING
+// ─────────────────────────────────────────────
+function handleServerData(raw) {
+  // Strip telnet IAC sequences (basic)
+  raw = stripTelnet(raw);
+
+  // If we were showing a partial prompt line, remove it — we're about to
+  // reprocess the buffer with the new data appended.
+  if (promptLineDiv && promptLineDiv.parentNode) {
+    promptLineDiv.parentNode.removeChild(promptLineDiv);
+    promptLineDiv = null;
+  }
+  if (promptFlushTimer) { clearTimeout(promptFlushTimer); promptFlushTimer = null; }
+
+  // Append to partial buffer
+  outputBuffer += raw;
+
+  // Process complete lines (keep final partial)
+  const lines = outputBuffer.split('\n');
+  outputBuffer = lines.pop(); // last element may be incomplete
+  lines.forEach(line => processLine(line.replace(/\r/g, '')));
+
+  // If there is still content in the buffer after processing all complete
+  // lines, it is an unterminated prompt (e.g. "Who would you like to be
+  // known as? ").  Wait 50 ms — if no further data arrives it is safe to
+  // render it.  If more data does arrive handleServerData will be called
+  // again, the timer will be cleared, and we reprocess cleanly.
+  if (outputBuffer.trim()) {
+    promptFlushTimer = setTimeout(flushPromptBuffer, 50);
+  }
+}
+
+function flushPromptBuffer() {
+  promptFlushTimer = null;
+  if (!outputBuffer.trim()) return;
+  const html = ansiToHtml(outputBuffer.replace(/\r/g, ''));
+  const div  = document.createElement('div');
+  div.className = 'line prompt-line';
+  div.innerHTML = html;
+  output.appendChild(div);
+  promptLineDiv = div;         // remember it so we can remove it if more data arrives
+  if (!userScrolledUp && !scrollPending) {
+    scrollPending = true;
+    requestAnimationFrame(_scrollToBottom);
+  }
+  // Do NOT clear outputBuffer — the server expects us to wait for the
+  // player's reply on the same logical line.
+}
+
+function processLine(line) {
+  // A completed line clears any lingering prompt div
+  if (promptLineDiv && promptLineDiv.parentNode) {
+    promptLineDiv.parentNode.removeChild(promptLineDiv);
+    promptLineDiv = null;
+  }
+  const html = ansiToHtml(line);
+  appendLine(html, 'line');
+  checkTriggers(line);
+}
+
+function stripTelnet(data) {
+  // Remove IAC sequences (very basic — expand for full telnet negotiation)
+  return data.replace(/\xFF[\xFB-\xFE]./g, '').replace(/\xFF\xFF/g, '\xFF');
+}
+
+// ─────────────────────────────────────────────
+//  ANSI → HTML
+// ─────────────────────────────────────────────
+function ansiToHtml(text) {
+  const escapeHtml = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let result = '';
+  let openSpans = 0;
+  const parts = text.split(/\x1b\[([0-9;]*)m/);
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 0) {
+      result += escapeHtml(parts[i]);
+    } else {
+      const codes = parts[i].split(';').map(Number);
+      let classes = [];
+      codes.forEach(c => {
+        if (c === 0) {
+          if (openSpans > 0) { result += '</span>'.repeat(openSpans); openSpans = 0; }
+        } else {
+          classes.push('ansi-' + c);
+        }
+      });
+      if (classes.length) {
+        result += `<span class="${classes.join(' ')}">`;
+        openSpans++;
+      }
+    }
+  }
+  if (openSpans > 0) result += '</span>'.repeat(openSpans);
+  return result;
+}
+
+// ─────────────────────────────────────────────
+//  OUTPUT
+// ─────────────────────────────────────────────
+const output = document.getElementById('output');
+
+// Track whether the user has manually scrolled up.
+// We only suppress auto-scroll when they have — any other time we
+// always follow the bottom so new game output is always visible.
+let userScrolledUp = false;
+let scrollPending  = false;
+
+output.addEventListener('scroll', () => {
+  // Consider the user "at the bottom" if within 40px — covers rounding
+  // and sub-pixel rendering differences across browsers.
+  const distFromBottom = output.scrollHeight - output.scrollTop - output.clientHeight;
+  userScrolledUp = distFromBottom > 40;
+});
+
+function _scrollToBottom() {
+  scrollPending = false;
+  output.scrollTop = output.scrollHeight;
+}
+
+function appendLine(html, cls) {
+  const div = document.createElement('div');
+  div.className = 'line ' + (cls || '');
+  div.innerHTML = html;
+  output.appendChild(div);
+
+  // Trim old lines (keep max 5000)
+  while (output.childElementCount > 5000) output.removeChild(output.firstChild);
+
+  // Scroll to bottom after paint unless the user has scrolled up to read.
+  // requestAnimationFrame waits until the browser has rendered the new node,
+  // so scrollHeight is accurate when we measure / set it.
+  if (!userScrolledUp && !scrollPending) {
+    scrollPending = true;
+    requestAnimationFrame(_scrollToBottom);
+  }
+}
+
+function sysEcho(msg, cls) {
+  appendLine('&#x25B8; ' + escHtml(msg), 'sys ' + (cls||''));
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─────────────────────────────────────────────
+//  COMMAND INPUT
+// ─────────────────────────────────────────────
+function handleInput(e) {
+  const input = document.getElementById('cmd-input');
+  if (e.key === 'Enter') {
+    sendCommand();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (historyIndex < cmdHistory.length - 1) {
+      historyIndex++;
+      input.value = cmdHistory[cmdHistory.length - 1 - historyIndex];
+    }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (historyIndex > 0) {
+      historyIndex--;
+      input.value = cmdHistory[cmdHistory.length - 1 - historyIndex];
+    } else {
+      historyIndex = -1;
+      input.value = '';
+    }
+  }
+}
+
+function sendCommand() {
+  const input = document.getElementById('cmd-input');
+  let cmd = input.value;
+  if (!cmd) return;
+  input.value = '';
+  historyIndex = -1;
+
+  // Add to history (avoid duplicates)
+  if (cmdHistory[cmdHistory.length-1] !== cmd) cmdHistory.push(cmd);
+  if (cmdHistory.length > 200) cmdHistory.shift();
+
+  // Expand aliases
+  cmd = expandAlias(cmd);
+
+  // Echo locally
+  appendLine('&gt; ' + escHtml(cmd), 'echo');
+
+  // Send to server
+  if (!sendRaw(cmd)) {
+    sysEcho('Not connected. Use Connect first.', 'err');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  ALIAS EXPANSION
+// ─────────────────────────────────────────────
+function expandAlias(cmd) {
+  const parts = cmd.split(/\s+/);
+  const name = parts[0];
+  const alias = aliases.find(a => a.enabled && a.name === name);
+  if (!alias) return cmd;
+  let expanded = alias.expand;
+  // Replace $1, $2… with args
+  for (let i = 1; i < parts.length; i++) {
+    expanded = expanded.replace(new RegExp('\\$'+i, 'g'), parts[i]);
+  }
+  // Remove unused placeholders
+  expanded = expanded.replace(/\$\d+/g, '').trim();
+  log(`Alias: "${cmd}" → "${expanded}"`);
+  return expanded;
+}
+
+// ─────────────────────────────────────────────
+//  TRIGGERS
+// ─────────────────────────────────────────────
+function checkTriggers(line) {
+  triggers.forEach(t => {
+    if (!t.enabled) return;
+    try {
+      let matched = false;
+      let captures = [];
+      if (t.useRegex) {
+        const flags = t.caseInsensitive ? 'i' : '';
+        const re = new RegExp(t.pattern, flags);
+        const m = line.match(re);
+        if (m) { matched = true; captures = Array.from(m); }
+      } else {
+        const a = t.caseInsensitive ? line.toLowerCase() : line;
+        const b = t.caseInsensitive ? t.pattern.toLowerCase() : t.pattern;
+        if (a.includes(b)) matched = true;
+      }
+      if (matched) {
+        match = captures;
+        executeTriggerAction(t.action, line);
+      }
+    } catch(ex) {
+      log('Trigger error [' + t.pattern + ']: ' + ex.message);
+    }
+  });
+}
+
+function executeTriggerAction(action, sourceLine) {
+  const colonIdx = action.indexOf(':');
+  if (colonIdx === -1) {
+    // bare text → send
+    sendRaw(action);
+    return;
+  }
+  const type = action.substring(0, colonIdx).trim().toLowerCase();
+  const payload = action.substring(colonIdx + 1).trim();
+
+  switch(type) {
+    case 'send':
+      sendRaw(payload);
+      log('Trigger fired → send: ' + payload);
+      break;
+    case 'echo':
+      appendLine('&#x2605; ' + escHtml(payload), 'line trig');
+      break;
+    case 'notify':
+      if (Notification.permission === 'granted') {
+        new Notification('MUD', { body: payload });
+      } else {
+        appendLine('&#x2605; NOTIFY: ' + escHtml(payload), 'line trig');
+      }
+      log('Trigger fired → notify: ' + payload);
+      break;
+    case 'script':
+      try {
+        // payload is a JS expression / function call
+        evalScript(payload);
+      } catch(ex) {
+        log('Trigger script error: ' + ex.message);
+      }
+      break;
+    default:
+      log('Unknown trigger action type: ' + type);
+  }
+}
+
+// ─────────────────────────────────────────────
+//  SCRIPTING
+// ─────────────────────────────────────────────
+
+// Public API exposed to scripts
+function send(cmd) { 
+  appendLine('&gt; ' + escHtml(cmd), 'echo');
+  if (!sendRaw(cmd)) scriptLog('Not connected', true);
+}
+function echo(msg) { appendLine(escHtml(String(msg)), 'line'); }
+
+function evalScript(code) {
+  // Runs in a function scope with the API available
+  const fn = new Function('send','echo','vars','match','log',
+    '"use strict";\n' + code
+  );
+  fn(send, echo, vars, match, msg => scriptLog(msg));
+}
+
+function runScript() {
+  const code = document.getElementById('script-editor').value;
+  try {
+    evalScript(code);
+  } catch(ex) {
+    scriptLog('Error: ' + ex.message, true);
+  }
+}
+
+function scriptLog(msg, isError) {
+  const out = document.getElementById('script-output');
+  const span = document.createElement('div');
+  span.className = isError ? 'script-err' : '';
+  span.textContent = msg;
+  out.appendChild(span);
+  out.scrollTop = out.scrollHeight;
+}
+
+function clearScriptOutput() {
+  document.getElementById('script-output').innerHTML = '';
+}
+
+// ─────────────────────────────────────────────
+//  TRIGGERS UI
+// ─────────────────────────────────────────────
+function addTrigger() {
+  const pattern = document.getElementById('trig-pattern').value.trim();
+  const action  = document.getElementById('trig-action').value.trim();
+  if (!pattern || !action) { alert('Fill in pattern and action.'); return; }
+  const useRegex = document.getElementById('trig-re').checked;
+  const caseInsensitive = document.getElementById('trig-ci').checked;
+  // Validate regex
+  if (useRegex) {
+    try { new RegExp(pattern); } catch(ex) { alert('Invalid regex: ' + ex.message); return; }
+  }
+  triggers.push({ id: Date.now(), pattern, action, useRegex, caseInsensitive, enabled: true });
+  saveTriggers();
+  renderTriggers();
+  document.getElementById('trig-pattern').value = '';
+  document.getElementById('trig-action').value = '';
+}
+
+function renderTriggers() {
+  const list = document.getElementById('trigger-list');
+  list.innerHTML = '';
+  triggers.forEach((t, i) => {
+    const el = document.createElement('div');
+    el.className = 'list-item' + (t.enabled ? '' : ' disabled');
+    el.innerHTML = `
+      <div class="info">
+        <div class="name">${escHtml(t.pattern)}</div>
+        <div class="detail">${escHtml(t.action)}</div>
+      </div>
+      <div class="actions">
+        <button class="icon-btn toggle" title="Toggle" onclick="toggleTrigger(${i})">&#x25CF;</button>
+        <button class="icon-btn del"    title="Delete" onclick="deleteTrigger(${i})">&#x2715;</button>
+      </div>`;
+    list.appendChild(el);
+  });
+}
+
+function toggleTrigger(i) {
+  triggers[i].enabled = !triggers[i].enabled;
+  saveTriggers(); renderTriggers();
+}
+function deleteTrigger(i) {
+  triggers.splice(i, 1);
+  saveTriggers(); renderTriggers();
+}
+function saveTriggers() { localStorage.setItem('mud_triggers', JSON.stringify(triggers)); }
+
+// ─────────────────────────────────────────────
+//  ALIASES UI
+// ─────────────────────────────────────────────
+function addAlias() {
+  const name   = document.getElementById('alias-name').value.trim();
+  const expand = document.getElementById('alias-expand').value.trim();
+  if (!name || !expand) { alert('Fill in alias name and expansion.'); return; }
+  // Replace or add
+  const existing = aliases.findIndex(a => a.name === name);
+  if (existing >= 0) aliases[existing] = { name, expand, enabled: true };
+  else aliases.push({ name, expand, enabled: true });
+  saveAliases(); renderAliases();
+  document.getElementById('alias-name').value = '';
+  document.getElementById('alias-expand').value = '';
+}
+
+function renderAliases() {
+  const list = document.getElementById('alias-list');
+  list.innerHTML = '';
+  aliases.forEach((a, i) => {
+    const el = document.createElement('div');
+    el.className = 'list-item' + (a.enabled ? '' : ' disabled');
+    el.innerHTML = `
+      <div class="info">
+        <div class="name">${escHtml(a.name)}</div>
+        <div class="detail">→ ${escHtml(a.expand)}</div>
+      </div>
+      <div class="actions">
+        <button class="icon-btn toggle" title="Toggle" onclick="toggleAlias(${i})">&#x25CF;</button>
+        <button class="icon-btn del"    title="Delete" onclick="deleteAlias(${i})">&#x2715;</button>
+      </div>`;
+    list.appendChild(el);
+  });
+}
+
+function toggleAlias(i) { aliases[i].enabled = !aliases[i].enabled; saveAliases(); renderAliases(); }
+function deleteAlias(i) { aliases.splice(i, 1); saveAliases(); renderAliases(); }
+function saveAliases() { localStorage.setItem('mud_aliases', JSON.stringify(aliases)); }
+
+// ─────────────────────────────────────────────
+//  SYSTEM LOG
+// ─────────────────────────────────────────────
+let logLines = [];
+function log(msg) {
+  const ts = new Date().toLocaleTimeString();
+  logLines.push('[' + ts + '] ' + msg);
+  if (logLines.length > 500) logLines.shift();
+  const list = document.getElementById('system-log');
+  const el = document.createElement('div');
+  el.textContent = logLines[logLines.length-1];
+  list.appendChild(el);
+  list.scrollTop = list.scrollHeight;
+}
+function clearLog() { logLines = []; document.getElementById('system-log').innerHTML = ''; }
+function exportLog() {
+  const blob = new Blob([logLines.join('\n')], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mud-log-' + Date.now() + '.txt';
+  a.click();
+}
+
+// ─────────────────────────────────────────────
+//  UI NAVIGATION
+// ─────────────────────────────────────────────
+function showView(v) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  // In this single-pane layout the side panel is always visible
+  // "settings" just highlights the panel; terminal is always on
+}
+
+function switchPanel(name) {
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.panel-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+function setStatus(isConnected) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  if (isConnected) {
+    dot.classList.add('connected');
+    txt.textContent = 'Connected';
+  } else {
+    dot.classList.remove('connected');
+    txt.textContent = 'Disconnected';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  RESIZE HANDLE
+// ─────────────────────────────────────────────
+function startResize(e) {
+  e.preventDefault();
+  const panel = document.getElementById('side-panel');
+  const startX = e.clientX;
+  const startW = panel.offsetWidth;
+  function onMove(e) {
+    const w = Math.max(200, Math.min(600, startW + startX - e.clientX));
+    panel.style.width = w + 'px';
+  }
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+// ─────────────────────────────────────────────
+//  NOTIFICATIONS PERMISSION
+// ─────────────────────────────────────────────
+if (Notification && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+renderTriggers();
+renderAliases();
+sysEcho('MUD//TERM ready. Set host and port, then Connect.');
+sysEcho('Triggers, aliases and scripts are saved in your browser.');
+sysEcho('For scripting API: send(cmd), echo(msg), vars{}, match[]');
+document.getElementById('cmd-input').focus();
+log('Client initialized');
+</script>
+</body>
+</html>

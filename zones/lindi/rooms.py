@@ -5,7 +5,7 @@ from . import mobs    as M
 ROOMS: dict[int, Room] = {
     5: Room({
         "number": 5,
-        "name": "Mrs.Allisons class",
+        "name": "Mrs. Allisons class",
         "description": "you are in a room, a plethora of fancy historical dupes surround you on the walls",
         "indoors": True,
         "terrain": "ground",

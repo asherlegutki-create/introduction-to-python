@@ -66,6 +66,21 @@ TEMPLATES: dict[str, dict] = {
         "hitroll": 15,
         "damroll": 20,
     },
+    "cheese scroll": {
+        "spawn_as": Item,
+        "name": "a cheese scroll",
+        "key_words": ("cheese", "scroll"),
+        "room_description": "an &bunderwater&N &Ycheese scroll&N is lying on the ground here.",
+        "description": "This ancient scroll says that there is a secret recipe for the best cheese in the world hidden somewhere in this zone. It also says that the recipe is written in a code that can only be deciphered by someone who likes reading books.",
+        "weight": 25,
+     },
+     "cheese book": {
+        "spawn_as": Object,
+        "name": "a cheese book",
+        "key_words": ("cheese", "book"),
+        "room_description": "an &bunderwater &Ycheese book&N is lying on the ground here.",
+        "description": "This book is about cheese. It has pictures of different types of cheese.",
+        "weight": 2,}
 
 }
 
