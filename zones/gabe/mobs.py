@@ -14,21 +14,6 @@ from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
 TEMPLATES: dict[str, dict] = {
-    "wandering_student": {
-        "name": "a wandering student",
-        "key_words": ("student", "wandering"),
-        "room_description": "&wA wandering student meanders about aimlessly.&N",
-        "description": (
-            "A student with a faraway look, clearly lost in thought.\n"
-            "Or possibly just lost."
-        ),
-        "race": "Human",
-        "class": "Student",
-        "level": 1,
-        "stats": [60, 65, 60, 80, 70, 75],
-        "aggro": False,
-        "wander": True,
-    },
     "the cheese monster": {
         "name": "the cheese monster",
         "key_words": ("cheese", "monster", "m"),
@@ -60,6 +45,7 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "wander": False,
         },
+
     "the cheese spirit": {
         "name": "the cheese spirit",
         "key_words": ("cheese", "spirit", "sp"),
@@ -106,9 +92,24 @@ TEMPLATES: dict[str, dict] = {
         "stats": [35, 10, 25, 15, 40, 100],
         "aggro": False,
         "wander": True,
-    }
+    },
+
+    "the cheese librarian": {
+        "name": "&Wthe&N &bunderwater&N &Yc&N&yh&Y&N&ye&ye&Ys&N&ye&N &Blibrarian",
+        "key_words": ("cheese", "librarian"),
+        "room_description": "&Wthe&N &Yc&N&yh&Y&N&ye&ye&Ys&N&ye&N &Blibrarian &Wsits thinking about a secret person that must hold a lot of secrets",
+        "description": (
+            "a cheese librarian sitting here thinking about a secret person that must hold a lot of secrets "
+        ),
+        "race": "cheese",
+        "class": "librarian guy",
+        "level": 30,
+        "stats": [50, 50, 50, 50, 50, 50],
+        "aggro": False,
+        "wander": False,
+
+    },
+
 }
-
-
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
 spawn = make_spawner(TEMPLATES, lambda: Mob)

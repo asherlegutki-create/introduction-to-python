@@ -81,7 +81,7 @@ ROOMS: dict[int, Room] = {
             "exits": [
                 {"direction": "north",  "roomId":3},
                  {"direction": "south", "roomId":3},
-                {"direction": "east",   "roomId":3},
+                {"direction": "east",   "roomId":4},
                 {"direction": "west",   "roomId":3},
                 {"direction": "up",     "roomId":2},
                 {"direction": "down",   "roomId":3},
@@ -89,6 +89,32 @@ ROOMS: dict[int, Room] = {
             "mobs": [
                 M.spawn("the cheez fih"),
             ],
+
+
+        },
+    ),
+    4: Room(
+        {
+            "number": 4,
+            "name": "&Wthe&N &bunderwater&N &ycheese&N &Wlibrary&N",
+            "description": "The &bunderwater&N &WCheese&N &yLibrary&N &Wis a&N &mquiet&N &Wplace filled with shelves of books made of&N &ycheese.&N &WThe air is thick with the scent of aged&N &Ycheddar&N &Wand the sound of pages turning. The library is a haven for those seeking&N &Gk&N&bn&N&Go&N&bw&N&Gl&N&be&N&Gd&N&bg&N&Ge&N &Wabout all things&N &ycheese&N-&Wrelated.&N",
+            "indoors": True,
+            "terrain": "library",
+            "exits": [
+                {"direction": "north", "roomId": 3},
+                {"direction": "south", "roomId": 3},
+                {"direction": "east",  "roomId": 3},
+                {"direction": "west",  "roomId": 3},
+                {"direction": "up",    "roomId": 3},
+                {"direction": "down",  "roomId": 3},
+            ],
+            "objects": [
+                O.spawn("cheese book"),
+                O.spawn("cheese scroll"),
+            ],
+                "mobs": [
+                    M.spawn("the cheese librarian"),
+                ],
 
 
         },

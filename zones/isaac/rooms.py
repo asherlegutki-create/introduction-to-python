@@ -18,17 +18,16 @@ ROOMS: dict[int, Room] = {
     1: Room(
         {
             "number": 1,
-            "name": "&gOregon&N",
+            "name": "&WNW&N &GOregon&N",
             "description": (
-                "Oregon",
-                "This room is covered in green trees.",
-                "Abundant grass and moss is soft under your feet.",
+                "This area is covered in &Ggreen trees&N.",
+                "&GAbundant grass&N &wand&N &Gmoss&N is soft under your feet.",
             ),
             "indoors": False,
             "terrain": "no ground",
             "exits": [
-                {"direction": "north", "roomId": 3},
-                {"direction": "west", "roomId": 11},
+                {"direction": "south", "roomId": 2},
+                {"direction": "east", "roomId": 3},
                 {"direction": "down", "roomId": 99003, "external": True},
             ],
             "objects": [
@@ -43,41 +42,38 @@ ROOMS: dict[int, Room] = {
     2: Room(
         {
             "number": 2,
-            "name": "&bWater&N",
+            "name": "&WSW&N &GOregon&N",
             "description": (
-                "&BWATER. . . WATER EVERYWHERE. . .&N\n"
-                "&BYOU ARE SWIMMING IN AN ENDLESS NOTHING. . .&N\n"
-                "&BALL YOU SEE IS BLUE. . .&N                                                                                                                                      &X<><&N\n"
-                "&BWATER. . . WATER EVERYWHERE. . .&N\n"
+                "This area is covered in &Ggreen trees&N.",
+                "&GAbundant grass&N &wand&N &Gmoss&N is soft under your feet.",
             ),
             "indoors": False,
             "terrain": "no ground",
             "exits": [
-                {"direction": "north", "roomId": 2},
-                {"direction": "south", "roomId": 2},
-                {"direction": "east", "roomId": 2},
-                {"direction": "west", "roomId": 2},
-                {"direction": "up", "roomId": 12},
-                {"direction": "down", "roomId": 2},
+                {"direction": "north", "roomId": 1},
+                {"direction": "east", "roomId": 4},
+            ],
+            "objects": [
+                # O.spawn(),
+            ],
+            "mobs": [
+                M.spawn("duck"),
             ],
         }
     ),
     3: Room(
         {
             "number": 3,
-            "name": "Washington",
+            "name": "&WNE&N &GOregon&N",
             "description": (
-                "Washington",
-                "",
+                "There are no trees here.",
+                "There is sand, but it's &Ggreen&N for some reason...",
             ),
             "indoors": False,
             "terrain": "no ground",
             "exits": [
-                {"direction": "south", "roomId": 1},
-                # {"direction": "east", "roomId": 2},
-                # {"direction": "west", "roomId": 3},
-                # {"direction": "up", "roomId": 1},
-                # {"direction": "down", "roomId": 2},
+                {"direction": "west", "roomId": 1},
+                {"direction": "south", "roomId": 4},
             ],
             "objects": [O.spawn("street_lamp")],  # make new object later
             "mobs": [
@@ -87,16 +83,19 @@ ROOMS: dict[int, Room] = {
             ],
         }
     ),
-    11: Room(
+    4: Room(
         {
-            "number": 11,
-            "name": "ROOM_<11>",
-            "description": ("Metal."),
+            "number": 4,
+            "name": "&WSW&N &GOregon&N",
+            "description": (
+                "There are no trees here.",
+                "There is sand, but it's &Ggreen&N for some reason...",
+            ),
             "indoors": False,
             "terrain": "no ground",
             "exits": [
-                {"direction": "east", "roomId": 1},
-                {"direction": "south", "roomId": 12},
+                {"direction": "west", "roomId": 2},
+                {"direction": "north", "roomId": 3},
             ],
             "objects": [
                 O.spawn("metal_pipe"),
@@ -108,20 +107,26 @@ ROOMS: dict[int, Room] = {
             ],
         }
     ),
-    12: Room(
-        {
-            "number": 12,
-            "name": "Unnamed",
-            "description": ("A &ywooden trap door&N on the floor seems inviting."),
-            "indoors": False,
-            "terrain": "no ground",
-            "exits": [
-                {"direction": "north", "roomId": 11},
-                # {"direction": "west", "roomId": 4},
-                {"direction": "down", "roomId": 2},
-            ],
-            "objects": [],
-            "mobs": [],
-        }
-    ),
+    # 2: Room(
+    #    {
+    #        "number": 2,
+    #        "name": "&bWater&N",
+    #        "description": (
+    #            "&BWATER. . . WATER EVERYWHERE. . .&N\n"
+    #            "&BYOU ARE SWIMMING IN AN ENDLESS NOTHING. . .&N\n"
+    #            "&BALL YOU SEE IS BLUE. . .&N                                                                                                                                      &X<><&N\n"
+    #            "&BWATER. . . WATER EVERYWHERE. . .&N\n"
+    #        ),
+    #        "indoors": False,
+    #        "terrain": "no ground",
+    #        "exits": [
+    #            {"direction": "north", "roomId": 2},
+    #            {"direction": "south", "roomId": 2},
+    #            {"direction": "east", "roomId": 2},
+    #            {"direction": "west", "roomId": 2},
+    #            {"direction": "up", "roomId": 12},
+    #            {"direction": "down", "roomId": 2},
+    #        ],
+    #    }
+    # ),
 }
