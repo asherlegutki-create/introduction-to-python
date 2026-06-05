@@ -57,7 +57,7 @@ TEMPLATES: dict[str, dict] = {
         "two_handed": True,
         "weight": 4,
         "dice": "3d6",
-        "hitroll": 5,
+        "hitroll": 5,  # make a sign with a code
         "damroll": 5,
     },
     "gear": {
