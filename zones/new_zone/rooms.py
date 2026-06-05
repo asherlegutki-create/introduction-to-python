@@ -18,12 +18,13 @@ ROOMS: dict[int, Room] = {
             {"direction": "north", "roomId": 2},
             {"direction": "west",  "roomId": 3},
             {"direction": "east",  "roomId": 4},
-            {"direction": "south", "roomId": 5},
+            {"direction":chest_key "south", "roomId": 5},
             {"direction": "down",  "roomId": 6},
             {"direction": "up",  "roomId": 7}
         ],
         "objects": [
-            O.spawn("chest_key")
+            O.spawn("chest_key"),
+            O.spawn("heal_potion")
         ],
         "mobs": [M.spawn("wandering_student")],   # escbaalion is not in this zone's mobs.py
     }),

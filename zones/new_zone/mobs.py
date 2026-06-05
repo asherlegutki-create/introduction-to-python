@@ -44,7 +44,7 @@ TEMPLATES: dict[str, dict] = {
                    "He asks you '&LCan you help me find my way to class?&N'"),
             "class": ("He replies '&LI am a student in Mrs. Allison's class, or is it Miss Allison?&N'"),
             "grade": ("He replies '&L'Oh I'm in 7th grade thank you!&N'"),
-            "looser": _student_attack
+            "loser": _student_attack
             }
     }
 }
