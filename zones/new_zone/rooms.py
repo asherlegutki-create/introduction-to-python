@@ -18,7 +18,7 @@ ROOMS: dict[int, Room] = {
             {"direction": "north", "roomId": 2},
             {"direction": "west",  "roomId": 3},
             {"direction": "east",  "roomId": 4},
-            {"direction":chest_key "south", "roomId": 5},
+            {"direction": "south", "roomId": 5},
             {"direction": "down",  "roomId": 6},
             {"direction": "up",  "roomId": 7}
         ],
