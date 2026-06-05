@@ -65,19 +65,19 @@ TEMPLATES: dict[str, dict] = {
         "dice": "7d10",
         "hitroll": 4,
         "damroll": 8,
-        "proc": "solarslash",
+        "proc": "windsong",
         "powers": [
             {
                 "keywords":       ("SolarSlash", "ss"),
                 "name":           "Solar Slash",
                 "cooldown_ticks": 4,
-                "effect":         "apply_fireball",
+                "effect":         "apply_damage",
                 "user_msg": (
-                    "&W{name}'s &Ychez&N &Rd&N&re&Rs&N&rt&Rr&N&ro&N&ry&Re&N&rr&N &Wglows brightly&N as it unleashes a blazing slash!&N"
+                    "&W your &Ychez&N &Rd&N&re&Rs&N&rt&Rr&N&ro&N&ry&Re&N&rr&N &Wglows brightly&N as it unleashes a blazing slash!&N"
                     "&WThe air around the attack shimmers with intense &rheat&N, and a wave of &Rfire&N surges forward, engulfing the target in &Rf&N&rl&N&Ra&N&rm&N&Re&N&rs&N!&N"
                 ),
                 "room_msg": (
-                    "&c{name}'s &Ychez&N &Rd&N&re&Rs&N&rt&Rr&N&ro&N&ry&Re&N&rr&N &Wglows brightly&N as it unleashes a blazing slash!&N"
+                    "&c wan_juans &Ychez&N &Rd&N&re&Rs&N&rt&Rr&N&ro&N&ry&Re&N&rr&N &Wglows brightly&N as it unleashes a blazing slash!&N"
                     "A &Rf&N&rl&N&Ra&N&rm&N&Re&N&rs&N!&N &cEnergy surges through it!&N"
                 ),
             },

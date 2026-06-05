@@ -24,11 +24,7 @@ ROOMS: dict[int, Room] = {
             "terrain": "cheese",
             "exits": [
                 {"direction": "north", "roomId": 99003, "external": True},
-                {"direction": "south", "roomId": 1},
                 {"direction": "east", "roomId": 2},
-                {"direction": "west", "roomId": 3},
-                {"direction": "up", "roomId": 1},
-                {"direction": "down", "roomId": 1},
             ],
             "objects": [
                 O.spawn("cheese wheel"),
