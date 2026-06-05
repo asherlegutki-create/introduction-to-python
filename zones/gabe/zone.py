@@ -1,3 +1,3 @@
 number = 7
-name=""
-author=""
+name="cheese zone"
+author="gabgab"
