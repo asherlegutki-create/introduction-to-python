@@ -126,6 +126,7 @@ _COMMAND_MAP: dict[str, str] = {
     "ask":      "ask",
     "quaff":    "quaff",    "qu": "quaff",
     "recite":   "recite",   "re": "recite",
+    "say": "say",
 }
 
 
@@ -300,6 +301,7 @@ class GameState:
         if verb == "kill":     return self._cmd_kill(args)
         if verb == "flee":     return self._cmd_flee()
         if verb == "ask":      return self._cmd_ask(args)
+        if verb == "say":      return self._cmd_say(args)
         if verb == "quaff":    return self._cmd_quaff(args)
         if verb == "recite":   return self._cmd_recite(args)
         if verb == "consider": return self._cmd_consider(args)
@@ -1386,6 +1388,9 @@ class GameState:
             f"  &wRace:&N       {target.race}",
             f"  &wClass:&N      {target.cclass}",
         ])
+
+    def _cmd_say(self, args) -> str:
+        return f"You say '{" ".join(args)}'"
 
     def _cmd_ask(self, args) -> str:
         """
