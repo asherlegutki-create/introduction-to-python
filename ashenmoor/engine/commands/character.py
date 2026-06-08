@@ -15,7 +15,7 @@ def cmd_score(state) -> str:
     if not char:
         return "&RNo character found.&N"
 
-    from ...dnd.xp      import level_for_xp, XP_TABLE, MAX_LEVEL
+    from ...dnd.xp        import level_for_xp, XP_TABLE, MAX_LEVEL
     from ...world.effects import format_effects
 
     xp            = getattr(char, "xp", 0)
@@ -25,8 +25,15 @@ def cmd_score(state) -> str:
 
     hp     = getattr(char, "hp",        char.max_hp)
     mhp    = getattr(char, "max_hp",    1)
+    temp   = getattr(char, "temp_hp",   0)
     moves  = getattr(char, "moves",     100)
     mmoves = getattr(char, "max_moves", 100)
+
+    # HP display — show temp_hp when rally is active
+    if temp > 0:
+        hp_str = f"&M{hp + temp}&w(&W{mhp}&w + &M{temp}&w temp)&N"
+    else:
+        hp_str = f"&W{hp}&w(&W{mhp}&w)&N"
 
     def _coin_line(label, c):
         return (
@@ -57,11 +64,24 @@ def cmd_score(state) -> str:
         else:
             rest_str = "\n&wResting:&N  fully rested (type &Wstand&w to stop)&N"
 
+    # Subclass display
+    dnd      = getattr(char, "dnd", {}) or {}
+    subclass = dnd.get("subclass")
+    if subclass:
+        subclass_str = subclass.replace("_", " ").title()
+        class_str    = f"{char.cclass} ({subclass_str})"
+    elif dnd.get("subclass_pending"):
+        class_str = f"{char.cclass} &R(archetype choice pending!)&N"
+    else:
+        class_str = char.cclass
+
     lines = [
         f"&+WScore information for &N{char.name}\n",
-        f"&wLevel:&N {level:<5} &wRace:&N {char.race:<10} &wSex:&N {getattr(char,'sex','male').capitalize():<8} &wClass:&N {char.cclass}",
-        f"&wHit points:&N &W{hp}&w(&W{mhp}&w)  &wMoves:&N &W{moves}&w(&W{mmoves}&w)",
-        f"&wExperience Progress:&N &W{xp_pct}&w %  &x({xp:,} / {XP_TABLE.get(level+1, xp):,} xp)&N",
+        f"&wLevel:&N {level:<5} &wRace:&N {char.race:<10} "
+        f"&wSex:&N {getattr(char,'sex','male').capitalize():<8} &wClass:&N {class_str}",
+        f"&wHit points:&N {hp_str}  &wMoves:&N &W{moves}&w(&W{mmoves}&w)",
+        f"&wExperience Progress:&N &W{xp_pct}&w %  "
+        f"&x({xp:,} / {XP_TABLE.get(level+1, xp):,} xp)&N",
         _coin_line("Coins carried:   ", coins),
         _coin_line("Coins in bank:   ", bank_coins),
         f"&wPlaying time:&N {days} days / {hours} hours / {mins} minutes",
@@ -145,18 +165,40 @@ def cmd_attributes(state) -> str:
     elif load_pct <= 100: lc, lm = "&+R", "Staggering"
     else:                 lc, lm = "&+R", "OVERLOADED!"
 
+    # Parry info
+    dnd      = getattr(char, "dnd", {}) or {}
+    subclass = dnd.get("subclass", "")
+    cclass   = getattr(char, "cclass", "").lower()
+    parry_str = ""
+    if cclass in ("fighter", "warrior", "ranger"):
+        dex_mod = char_modifier(char, "dex")
+        if subclass == "champion":
+            parry_str = (
+                f"\n&wParry:&N Champion (+prof bonus to roll, 1-in-4 shrug)  "
+                f"&wReduction:&N 2d6{dex_mod:+d}"
+            )
+        else:
+            parry_str = (
+                f"\n&wParry:&N Passive (always on)  "
+                f"&wReduction:&N 2d6{dex_mod:+d}"
+            )
+
     return "\n".join([
         f"&+WCharacter attributes for &N{char.name}\n",
-        f"&wLevel:&N {char.level:<5} &wRace:&N {char.race:<10} &wSex:&N {getattr(char,'sex','male').capitalize():<8} &wClass:&N {char.cclass}",
+        f"&wLevel:&N {char.level:<5} &wRace:&N {char.race:<10} "
+        f"&wSex:&N {getattr(char,'sex','male').capitalize():<8} &wClass:&N {char.cclass}",
         f"&wSize:&N {size}",
         f"&wSTR:&N {str_eff:>4}  &wDEX:&N {dex_eff:>4}  &wCON:&N {con_eff:>4}",
         f"&wINT:&N {int_eff:>4}  &wWIS:&N {wis_eff:>4}  &wCHA:&N {cha_eff:>4}",
         f"&wArmor Class:&N {ac}",
         f"&wHitroll:&N {hitroll:+d}   &wDamroll:&N {damroll:+d}",
         f"&wAlignment:&N {getattr(char,'alignment','True Neutral')}",
-        f"&wSaving Throws:&N PAR[{_sv(par)}]  ROD[{_sv(rod)}]  PET[{_sv(pet)}]  BRE[{_sv(bre)}]  SPE[{_sv(spe)}]",
+        f"&wSaving Throws:&N PAR[{_sv(par)}]  ROD[{_sv(rod)}]  "
+        f"PET[{_sv(pet)}]  BRE[{_sv(bre)}]  SPE[{_sv(spe)}]",
         f"   &wWimpy:&N {wimpy_str}",
-        f"&wLoad carried:&N {lc}{lm}&N  &x({inv_weight:.1f}/{max_weight:.0f} lbs | {inv_items}/{max_items} items)&N",
+        f"&wLoad carried:&N {lc}{lm}&N  "
+        f"&x({inv_weight:.1f}/{max_weight:.0f} lbs | {inv_items}/{max_items} items)&N"
+        + parry_str,
     ])
 
 
@@ -217,69 +259,132 @@ def cmd_powers(state) -> str:
 
     from ..game import _collect_tagged_powers, _power_key, _TICK_INTERVAL, _SLOT_LABELS
 
-    # Ensure class powers are present — they may be missing on older saved characters
+    # Ensure class powers are present
     if not getattr(char, "powers", []):
         cclass = getattr(char, "cclass", "").lower()
-        if cclass in ("warrior", "fighter"):
-            from ...dnd.classes.warrior import WARRIOR_POWERS
-            char.powers = WARRIOR_POWERS
+        if cclass in ("fighter", "warrior"):
+            from ...dnd.classes.fighter import FIGHTER_POWERS, BATTLEMASTER_POWERS
+            dnd      = getattr(char, "dnd", {}) or {}
+            subclass = dnd.get("subclass")
+            char.powers = list(FIGHTER_POWERS)
+            if subclass == "battle_master":
+                char.powers += BATTLEMASTER_POWERS
 
     all_powers = _collect_tagged_powers(char)
     if not all_powers:
         return "&wYou have no powers.&N"
 
-    now   = _t.monotonic()
+    dnd      = getattr(char, "dnd", {}) or {}
+    subclass = dnd.get("subclass")
+    now      = _t.monotonic()
+
+    # Header
     lines = [
         f"&W{'Power':<28} {'Keywords':<22} Status&N",
         "&w" + "─" * 64 + "&N",
     ]
 
-    for p in all_powers:
-        raw_name = p.get("name", "?")
-        slot     = p.get("_slot")
-        label    = f" &x({_SLOT_LABELS.get(slot, slot)})&N" if slot else ""
-        display  = f"{raw_name}{label}"
-        keywords = ", ".join(p.get("keywords", ()))
-        pkey     = _power_key(p)
+    # ── Base Fighter powers ───────────────────────────────────────────────
+    lines.append("&wBase Fighter&N")
 
-        # ── Charge-based powers (Second Wind, Action Surge, Indomitable) ──────
-        # These are gated by dnd charges, not a time cooldown.
-        charges_key = p.get("charges_key")
-        if charges_key:
-            dnd     = getattr(char, "dnd", {}) or {}
-            charges = dnd.get(charges_key, 0)
-            max_key = charges_key.replace("_uses", "_max")
-            maximum = dnd.get(max_key, 0)
-            if charges > 0:
-                status = f"&G{charges}&w/&W{maximum}&w charges&N"
-            else:
-                rest_type = p.get("rest_type", "short")
-                status = f"&RNo charges — {rest_type} rest to restore&N"
+    base_effects = {"second_wind", "action_surge", "indomitable"}
+    base_powers  = [p for p in all_powers if p.get("effect") in base_effects]
+    other_powers = [p for p in all_powers if p.get("effect") not in base_effects
+                    and not p.get("_slot")]
+    equip_powers = [p for p in all_powers if p.get("_slot")]
 
-        # ── Time-cooldown powers (weapon procs, active abilities) ─────────────
-        else:
-            ready_at = state._power_cooldowns.get(pkey, 0)
-            if now >= ready_at:
-                status = "&Gready&N"
-            else:
-                rem    = (ready_at - now) / _TICK_INTERVAL
-                status = f"&R{rem:.1f} ticks&N"
+    for p in base_powers:
+        lines.append(_fmt_power(p, now, dnd, _TICK_INTERVAL, _SLOT_LABELS, state))
 
-        lines.append(f"{display:<28} &c{keywords:<22}&N {status}")
+    # ── Subclass powers ───────────────────────────────────────────────────
+    if other_powers:
+        sub_label = subclass.replace("_", " ").title() if subclass else "Subclass"
+        lines.append(f"\n&w{sub_label}&N")
+        for p in other_powers:
+            lines.append(_fmt_power(p, now, dnd, _TICK_INTERVAL, _SLOT_LABELS, state))
+
+    # ── Equipment powers ──────────────────────────────────────────────────
+    if equip_powers:
+        lines.append("\n&wEquipment&N")
+        for p in equip_powers:
+            lines.append(_fmt_power(p, now, dnd, _TICK_INTERVAL, _SLOT_LABELS, state))
 
     return "\n".join(lines)
+
+
+def _fmt_power(p, now, dnd, tick_interval, slot_labels, state) -> str:
+    """Format a single power line for cmd_powers."""
+    raw_name = p.get("name", "?")
+    slot     = p.get("_slot")
+    label    = f" &x({slot_labels.get(slot, slot)})&N" if slot else ""
+    display  = f"{raw_name}{label}"
+    keywords = ", ".join(p.get("keywords", ()))
+    pkey     = f"{raw_name}:{slot}" if slot else raw_name
+    effect   = p.get("effect", "")
+
+    # ── Riposte — armed state ─────────────────────────────────────────────
+    if effect == "riposte_arm":
+        sd = dnd.get("superiority_dice", 0)
+        if sd <= 0:
+            status = "&RNo SD remaining&N"
+        elif dnd.get("riposte_armed"):
+            status = "&Garmed — waiting for parry&N"
+        else:
+            status = "&Gready&N"
+
+    # ── Charge-based powers ───────────────────────────────────────────────
+    elif p.get("charges_key"):
+        charges_key = p["charges_key"]
+        charges     = dnd.get(charges_key, 0)
+        max_key     = charges_key.replace("_uses", "_max")
+        maximum     = dnd.get(max_key, 0)
+        if charges > 0:
+            status = f"&G{charges}&w/&W{maximum}&w charges&N"
+        else:
+            rest_type = p.get("rest_type", "short")
+            status = f"&RNo charges — {rest_type} rest to restore&N"
+
+    # ── SD maneuvers — show per-maneuver cooldown ─────────────────────────
+    elif effect.startswith("maneuver_"):
+        maneuver_key = effect.replace("maneuver_", "")
+        cooldowns    = dnd.get("maneuver_cooldowns", {})
+        cd           = cooldowns.get(maneuver_key, 0)
+        sd           = dnd.get("superiority_dice", 0)
+        if sd <= 0:
+            status = "&RNo SD remaining&N"
+        elif cd > 0:
+            status = f"&R{cd} tick{'s' if cd != 1 else ''} cooldown&N"
+        else:
+            status = f"&Gready &x(costs 1d{dnd.get('superiority_die_size', 8)})&N"
+
+    # ── Time-cooldown powers ──────────────────────────────────────────────
+    else:
+        ready_at = state._power_cooldowns.get(pkey, 0)
+        if now >= ready_at:
+            status = "&Gready&N"
+        else:
+            rem    = (ready_at - now) / tick_interval
+            status = f"&R{rem:.1f} ticks&N"
+
+    return f"{display:<28} &c{keywords:<22}&N {status}"
 
 
 def cmd_who(state) -> str:
     if not state.characters:
         return "&wNobody is here.&N"
     lines = [
-        f"&+W{'Name':<15} {'Race':<12} {'Class':<10} {'Level':>5} {'XP':>10}&N",
-        "&w" + "─" * 58 + "&N",
+        f"&+W{'Name':<15} {'Race':<12} {'Class':<16} {'Level':>5} {'XP':>10}&N",
+        "&w" + "─" * 64 + "&N",
     ]
     for char in state.characters.values():
+        dnd      = getattr(char, "dnd", {}) or {}
+        subclass = dnd.get("subclass")
+        if subclass:
+            class_str = f"{char.cclass} ({subclass.replace('_',' ').title()})"
+        else:
+            class_str = char.cclass
         lines.append(
-            f"{char.name:<15} {char.race:<12} {char.cclass:<10} "
+            f"{char.name:<15} {char.race:<12} {class_str:<16} "
             f"{char.level:>5} {getattr(char,'xp',0):>10,}"
         )
     return "\n".join(lines)
@@ -301,10 +406,10 @@ def cmd_toggle(state, args: list) -> str:
     if not args:
         lines = ["&wYour toggles:&N", "&w" + "-" * 44 + "&N"]
         for key, (field, desc) in KNOWN_TOGGLES.items():
-            state   = char.toggles.get(field, True)
-            color   = "&G" if state else "&R"
-            setting = "ON " if state else "OFF"
-            lines.append(f"  &w{key:<16}&N {color}{setting}&N  {desc}")
+            cur   = char.toggles.get(field, True)
+            color = "&G" if cur else "&R"
+            sett  = "ON " if cur else "OFF"
+            lines.append(f"  &w{key:<16}&N {color}{sett}&N  {desc}")
         return "\n".join(lines)
 
     key = args[0].lower()
@@ -312,10 +417,10 @@ def cmd_toggle(state, args: list) -> str:
         opts = ", ".join(KNOWN_TOGGLES)
         return f"&wUnknown toggle &W{key}&w. Options: &W{opts}&N"
 
-    field, desc     = KNOWN_TOGGLES[key]
-    current         = char.toggles.get(field, True)
+    field, desc         = KNOWN_TOGGLES[key]
+    current             = char.toggles.get(field, True)
     char.toggles[field] = not current
-    new_state       = char.toggles[field]
-    color           = "&G" if new_state else "&R"
-    state_str       = "ON" if new_state else "OFF"
+    new_state           = char.toggles[field]
+    color               = "&G" if new_state else "&R"
+    state_str           = "ON" if new_state else "OFF"
     return f"&w{desc}: {color}{state_str}&N"
