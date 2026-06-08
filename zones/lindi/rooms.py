@@ -16,7 +16,7 @@ ROOMS: dict[int, Room] = {
             O.spawn("despicable duo"),
             O.spawn("despicableduo")
         ],
-        "mobs": [M.spawn("malcom")],
+        "mobs": [M.spawn("malcom"), M.spawn("adrian")],
     }),
     6: Room({
         "number": 6,

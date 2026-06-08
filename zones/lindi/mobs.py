@@ -56,7 +56,8 @@ TEMPLATES: dict[str, dict] = {
         "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
         "killable": False,
-        "wander": True
+        "wander": True,
+        
     },
     "Enemy": {
         "name": "Enemy",
@@ -163,6 +164,11 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "killable": False,
         "wander": True,
+        "responses":{
+            "hi": "hi, how are you?",
+            "good": "nice me too",
+            "bad": "that sucks my bestie"
+        }
     },
 }
 
