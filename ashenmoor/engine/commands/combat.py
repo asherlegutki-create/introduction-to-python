@@ -205,12 +205,6 @@ def cmd_rest(state, args: list) -> str:
     if state._player in state.fighting:
         return "&wYou can't rest while in combat!&N"
 
-    if args and args[0].lower() in ("cancel", "stop", "c"):
-        if state._player in state._resting:
-            del state._resting[state._player]
-            return "&wYou stop resting.&N"
-        return "&wYou are not currently resting.&N"
-
     if state._player in state._resting:
         ticks = state._resting[state._player]["ticks"]
         if ticks < 4:
@@ -220,5 +214,8 @@ def cmd_rest(state, args: list) -> str:
         else:
             return "&wYou are resting. Type &Wstand&w when ready.&N"
 
+    char = state.characters.get(state._player)
+    if char:
+        char.position = "resting"
     state._resting[state._player] = {"ticks": 0}
     return "&wYou begin resting.&N"

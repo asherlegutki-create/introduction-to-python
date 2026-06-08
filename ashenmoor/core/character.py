@@ -1,310 +1,285 @@
 """
-ashenmoor.engine.commands.character
-─────────────────────────────────────
-Character info commands: score, attributes, wimpy, position, powers, who, scan.
+ashenmoor.core.character
+────────────────────────
+Base Character class.
+
+Three stat layers
+─────────────────
+  1. base_stat      rolled 1-100 at character creation; never changes except
+                    through levelling or permanent events
+  2. displayed_stat min(base + equipment_bonus, 100)
+                    this is what the player SEES — always 1-100 for every race
+  3. computed_stat  int(displayed × racial_multiplier)
+                    this is what EVERYTHING IN THE BACKEND uses
+                    (modifiers, AC, attack rolls, saving throws, etc.)
+
+Why the split?
+──────────────
+  An Ogre and a Human both see "STR: 100" at the cap.
+  The same +10 STR ring benefits both identically on the display screen.
+  But in combat:
+    Human : effective STR 100 × 1.0 = 100 → modifier +5
+    Ogre  : effective STR 100 × 1.5 = 150 → modifier +15
+
+  Racial identity lives in the multiplier, not the display.
 """
 
 from __future__ import annotations
-import time as _time
+from typing import TYPE_CHECKING
+from .stats import Stats
 
-from .helpers import max_inventory
+if TYPE_CHECKING:
+    from .race import Race
 
-
-def _position_label(char) -> str:
-    """
-    Position label shown in score (first person) and to others (third person).
-    Rest is shown as 'Sitting and resting.' to the player.
-    """
-    pos = getattr(char, "position", "standing")
-    labels = {
-        "standing": "Standing.",
-        "sitting":  "Sitting.",
-        "resting":  "Sitting and resting.",
-        "kneeling": "Kneeling.",
-        "reclined": "Lying down.",
-    }
-    return labels.get(pos, pos.capitalize() + ".")
+# Hard display cap — every race reads 1-100 on the character sheet
+_DISPLAY_CAP = 100
 
 
-def cmd_score(state) -> str:
-    char = state.characters.get(state._player)
-    if not char:
-        return "&RNo character found.&N"
+class Character:
+    def __init__(self, d: dict, races: dict | None = None):
+        self.name:      str  = d.get("name",     "Unknown")
+        self.stats:     list = d.get("stats",    [80]*6)
+        self.race:      str  = d.get("race",     "Human")
+        self.level:     int  = d.get("level",    1)
+        self.position:  str  = d.get("position", "standing")
+        self.cclass:    str  = d.get("class",    "Warrior")
+        self.powers:    list = d.get("powers",   [])
+        self.inventory: list = list(d.get("inventory", []))
+        self.equipment: dict = dict(d.get("equipment", {}))
+        self.xp:        int  = d.get("xp", 0)
 
-    from ...dnd.xp      import level_for_xp, XP_TABLE, MAX_LEVEL
-    from ...world.effects import format_effects
+        # D&D class state (charges, fighting style, hit dice …)
+        # Does NOT hold ability scores — those come from self.stats + gear.
+        self.dnd: dict | None = d.get("dnd", None)
 
-    xp            = getattr(char, "xp", 0)
-    level, xp_pct = level_for_xp(xp)
-    if level != char.level and level <= MAX_LEVEL:
-        char.level = level
+        # ── Movement points ───────────────────────────────────────────────────
+        dex_base        = self.stats[Stats.DEXTERITY.value] if len(self.stats) > 1 else 75
+        default_moves   = max(50, dex_base)
+        self.max_moves: int  = d.get("max_moves", default_moves)
+        self.moves:     int  = d.get("moves",     self.max_moves)
 
-    hp     = getattr(char, "hp",        char.max_hp)
-    mhp    = getattr(char, "max_hp",    1)
-    moves  = getattr(char, "moves",     100)
-    mmoves = getattr(char, "max_moves", 100)
+        # ── Currency (gold / silver / copper) ─────────────────────────────────
+        self.coins:      dict = d.get("coins",      {"gold": 0, "silver": 0, "copper": 0})
+        self.bank_coins: dict = d.get("bank_coins", {"gold": 0, "silver": 0, "copper": 0})
 
-    def _coin_line(label, c):
-        return (
-            f"&w{label}&N&W{c.get('gold',0):>6}&w gold  "
-            f"&W{c.get('silver',0):>6}&w silver  &W{c.get('copper',0):>6}&w copper&N"
-        )
+        # ── Character title (e.g. "the Archmage") ─────────────────────────────
+        self.title: str = d.get("title", "")
 
-    coins      = getattr(char, "coins",      {"gold": 0, "silver": 0, "copper": 0})
-    bank_coins = getattr(char, "bank_coins", {"gold": 0, "silver": 0, "copper": 0})
+        # ── Active status flags (populated by spells/abilities/items) ─────────
+        self.detect_flags:  list[str] = list(d.get("detect_flags",  []))
+        self.protect_flags: list[str] = list(d.get("protect_flags", []))
+        self.enchant_flags: list[str] = list(d.get("enchant_flags", []))
 
-    total_secs = getattr(char, "play_time_seconds", 0) + int(_time.time() - state._session_start)
-    days  = total_secs // 86400
-    hours = (total_secs % 86400) // 3600
-    mins  = (total_secs % 3600) // 60
+        # ── Accumulated play time (seconds, persisted across sessions) ─────────
+        self.play_time_seconds: int = d.get("play_time_seconds", 0)
 
-    detect  = "  ".join(getattr(char, "detect_flags",  []))
-    protect = "  ".join(getattr(char, "protect_flags", []))
-    enchant = "  ".join(getattr(char, "enchant_flags", []))
+        con         = self.stats[Stats.CONSTITUTION.value] if len(self.stats) > Stats.CONSTITUTION.value else 75
+        default_max = max(10, (con // 5) * max(1, self.level) + max(1, self.level) * 5)
+        self.max_hp: int = d.get("max_hp", default_max)
+        self.hp:     int = d.get("hp",     self.max_hp)
 
-    resting  = state._resting.get(state._player)
-    rest_str = ""
-    if resting:
-        t = resting["ticks"]
-        if t < 4:
-            rest_str = f"\n&wResting:&N  &W{4-t}&w tick{'s' if 4-t!=1 else ''} to short-rest abilities&N"
-        elif t < 8:
-            rest_str = f"\n&wResting:&N  &W{8-t}&w tick{'s' if 8-t!=1 else ''} to long-rest abilities&N"
-        else:
-            rest_str = "\n&wResting:&N  fully rested (type &Wstand&w to stop)&N"
+        # Alignment: one of the classic 9 (Lawful/Neutral/Chaotic × Good/Neutral/Evil)
+        self.alignment: str      = d.get("alignment", "True Neutral")
+        # Wimpy: auto-flee when HP drops to or below this value. None = disabled.
+        self.wimpy:     int|None = d.get("wimpy", None)
 
-    lines = [
-        f"&+WScore information for &N{char.name}\n",
-        f"&wLevel:&N {level:<5} &wRace:&N {char.race:<10} &wSex:&N {getattr(char,'sex','male').capitalize():<8} &wClass:&N {char.cclass}",
-        f"&wHit points:&N &W{hp}&w(&W{mhp}&w)  &wMoves:&N &W{moves}&w(&W{mmoves}&w)",
-        f"&wExperience Progress:&N &W{xp_pct}&w %  &x({xp:,} / {XP_TABLE.get(level+1, xp):,} xp)&N",
-        _coin_line("Coins carried:   ", coins),
-        _coin_line("Coins in bank:   ", bank_coins),
-        f"&wPlaying time:&N {days} days / {hours} hours / {mins} minutes",
-        f"&wTitle:&N {getattr(char,'title','')}",
-        f"&wStatus:&N  {_position_label(char)}",
-        f"&wDetecting:&N       {detect}",
-        f"&wProtected from:&N  {protect}",
-        f"&wEnchantments:&N    {enchant}",
-    ]
-    if rest_str:
-        lines.append(rest_str)
+        if races is None:
+            from .race import RACES
+            races = RACES
+        self._races = races
 
-    effect_block = format_effects(char)
-    if effect_block:
+    # ── Internal helper ───────────────────────────────────────────────────────
+
+    @staticmethod
+    def _stat_key(stat) -> str:
+        if isinstance(stat, Stats): return stat.abv
+        if isinstance(stat, int):   return list(Stats)[stat].abv
+        return str(stat).lower()
+
+    # ── Stat accessors ────────────────────────────────────────────────────────
+
+    def get_stat(self, stat) -> int:
+        """Raw base stat (1-100, no gear, no racial scaling)."""
+        if isinstance(stat, int):   return self.stats[stat]
+        if isinstance(stat, Stats): return self.stats[stat.value]
+        if isinstance(stat, str):
+            for s in Stats:
+                if stat.lower() == s.abv: return self.stats[s.value]
+        raise ValueError(f"Unknown stat: {stat!r}")
+
+    def _equipment_stat_bonus(self, stat_key: str) -> int:
+        """
+        Sum of stat_mods[stat_key] across equipped items.
+        These push toward the 100 display cap (capped there).
+        """
+        total = 0
+        for item in self.equipment.values():
+            if item is not None:
+                total += getattr(item, "stat_mods", {}).get(stat_key, 0)
+        return total
+
+    def _equipment_max_stat_bonus(self, stat_key: str) -> int:
+        """
+        Sum of stat_mods["max_<stat>"] across equipped items.
+        These extend the displayed stat BEYOND the 100 cap.
+        e.g. stat_mods={"max_int": 56} on a tome lets INT show as 156.
+        """
+        total = 0
+        max_key = f"max_{stat_key}"
+        for item in self.equipment.values():
+            if item is not None:
+                total += getattr(item, "stat_mods", {}).get(max_key, 0)
+        return total
+
+    def displayed_stat(self, stat) -> int:
+        """
+        Stat as shown on the att page.
+
+        Two tiers of gear bonus:
+          stat_mods     — regular gear, pushes toward 100 (capped there)
+          max_stat_mods — extends the ceiling above 100 (no cap)
+
+        displayed = min(base + regular_gear, 100) + max_extending_gear
+
+        Examples:
+          INT 80,  +20 ring,  +56 max_int item  → min(100,100) + 56 = 156
+          INT 80,  no ring,   +56 max_int item  → min(80, 100) + 56 = 136
+          INT 100, +20 ring,  no max item       → min(120,100) + 0  = 100
+        """
+        key       = self._stat_key(stat)
+        base      = self.get_stat(key)
+        regular   = self._equipment_stat_bonus(key)
+        above_cap = self._equipment_max_stat_bonus(key)
+        return min(_DISPLAY_CAP, base + regular) + above_cap
+
+    def computed_stat(self, stat) -> int:
+        """
+        Effective stat used by all backend systems (modifiers, AC, attacks).
+
+        computed = int(displayed × racial_multiplier)
+
+        Ogre  displayed STR 100 × 1.5 → 150 → modifier +15
+        Human displayed STR 100 × 1.0 → 100 → modifier +5
+        """
+        key  = self._stat_key(stat)
+        disp = self.displayed_stat(key)
+        race = self._races.get(self.race)
+        mult = race.get_multiplier(key) if race else 1.0
+        return int(disp * mult)
+
+    # ── Position helpers ──────────────────────────────────────────────────────────
+
+    def position_str(self) -> str:
+        """Short description of character position for room look lists."""
+        pos = self.position
+        if pos == "standing":  return "is standing here."
+        if pos == "sitting":   return "is sitting here."
+        if pos == "resting":   return "is here, resting."
+        if pos == "kneeling":  return "is here, kneeling."
+        if pos == "reclined":  return "is here, lying down."
+        return "is here."
+
+    def position_label(self) -> str:
+        """Capitalised one-word label for score display."""
+        return self.position.capitalize() + "."
+
+    # ── Character sheet ───────────────────────────────────────────────────────────
+
+    def character_sheet(self) -> str:
+        from ..dnd.abilities import modifier, proficiency_bonus
+        from ..dnd.armor     import get_ac
+
+        hp_pct = int(self.hp / max(1, self.max_hp) * 100)
+        prof   = proficiency_bonus(self.level)
+        ac     = get_ac(self)
+
+        lines = [
+            f"&+WCharacter sheet for &N{self.name}\n",
+            f"&wRace:&N  {self.race}   &wClass:&N {self.cclass}   "
+            f"&wLevel:&N {self.level}   &wXP:&N {self.xp:,}",
+            f"&wHP:&N    {self.hp}/{self.max_hp} ({hp_pct}%)   "
+            f"&wAC:&N {ac}   &wProf Bonus:&N +{prof}",
+            "",
+            "&wAbility Scores&N",
+            "  &x{:<3}  {:>5}  {:>5}  {:>5}  {:>8}  {}&N".format(
+                "STAT", "BASE", "GEAR", "SHOWN", "EFFECTIVE", "MOD"),
+            "  &w" + "─"*46 + "&N",
+        ]
+
+        race_obj = self._races.get(self.race)
+
+        for stat_enum in Stats:
+            ab       = stat_enum.abv
+            base     = self.get_stat(ab)
+            gear     = self._equipment_stat_bonus(ab)
+            shown    = self.displayed_stat(ab)
+            eff      = self.computed_stat(ab)
+            mod      = modifier(eff)
+            mult     = race_obj.get_multiplier(ab) if race_obj else 1.0
+            sign     = "+" if mod >= 0 else ""
+
+            gear_str = f"+{gear}" if gear else "—"
+            eff_str  = f"{eff}" if mult != 1.0 else "—"
+
+            # Highlight gear-maxed stats (shown == 100) in yellow
+            color = "&+Y" if shown >= _DISPLAY_CAP else "&w"
+
+            lines.append(
+                f"  {color}{ab.upper():<3}&N"
+                f"  {base:>5}"
+                f"  {gear_str:>5}"
+                f"  {shown:>5}"
+                f"  {eff_str:>8}"
+                f"  ({sign}{mod})"
+            )
+
         lines.append("")
-        lines.append(effect_block)
 
-    return "\n".join(lines)
+        # D&D Warrior extras
+        dnd = self.dnd or {}
+        if dnd.get("class") == "warrior":
+            from ..dnd.classes.warrior import attack_count, active_features
+            lines.append(
+                f"&wAttacks/Round:&N {attack_count(self.level)}   "
+                f"&wFighting Style:&N {dnd.get('fighting_style', '—')}"
+            )
+            sw   = dnd.get("second_wind_uses",  0)
+            swm  = dnd.get("second_wind_max",   1)
+            su   = dnd.get("action_surge_uses", 0)
+            sum_ = dnd.get("action_surge_max",  1)
+            hd   = dnd.get("hit_dice_remaining", 0)
+            lines.append(
+                f"&wSecond Wind:&N  &W{sw}&w/&W{swm}&N   "
+                f"&wAction Surge:&N &W{su}&w/&W{sum_}&N   "
+                f"&wHit Dice:&N &W{hd}&w/&W{self.level}&N"
+            )
+            feats = active_features(self.level)
+            lines.append("&wFeatures:&N " + ", ".join(feats))
 
+        if self.powers:
+            lines.append("")
+            lines.append("&wPowers:&N  " +
+                         ", ".join(p.get("name", "?") for p in self.powers))
 
-def cmd_attributes(state) -> str:
-    char = state.characters.get(state._player)
-    if not char:
-        return "&RNo character found.&N"
+        # Equipped gear — highlight any with stat bonuses
+        eq_lines = []
+        for slot, item in self.equipment.items():
+            if item is None: continue
+            bonus_parts = [f"{k.upper()} +{v}"
+                           for k, v in getattr(item, "stat_mods", {}).items() if v]
+            bonus_str = "  &+Y[" + ", ".join(bonus_parts) + "]&N" if bonus_parts else ""
+            eq_lines.append(f"  &w{slot:<18}&N {item.name}{bonus_str}")
+        if eq_lines:
+            lines.append("")
+            lines.append("&wEquipped:&N")
+            lines.extend(eq_lines)
 
-    from ...dnd.abilities import char_modifier, proficiency_bonus, saving_throw
-    from ...dnd.armor     import get_ac
-
-    str_eff = char.computed_stat("str")
-    dex_eff = char.computed_stat("dex")
-    con_eff = char.computed_stat("con")
-    int_eff = char.computed_stat("int")
-    wis_eff = char.computed_stat("wis")
-    cha_eff = char.computed_stat("cha")
-    str_mod = char_modifier(char, "str")
-
-    equip_hit  = 0
-    equip_dam  = 0
-    equip_save: dict[str, int] = {}
-    for item in char.equipment.values():
-        if item is None:
-            continue
-        equip_hit += getattr(item, "hitroll", 0)
-        equip_dam += getattr(item, "damroll", 0)
-        for k, v in getattr(item, "save_mods", {}).items():
-            equip_save[k] = equip_save.get(k, 0) + v
-
-    prof    = proficiency_bonus(char.level)
-    hitroll = str_mod + prof + equip_hit
-    damroll = str_mod + equip_dam
-    ac      = get_ac(char)
-
-    def _sv(n): return f"+{n}" if n > 0 else str(n)
-
-    effect_save: dict[str, int] = {}
-    for eff in getattr(char, "active_effects", []):
-        for k, v in eff.get("save_mods", {}).items():
-            effect_save[k] = effect_save.get(k, 0) + v
-
-    par = saving_throw(char, "par", equip_bonus=equip_save.get("par", 0), effect_bonus=effect_save.get("par", 0))
-    rod = saving_throw(char, "rod", equip_bonus=equip_save.get("rod", 0), effect_bonus=effect_save.get("rod", 0))
-    pet = saving_throw(char, "pet", equip_bonus=equip_save.get("pet", 0), effect_bonus=effect_save.get("pet", 0))
-    bre = saving_throw(char, "bre", equip_bonus=equip_save.get("bre", 0), effect_bonus=effect_save.get("bre", 0))
-    spe = saving_throw(char, "spe", equip_bonus=equip_save.get("spe", 0), effect_bonus=effect_save.get("spe", 0))
-
-    race_obj  = char._races.get(char.race)
-    size      = getattr(race_obj, "size", "Medium") if race_obj else "Medium"
-    wimpy     = getattr(char, "wimpy", None)
-    wimpy_str = f"&W{wimpy}&w hp&N" if wimpy else "not set"
-
-    inv_weight = sum(getattr(i, "weight", 0) for i in char.inventory)
-    max_weight = max(1, str_eff * 2)
-    inv_items  = len(char.inventory)
-    max_items  = max_inventory(char)
-    load_pct   = max(inv_weight / max_weight * 100, inv_items / max_items * 100)
-
-    if   load_pct <= 25:  lc, lm = "&+G", "Not a problem"
-    elif load_pct <= 50:  lc, lm = "&G",  "Light"
-    elif load_pct <= 75:  lc, lm = "&Y",  "Moderate"
-    elif load_pct <= 90:  lc, lm = "&+Y", "Heavy"
-    elif load_pct <= 100: lc, lm = "&+R", "Staggering"
-    else:                 lc, lm = "&+R", "OVERLOADED!"
-
-    return "\n".join([
-        f"&+WCharacter attributes for &N{char.name}\n",
-        f"&wLevel:&N {char.level:<5} &wRace:&N {char.race:<10} &wSex:&N {getattr(char,'sex','male').capitalize():<8} &wClass:&N {char.cclass}",
-        f"&wSize:&N {size}",
-        f"&wSTR:&N {str_eff:>4}  &wDEX:&N {dex_eff:>4}  &wCON:&N {con_eff:>4}",
-        f"&wINT:&N {int_eff:>4}  &wWIS:&N {wis_eff:>4}  &wCHA:&N {cha_eff:>4}",
-        f"&wArmor Class:&N {ac}",
-        f"&wHitroll:&N {hitroll:+d}   &wDamroll:&N {damroll:+d}",
-        f"&wAlignment:&N {getattr(char,'alignment','True Neutral')}",
-        f"&wSaving Throws:&N PAR[{_sv(par)}]  ROD[{_sv(rod)}]  PET[{_sv(pet)}]  BRE[{_sv(bre)}]  SPE[{_sv(spe)}]",
-        f"   &wWimpy:&N {wimpy_str}",
-        f"&wLoad carried:&N {lc}{lm}&N  &x({inv_weight:.1f}/{max_weight:.0f} lbs | {inv_items}/{max_items} items)&N",
-    ])
-
-
-def cmd_wimpy(state, args: list) -> str:
-    char = state.characters.get(state._player)
-    if not char:
-        return "&RNo character found.&N"
-    if not args:
-        w = getattr(char, "wimpy", None)
-        return (
-            f"&wYou will flee combat when your HP drops to &W{w}&w.&N"
-            if w else
-            "&wWimpy is not set. You will fight to the last breath.&N"
-        )
-    val = args[0].lower()
-    if val in ("off", "0", "none", "clear"):
-        char.wimpy = None
-        return "&wWimpy cleared. You will fight to the last breath.&N"
-    try:
-        hp = int(val)
-    except ValueError:
-        return "&wUsage: &Wwimpy <hp>&w  or  &Wwimpy off&N"
-    if hp <= 0:
-        char.wimpy = None
-        return "&wWimpy cleared.&N"
-    if hp >= char.max_hp:
-        return f"&wWimpy must be less than your max HP (&W{char.max_hp}&w).&N"
-    char.wimpy = hp
-    return f"&wYou will automatically flee combat when your HP drops to &W{hp}&w.&N"
-
-
-def cmd_position(state, new_pos: str) -> str:
-    char = state.characters.get(state._player)
-    if not char:
-        return "&RNo character found.&N"
-    old_pos = getattr(char, "position", "standing")
-    if new_pos == "standing":
-        was_resting = state._resting.pop(state._player, None)
-        if was_resting and old_pos == "standing":
-            return "&wYou stop resting.&N"
-    if old_pos == new_pos:
-        return f"&wYou are already {new_pos}.&N"
-    char.position = new_pos
-    return {
-        "standing": "&wYou stand up.&N",
-        "sitting":  "&wYou sit down.&N",
-        "resting":  "&wYou begin to rest.&N",
-        "kneeling": "&wYou kneel.&N",
-        "reclined": "&wYou lie down.&N",
-    }.get(new_pos, f"&wYou are now {new_pos}.&N")
-
-
-def cmd_powers(state) -> str:
-    import time as _t
-    char = state.characters.get(state._player)
-    if not char:
-        return "&RNo character found.&N"
-
-    from ..game import _collect_tagged_powers, _power_key, _TICK_INTERVAL, _SLOT_LABELS
-
-    all_powers = _collect_tagged_powers(char)
-    if not all_powers:
-        return "&wYou have no powers.&N"
-
-    now   = _t.monotonic()
-    lines = [
-        f"&W{'Power':<28} {'Keywords':<22} Status&N",
-        "&w" + "─" * 64 + "&N",
-    ]
-    for p in all_powers:
-        raw_name = p.get("name", "?")
-        slot     = p.get("_slot")
-        label    = f" &x({_SLOT_LABELS.get(slot, slot)})&N" if slot else ""
-        display  = f"{raw_name}{label}"
-        keywords = ", ".join(p.get("keywords", ()))
-        pkey     = _power_key(p)
-        ready_at = state._power_cooldowns.get(pkey, 0)
-        if now >= ready_at:
-            status = "&Gready&N"
-        else:
-            rem    = (ready_at - now) / _TICK_INTERVAL
-            status = f"&R{rem:.1f} ticks&N"
-        lines.append(f"{display:<28} &c{keywords:<22}&N {status}")
-    return "\n".join(lines)
-
-
-def cmd_who(state) -> str:
-    if not state.characters:
-        return "&wNobody is here.&N"
-    lines = [
-        f"&+W{'Name':<15} {'Race':<12} {'Class':<10} {'Level':>5} {'XP':>10}&N",
-        "&w" + "─" * 58 + "&N",
-    ]
-    for char in state.characters.values():
-        lines.append(
-            f"{char.name:<15} {char.race:<12} {char.cclass:<10} "
-            f"{char.level:>5} {getattr(char,'xp',0):>10,}"
-        )
-    return "\n".join(lines)
-
-
-def cmd_toggle(state, args: list) -> str:
-    KNOWN_TOGGLES = {
-        "timeofday": (
-            "time_announce",
-            "Time-of-day announcements (dawn, dusk, midnight)",
-        ),
-    }
-    char = state.characters.get(state._player)
-    if not char:
-        return "&RNo character found.&N"
-    if not hasattr(char, "toggles") or char.toggles is None:
-        char.toggles = {}
-
-    if not args:
-        lines = ["&wYour toggles:&N", "&w" + "-" * 44 + "&N"]
-        for key, (field, desc) in KNOWN_TOGGLES.items():
-            state   = char.toggles.get(field, True)
-            color   = "&G" if state else "&R"
-            setting = "ON " if state else "OFF"
-            lines.append(f"  &w{key:<16}&N {color}{setting}&N  {desc}")
         return "\n".join(lines)
 
-    key = args[0].lower()
-    if key not in KNOWN_TOGGLES:
-        opts = ", ".join(KNOWN_TOGGLES)
-        return f"&wUnknown toggle &W{key}&w. Options: &W{opts}&N"
+    def pcs(self):
+        from ..color import cprint
+        cprint(self.character_sheet())
 
-    field, desc     = KNOWN_TOGGLES[key]
-    current         = char.toggles.get(field, True)
-    char.toggles[field] = not current
-    new_state       = char.toggles[field]
-    color           = "&G" if new_state else "&R"
-    state_str       = "ON" if new_state else "OFF"
-    return f"&w{desc}: {color}{state_str}&N"
+    def __str__(self):  return self.character_sheet()
+    def __repr__(self): return (f"Character(name={self.name!r}, race={self.race!r}, "
+                                f"class={self.cclass!r}, level={self.level})")
