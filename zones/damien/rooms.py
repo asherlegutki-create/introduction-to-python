@@ -32,7 +32,6 @@ ROOMS: dict[int, Room] = {
             ],
             "objects": [
                 O.spawn('hanging_tree'),  
-                O.spawn('ethereal_cloak'),
             ],
         }
     ),
@@ -138,6 +137,13 @@ ROOMS: dict[int, Room] = {
             ],
             "mobs": [
                 M.spawn("dark_mage"),
+            ],
+            "objects": [
+                O.spawn('ethereal_boots'),
+                O.spawn('ethereal_cloak'),
+                O.spawn('ethereal_sword'),
+                O.spawn('ethereal_shield'),
+                O.spawn('star'),                 
             ],
         }
     ),
