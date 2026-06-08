@@ -35,7 +35,7 @@ TEMPLATES: dict[str, dict] = {
     },
 
     "abyssal_spider_2": {
-        "name":             "&La large &N&mabyssal mspider&N",
+        "name":             "&La large &N&mabyssal spider&N",
         "key_words":        ("abyssal", "large", "spider"),
         "room_description": "&LA large abyssal &N&mspider&N lurks in the shadows.",
         "description": (

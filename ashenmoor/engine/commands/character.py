@@ -217,6 +217,13 @@ def cmd_powers(state) -> str:
 
     from ..game import _collect_tagged_powers, _power_key, _TICK_INTERVAL, _SLOT_LABELS
 
+    # Ensure class powers are present — they may be missing on older saved characters
+    if not getattr(char, "powers", []):
+        cclass = getattr(char, "cclass", "").lower()
+        if cclass in ("warrior", "fighter"):
+            from ...dnd.classes.warrior import WARRIOR_POWERS
+            char.powers = WARRIOR_POWERS
+
     all_powers = _collect_tagged_powers(char)
     if not all_powers:
         return "&wYou have no powers.&N"
@@ -226,6 +233,7 @@ def cmd_powers(state) -> str:
         f"&W{'Power':<28} {'Keywords':<22} Status&N",
         "&w" + "─" * 64 + "&N",
     ]
+
     for p in all_powers:
         raw_name = p.get("name", "?")
         slot     = p.get("_slot")
@@ -233,13 +241,32 @@ def cmd_powers(state) -> str:
         display  = f"{raw_name}{label}"
         keywords = ", ".join(p.get("keywords", ()))
         pkey     = _power_key(p)
-        ready_at = state._power_cooldowns.get(pkey, 0)
-        if now >= ready_at:
-            status = "&Gready&N"
+
+        # ── Charge-based powers (Second Wind, Action Surge, Indomitable) ──────
+        # These are gated by dnd charges, not a time cooldown.
+        charges_key = p.get("charges_key")
+        if charges_key:
+            dnd     = getattr(char, "dnd", {}) or {}
+            charges = dnd.get(charges_key, 0)
+            max_key = charges_key.replace("_uses", "_max")
+            maximum = dnd.get(max_key, 0)
+            if charges > 0:
+                status = f"&G{charges}&w/&W{maximum}&w charges&N"
+            else:
+                rest_type = p.get("rest_type", "short")
+                status = f"&RNo charges — {rest_type} rest to restore&N"
+
+        # ── Time-cooldown powers (weapon procs, active abilities) ─────────────
         else:
-            rem    = (ready_at - now) / _TICK_INTERVAL
-            status = f"&R{rem:.1f} ticks&N"
+            ready_at = state._power_cooldowns.get(pkey, 0)
+            if now >= ready_at:
+                status = "&Gready&N"
+            else:
+                rem    = (ready_at - now) / _TICK_INTERVAL
+                status = f"&R{rem:.1f} ticks&N"
+
         lines.append(f"{display:<28} &c{keywords:<22}&N {status}")
+
     return "\n".join(lines)
 
 

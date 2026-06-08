@@ -410,7 +410,6 @@ class GameState:
             dnd_state["action_surge_active"] = False
             surge_msg = "&+W[ACTION SURGE]&N"
 
-        # ── Player attacks their current target ───────────────────────────
         round_player, round_room = combat_round(player, target, extra_attacks=extra_atks)
 
         player_msgs: list[str] = []
@@ -423,8 +422,6 @@ class GameState:
             room_msgs.append(surge_msg)
         room_msgs.extend(round_room)
 
-        # ── Every mob in the room that is attacking the player swings back ─
-        # This includes the primary target AND any dogpile mobs.
         from ..world.effects import tick_effects as _tick_fx
         for mob in list(getattr(room, "mobs", [])):
             if not isinstance(mob, Mob):
@@ -437,7 +434,6 @@ class GameState:
             c_player, c_room = mob_counter_attacks(mob, player)
             player_msgs.extend(personalize_msg(m, player.name) for m in c_player)
             room_msgs.extend(c_room)
-            # Tick status effects on every attacking mob
             _, fx_room = _tick_fx(mob)
             player_msgs.extend(fx_room)
             room_msgs.extend(fx_room)
@@ -469,7 +465,6 @@ class GameState:
             else:
                 player_msgs.append("&xA corpse is left behind.&N")
                 room_msgs.append(f"&xThe corpse of {target.name}&x lies here.&N")
-            # Auto-switch to next mob attacking the player
             next_mob = next(
                 (m for m in getattr(room, "mobs", [])
                  if self._player in getattr(m, "attackers", set()) and m.is_alive()),
@@ -488,7 +483,6 @@ class GameState:
         elif player.hp <= 0:
             self.fighting.pop(self._player, None)
             player.hp = max(1, player.max_hp // 4)
-            # Remove player from all mob attacker sets
             for mob in list(getattr(room, "mobs", [])):
                 mob.remove_attacker(self._player) if hasattr(mob, "remove_attacker") else None
             player_msgs.append("&+RYOU HAVE BEEN SLAIN!&N")
@@ -549,7 +543,6 @@ class GameState:
             self._resting.pop(self._player, None)
             mob.add_attacker(self._player)
 
-            # All other hostile mobs in the room pile on immediately
             from .commands.combat import _aggro_dogpile
             _aggro_dogpile(self, room, exclude=mob)
 
@@ -775,11 +768,20 @@ class GameState:
                 f"(1d{hit_die} + level {char.level} + CON {con_mod:+}).&N"
             )
             parts.append(f"&wHP: &W{char.hp}&w/&W{char.max_hp}&N")
+
         elif effect == "action_surge":
             dnd["action_surge_active"] = True
             parts.append("&+WYour next combat round will have double attacks!&N")
+
         elif effect == "indomitable":
-            parts.append("&+YYour indomitable will steels you.&N")
+            # Apply +20 AC status effect for 7 ticks (~28 seconds)
+            import copy
+            from ..world.effects import INDOMITABLE, apply_effect
+            eff_msg = apply_effect(char, copy.deepcopy(INDOMITABLE))
+            if eff_msg:
+                parts.append(eff_msg)
+            if room_msg:
+                self._broadcast_to_room(room_msg)
 
         if self._player in self.fighting:
             target = self.fighting.get(self._player)

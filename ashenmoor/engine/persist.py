@@ -352,4 +352,12 @@ def load_character(
         else:
             char.equipment[slot] = item
 
+    # Restore class powers if missing — handles characters saved before
+    # powers were added, or any load path that skips power assignment.
+    if not getattr(char, "powers", []):
+        cclass = getattr(char, "cclass", "").lower()
+        if cclass in ("warrior", "fighter"):
+            from ..dnd.classes.warrior import WARRIOR_POWERS
+            char.powers = WARRIOR_POWERS
+
     return row["location"]

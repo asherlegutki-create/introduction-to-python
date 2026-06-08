@@ -373,20 +373,28 @@ class Room:
     def _characters_str(self, locations, characters,
                           fighting: dict | None = None,
                           viewer: str | None = None) -> str:
+        _POS_STR = {
+            "standing": "stands here",
+            "sitting":  "is sitting here",
+            "resting":  "is sitting here",   # others see resting as sitting
+            "kneeling": "is kneeling here",
+            "reclined": "is lying here",
+        }
         chars = self.get_characters(locations, characters)
         if not chars:
             return ""
         lines = []
         for c in chars:
-            # Don't show the viewer themselves in the character list
             if c.name == viewer:
                 continue
-            target = fighting.get(c.name) if fighting else None
+            pos     = getattr(c, "position", "standing")
+            pos_str = _POS_STR.get(pos, "is here")
+            target  = fighting.get(c.name) if fighting else None
             if target is not None:
                 target_name = getattr(target, "name", "something")
-                lines.append(f"&w{c.name}&N stands here fighting &R{target_name}&N.")
+                lines.append(f"&w{c.name}&N {pos_str} fighting &R{target_name}&N.")
             else:
-                lines.append(f"&w{c.name}&N stands here.")
+                lines.append(f"&w{c.name}&N {pos_str}.")
         return "\n".join(lines)
 
     def render(self, locations=None, characters=None, fighting=None, viewer=None):
