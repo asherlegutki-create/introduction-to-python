@@ -2,6 +2,9 @@
 ashenmoor.engine.combat
 ────────────────────────
 Unified d20 combat system, 0-100 AC scale.
+
+combat_round()       — player attacks their current target only
+mob_counter_attacks() — one mob swings back at a player (called per mob per tick)
 """
 
 from __future__ import annotations
@@ -84,13 +87,6 @@ def _attack_mod(attacker) -> int:
 # ── Accumulated damroll ───────────────────────────────────────────────────────
 
 def _accumulated_damroll(attacker) -> int:
-    """
-    Sum damroll from every equipped weapon (primary + secondary hand).
-
-    Both weapons contribute to the damage pool on every hit — matching
-    what the 'att' display already shows.  STR modifier is handled
-    separately and applied per-hit based on fighting style.
-    """
     eq    = getattr(attacker, "equipment", {})
     total = 0
     for slot in ("primary_hand", "secondary_hand"):
@@ -159,10 +155,6 @@ def _damage_verb(damage: int, target_max_hp: int) -> str:
 # ── Single attack ─────────────────────────────────────────────────────────────
 
 def one_attack(attacker, defender) -> tuple[int, int, str]:
-    """
-    Resolve one attack swing.  Returns (damage, hit_type, message).
-    Does NOT fire weapon procs — procs are only checked in combat_round().
-    """
     from ..dnd.armor import get_ac
 
     roll = random.randint(1, 20)
@@ -203,13 +195,6 @@ def one_attack(attacker, defender) -> tuple[int, int, str]:
 
 def _fire_weapon_proc(attacker, defender, player_msgs: list, room_msgs: list,
                       slot: str = "primary_hand") -> None:
-    """
-    Look up and fire the weapon proc for the given equipment slot.
-
-    Proc functions may return:
-      str             — same message for player and room
-      (str, str)      — (player_msg, room_msg) — different messages for each
-    """
     eq     = getattr(attacker, "equipment", {})
     weapon = eq.get(slot)
     if weapon is None:
@@ -293,19 +278,15 @@ def off_hand_attack(attacker, defender) -> tuple[int, int, str] | None:
             f"&w{attacker.name}&N {verb} &N{defender.name}&w off-hand "
             f"(&W{dmg}&w dmg | score &W{att_score}&w vs AC &W{ac}&w)&N")
 
-# ── Combat round ──────────────────────────────────────────────────────────────
+# ── Player attack round ───────────────────────────────────────────────────────
 
-def combat_round(player, target, extra_attacks: int = 0,
-                 mob_retaliates: bool = True) -> tuple[list[str], list[str]]:
+def combat_round(player, target, extra_attacks: int = 0) -> tuple[list[str], list[str]]:
     """
-    One full combat round: player attacks → weapon procs → off-hand → target.
+    Player's attack round against their current target only.
+    Does NOT include mob counter-attacks — those are handled separately
+    by mob_counter_attacks() so every mob in the room can swing back.
 
     Returns (player_msgs, room_msgs).
-    Most messages are identical for both; proc messages with (player, room)
-    tuples are split so first-person and third-person variants reach the
-    right audiences.
-
-    mob_retaliates: when False the mob's counter-attack is skipped.
     """
     ensure_hp(player)
     ensure_hp(target)
@@ -313,7 +294,6 @@ def combat_round(player, target, extra_attacks: int = 0,
     player_msgs: list[str] = []
     room_msgs:   list[str] = []
 
-    # ── Player main attacks + primary-hand proc ───────────────────────────
     dnd = getattr(player, "dnd", {}) or {}
     if dnd.get("class") == "warrior":
         from ..dnd.classes.warrior import attack_count
@@ -332,7 +312,6 @@ def combat_round(player, target, extra_attacks: int = 0,
             _fire_weapon_proc(player, target, player_msgs, room_msgs,
                               slot="primary_hand")
 
-    # ── Off-hand attack + off-hand proc ──────────────────────────────────
     if target.hp > 0:
         result = off_hand_attack(player, target)
         if result:
@@ -344,10 +323,22 @@ def combat_round(player, target, extra_attacks: int = 0,
                 _fire_weapon_proc(player, target, player_msgs, room_msgs,
                                   slot="secondary_hand")
 
-    # ── Target counter-attacks (primary target only) ──────────────────────
-    if mob_retaliates and target.hp > 0:
-        _, _, msg = one_attack(target, player)
-        player_msgs.append(msg)
-        room_msgs.append(msg)
+    return player_msgs, room_msgs
 
+
+# ── Mob counter-attack ────────────────────────────────────────────────────────
+
+def mob_counter_attacks(mob, player) -> tuple[list[str], list[str]]:
+    """
+    One mob swings back at a player.
+    Called once per mob that has the player in its attackers set.
+    Returns (player_msgs, room_msgs).
+    """
+    ensure_hp(mob)
+    ensure_hp(player)
+    player_msgs: list[str] = []
+    room_msgs:   list[str] = []
+    _, _, msg = one_attack(mob, player)
+    player_msgs.append(msg)
+    room_msgs.append(msg)
     return player_msgs, room_msgs

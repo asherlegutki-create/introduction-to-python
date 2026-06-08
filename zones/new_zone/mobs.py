@@ -46,7 +46,7 @@ TEMPLATES: dict[str, dict] = {
             "grade": ("He replies '&L'Oh I'm in 7th grade thank you!&N'"),
             "loser": _student_attack
             }
-    }
+    },
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")

@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 from .targeting import find_target, target_name, parse_target
 from .combat    import (
-    combat_round, one_attack, ensure_hp,
+    combat_round, mob_counter_attacks, one_attack, ensure_hp,
     compute_max_hp, hp_status, condition_str, calc_damage,
 )
 
@@ -382,6 +382,7 @@ class GameState:
     def _combat_tick_inner(self) -> tuple[str | None, str | None, str | None]:
         from ..dnd.xp       import mob_xp_award, level_for_xp, apply_level_up
         from ..world.corpse import Corpse
+        from ..world.mob    import Mob
         from .commands.helpers import personalize_msg
 
         target = self.fighting.get(self._player)
@@ -400,10 +401,6 @@ class GameState:
 
         hp_status_line: str | None = None
 
-        if not getattr(target, "primary_target", None):
-            target.primary_target = self._player
-        is_primary = (getattr(target, "primary_target", None) == self._player)
-
         dnd_state  = getattr(player, "dnd", {}) or {}
         extra_atks = 0
         surge_msg  = None
@@ -413,11 +410,8 @@ class GameState:
             dnd_state["action_surge_active"] = False
             surge_msg = "&+W[ACTION SURGE]&N"
 
-        round_player, round_room = combat_round(
-            player, target,
-            extra_attacks=extra_atks,
-            mob_retaliates=is_primary,
-        )
+        # ── Player attacks their current target ───────────────────────────
+        round_player, round_room = combat_round(player, target, extra_attacks=extra_atks)
 
         player_msgs: list[str] = []
         if surge_msg:
@@ -429,14 +423,30 @@ class GameState:
             room_msgs.append(surge_msg)
         room_msgs.extend(round_room)
 
-        from ..world.effects import tick_effects as _tick_mob_fx
-        mob_self, mob_room = _tick_mob_fx(target)
-        player_msgs.extend(mob_room)
-        room_msgs.extend(mob_room)
+        # ── Every mob in the room that is attacking the player swings back ─
+        # This includes the primary target AND any dogpile mobs.
+        from ..world.effects import tick_effects as _tick_fx
+        for mob in list(getattr(room, "mobs", [])):
+            if not isinstance(mob, Mob):
+                continue
+            if self._player not in getattr(mob, "attackers", set()):
+                continue
+            if not mob.is_alive() or player.hp <= 0:
+                continue
+            ensure_hp(mob)
+            c_player, c_room = mob_counter_attacks(mob, player)
+            player_msgs.extend(personalize_msg(m, player.name) for m in c_player)
+            room_msgs.extend(c_room)
+            # Tick status effects on every attacking mob
+            _, fx_room = _tick_fx(mob)
+            player_msgs.extend(fx_room)
+            room_msgs.extend(fx_room)
 
         if target.hp <= 0:
             self.fighting.pop(self._player, None)
+            target.remove_attacker(self._player)
             room.mobs.remove(target)
+            room.notify_mob_death(target)
             exp        = mob_xp_award(target.level, player.level)
             player.xp  = getattr(player, "xp", 0) + exp
             _, pct     = level_for_xp(player.xp)
@@ -459,16 +469,28 @@ class GameState:
             else:
                 player_msgs.append("&xA corpse is left behind.&N")
                 room_msgs.append(f"&xThe corpse of {target.name}&x lies here.&N")
+            # Auto-switch to next mob attacking the player
+            next_mob = next(
+                (m for m in getattr(room, "mobs", [])
+                 if self._player in getattr(m, "attackers", set()) and m.is_alive()),
+                None,
+            )
+            if next_mob:
+                self.fighting[self._player] = next_mob
+                player_msgs.append(
+                    f"&wYou turn to face &+W{next_mob.name}&w!&N"
+                )
+            else:
+                self.fighting.pop(self._player, None)
+
             self._save_player()
 
         elif player.hp <= 0:
             self.fighting.pop(self._player, None)
             player.hp = max(1, player.max_hp // 4)
-            if getattr(target, "primary_target", None) == self._player:
-                other = next(
-                    (n for n, m in self.fighting.items() if m is target), None
-                )
-                target.primary_target = other
+            # Remove player from all mob attacker sets
+            for mob in list(getattr(room, "mobs", [])):
+                mob.remove_attacker(self._player) if hasattr(mob, "remove_attacker") else None
             player_msgs.append("&+RYOU HAVE BEEN SLAIN!&N")
             player_msgs.append("&wYou somehow cling to life...&N")
             room_msgs.append(f"&+R{player.name} has been slain!&N")
@@ -525,8 +547,11 @@ class GameState:
 
             self.fighting[self._player] = mob
             self._resting.pop(self._player, None)
-            if not getattr(mob, "primary_target", None):
-                mob.primary_target = self._player
+            mob.add_attacker(self._player)
+
+            # All other hostile mobs in the room pile on immediately
+            from .commands.combat import _aggro_dogpile
+            _aggro_dogpile(self, room, exclude=mob)
 
             aggro_msg = (
                 f"&+R{mob.name}&w spots you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
@@ -703,6 +728,7 @@ class GameState:
                     self.fighting.pop(self._player, None)
                     if room and target in room.mobs:
                         room.mobs.remove(target)
+                        room.notify_mob_death(target)
                     from ..dnd.xp       import mob_xp_award, level_for_xp, apply_level_up
                     from ..world.corpse import Corpse
                     exp        = mob_xp_award(target.level, char.level)

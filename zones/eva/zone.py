@@ -24,4 +24,6 @@ author="Eva"
 
 ## orange cat just wonders around
 
-## credit book in vamp manor store room       credit too:Vampires SMP by Pow Creations,      Nathean Apollo(tales of casalore)    
+## credit book in vamp manor store room       credit too:Vampires SMP by Pow Creations,      Nathean Apollo(tales of casalore)
+respawn_ticks      = 75      # ticks before mob respawns (4s each)
+repop_with_player  = True   # respawn even if players are present

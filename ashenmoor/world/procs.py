@@ -5,33 +5,28 @@ Weapon and item special procedures (procs).
 
 A proc is attached to a weapon by name in the zone template:
     "proc": "windsong"
+    "proc": "random_poison"
 
 Procs are called from combat_round() after each successful hit.
-They receive (attacker, defender) and return a list of diku-coloured
-message strings.
+They receive (attacker, defender, weapon=None) and return a list of
+diku-coloured message strings or (player_msg, room_msg) tuples.
 """
 
 from __future__ import annotations
 import random
 
 
+# ── Windsong ──────────────────────────────────────────────────────────────────
+
 _WINDSONG_ALLOWED: frozenset[str] = frozenset({
     "ranger", "warrior", "fighter",
 })
 
-# Outer proc (normal attack): 1-in-20
 _WINDSONG_OUTER_CHANCE = 20
-
-# Inner proc (proc-generated swing): 1-in-10
 _WINDSONG_INNER_CHANCE = 10
+_WINDSONG_MAX_DEPTH    = 6
 
-# Hard recursion cap
-_WINDSONG_MAX_DEPTH = 6
-
-# Depth counter — safe in asyncio (single-threaded)
-_windsong_depth: int = 0
-
-# When True the trigger check is bypassed (set by the active power)
+_windsong_depth: int  = 0
 _windsong_force: bool = False
 
 
@@ -46,9 +41,8 @@ def windsong(attacker, defender, weapon=None) -> list:
     global _windsong_depth, _windsong_force
     from ..engine.combat import one_attack, MISS
 
-    msgs: list[str] = []
+    msgs: list = []
 
-    # ── Class restriction — fires on every hit ────────────────────────────
     cclass = getattr(attacker, "cclass", "").lower()
     if cclass not in _WINDSONG_ALLOWED:
         dmg         = max(1, getattr(attacker, "max_hp", 20) // 2)
@@ -66,49 +60,40 @@ def windsong(attacker, defender, weapon=None) -> list:
                 break
         return msgs
 
-    # ── Depth cap ─────────────────────────────────────────────────────────
     if _windsong_depth >= _WINDSONG_MAX_DEPTH:
         return []
 
-    # ── Trigger check — skipped when force-activated ──────────────────────
     is_outer = (_windsong_depth == 0)
     if not _windsong_force:
         chance = _WINDSONG_OUTER_CHANCE if is_outer else _WINDSONG_INNER_CHANCE
         if random.randint(0, chance - 1) != 0:
             return []
 
-    # Force only applies to this one call — reset before recursive swings
-    # so inner chains use the normal 1-in-10 trigger, not guaranteed fire.
     _windsong_force = False
 
-    # ── Extra swings — always at least 1 ─────────────────────────────────
     race         = getattr(attacker, "race", "")
     extra_swings = 0
 
     if race == "Human":
         extra_swings += 3
 
-    if random.randint(0, 2) == 0:    # 1/3 chance
+    if random.randint(0, 2) == 0:
         extra_swings += 1
     elif race == "Half Elf":
         extra_swings += 2
 
-    if random.randint(0, 2) == 0:    # 1/3 chance
+    if random.randint(0, 2) == 0:
         extra_swings += 1
-    if random.randint(0, 3) == 0:    # 1/4 chance
+    if random.randint(0, 3) == 0:
         extra_swings += 1
 
-    # Guarantee at least 1 swing on the initial trigger only.
-    # Inner triggers (depth > 0) can roll 0 and return silently —
-    # this prevents exponential chain growth.
     if is_outer:
         extra_swings = max(1, extra_swings)
     elif extra_swings == 0:
         return []
 
-    # ── Visual message ─────────────────────────────────────────────────────
     if is_outer:
-        weapon_name = getattr(weapon, "name", "the scimitar") if weapon else "the scimitar"
+        weapon_name  = getattr(weapon, "name", "the scimitar") if weapon else "the scimitar"
         player_flash = (
             "&cThere is a &Wflash of light&N&c at the tip of your scimitar\n"
             "&cas &cw&Ca&N&cv&Ce&N&cs &Co&N&cf &Ce&N&cn&Ce&N&cr&Cg&N&cy&N&c "
@@ -130,7 +115,6 @@ def windsong(attacker, defender, weapon=None) -> list:
             "reversing his swing.&N",
         ))
 
-    # ── Extra swings — each rolls the inner trigger ────────────────────────
     _windsong_depth += 1
     try:
         for _ in range(extra_swings):
@@ -147,8 +131,42 @@ def windsong(attacker, defender, weapon=None) -> list:
     return msgs
 
 
+# ── Random Poison ─────────────────────────────────────────────────────────────
+
+def random_poison(attacker, defender, weapon=None) -> list:
+    """
+    1-in-30 chance on each successful hit to inject poison into the defender.
+    Applies poison for 5 ticks (20 seconds).
+
+    Used by the abyssal spider's fangs and similar venom weapons.
+    """
+    if random.randint(0, 29) != 0:
+        return []
+
+    from ..world.effects import POISON, apply_effect
+    import copy
+
+    poison          = copy.deepcopy(POISON)
+    poison["duration"] = 5
+
+    already_poisoned = any(
+        e.get("id") == "poisoned"
+        for e in getattr(defender, "status_effects", [])
+    )
+    if already_poisoned:
+        return []
+
+    apply_effect(defender, poison)
+
+    def_name = getattr(defender, "name", "your target")
+    player_msg = f"&cYour venom seeps into &N{def_name}&c's wounds!&N"
+    room_msg   = f"&c{attacker.name}&N&c's venom seeps into &N{def_name}&c's wounds!&N"
+    return [(player_msg, room_msg)]
+
+
 # ── Proc registry ─────────────────────────────────────────────────────────────
 
 PROCS: dict[str, callable] = {
-    "windsong": windsong,
+    "windsong":     windsong,
+    "random_poison": random_poison,
 }

@@ -74,14 +74,14 @@ def cmd_look(state, args: list) -> str:
     if room is None:
         return "&RYou are nowhere.&N"
     if not args:
-        return room.render(state.locations, state.characters)
+        return room.render(state.locations, state.characters, state.fighting, viewer=state._player)
 
     token = args[0].lower()
     if token in _ALL_DIRS:
         dest, blocked, msg = room.peek(_expand_direction(token), state.rooms)
         if msg:
             return msg
-        return dest.render(state.locations, state.characters)
+        return dest.render(state.locations, state.characters, state.fighting, viewer=state._player)
 
     if token == "in" and len(args) >= 2:
         char       = state.characters.get(state._player)
@@ -116,7 +116,7 @@ def cmd_scan(state) -> str:
         if vnum is None or vnum not in state.rooms:
             continue
         sections.append(
-            f"&+WYou look {label}&N\n{state.rooms[vnum].render(state.locations, state.characters)}"
+            f"&+WYou look {label}&N\n{state.rooms[vnum].render(state.locations, state.characters, state.fighting, viewer=state._player)}"
         )
     if not sections:
         return "&wYou see no exits from here.&N"
@@ -207,8 +207,11 @@ def check_aggro(state) -> str | None:
 
         state.fighting[state._player] = mob
         state._resting.pop(state._player, None)
-        if not getattr(mob, "primary_target", None):
-            mob.primary_target = state._player
+        mob.add_attacker(state._player)
+
+        # All other hostile mobs in the room pile on immediately
+        from .combat import _aggro_dogpile
+        _aggro_dogpile(state, room, exclude=mob)
 
         aggro_msg = (
             f"&+R{mob.name}&w notices you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"

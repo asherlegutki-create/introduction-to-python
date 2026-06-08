@@ -13,11 +13,34 @@ from ..combat import (
 )
 
 
+def _aggro_dogpile(state, room, exclude=None) -> None:
+    """
+    Make every hostile mob in the room (other than exclude) immediately
+    join combat against the player. Called when combat starts so aggro
+    mobs pile on without waiting for the next awareness tick.
+    """
+    from ...world.mob import Mob
+    for mob in list(getattr(room, "mobs", [])):
+        if not isinstance(mob, Mob):
+            continue
+        if mob is exclude:
+            continue
+        if not mob.is_alive() or not mob.killable:
+            continue
+        if not mob.is_hostile_to(state._player):
+            continue
+        # Already attacking — don't double-add
+        if state._player in getattr(mob, "attackers", set()):
+            continue
+        mob.add_attacker(state._player)
+        state._broadcast_to_room(
+            f"&+R{mob.name}&w joins the fight!&N"
+        )
+
+
 def cmd_kill(state, args: list) -> str:
     if not args:
         return "&wKill what?&N"
-    if state._player in state.fighting:
-        return "&wYou are already in combat!&N"
 
     from ...world.mob   import Mob
     from ..targeting    import find_target, target_name
@@ -38,9 +61,31 @@ def cmd_kill(state, args: list) -> str:
     ensure_hp(char)
     ensure_hp(target)
     state._resting.pop(state._player, None)
+
+    # If already in combat check if switching or already on this target
+    prev_target = state.fighting.get(state._player)
+    if prev_target is not None:
+        if prev_target is target:
+            return "&CYou are already fighting them.&N"
+        # Switch targets
+        state.fighting[state._player] = target
+        target.add_attacker(state._player)
+        switch_msg = "&CYou switch opponents.&N"
+        first_out, first_room, first_hp = state._combat_tick_inner()
+        if first_room:
+            state._broadcast_to_room(first_room)
+        parts = [switch_msg]
+        if first_out:
+            parts.append(first_out)
+        if first_hp:
+            parts.append(first_hp)
+        return "\n".join(parts)
+
     state.fighting[state._player] = target
-    if not getattr(target, "primary_target", None):
-        target.primary_target = state._player
+    target.add_attacker(state._player)
+
+    # All other hostile mobs in the room pile on immediately
+    _aggro_dogpile(state, room, exclude=target)
 
     engage_msg = (
         f"&wYou engage &+W{target.name}&w in combat!&N\n"
@@ -100,17 +145,13 @@ def cmd_flee(state) -> str:
         return "&wThere's nowhere to run!&N"
 
     exit_choice = random.choice(open_exits)
-    angry_mob   = state.fighting.get(state._player)
-    if angry_mob is not None and hasattr(angry_mob, "remember"):
-        angry_mob.remember(state._player)
 
-    if angry_mob and getattr(angry_mob, "primary_target", None) == state._player:
-        other = next(
-            (n for n, m in state.fighting.items()
-             if m is angry_mob and n != state._player),
-            None,
-        )
-        angry_mob.primary_target = other
+    # Remove player from all mob attacker sets in this room
+    for mob in list(getattr(room, "mobs", [])):
+        if hasattr(mob, "remember") and state._player in getattr(mob, "attackers", set()):
+            mob.remember(state._player)
+        if hasattr(mob, "remove_attacker"):
+            mob.remove_attacker(state._player)
 
     state.fighting.pop(state._player, None)
     state.locations[state._player] = exit_choice["roomId"]
@@ -118,16 +159,16 @@ def cmd_flee(state) -> str:
     dest = state.rooms[exit_choice["roomId"]]
     return (
         f"&wYou flee in a panic to the {exit_choice['direction']}!&N\n"
-        f"{dest.render(state.locations, state.characters)}"
+        f"{dest.render(state.locations, state.characters, state.fighting, viewer=state._player)}"
     )
 
 
 def cmd_consider(state, args: list) -> str:
     if not args:
-        return "&wConsider whom?&N"
+        return "Consider killing who?"
 
     from ...world.mob   import Mob
-    from ..targeting    import find_target, target_name
+    from ..targeting    import find_target
 
     char = state.characters.get(state._player)
     room = state.current_room
@@ -136,28 +177,28 @@ def cmd_consider(state, args: list) -> str:
 
     target = find_target(" ".join(args), room, state.locations, state.characters)
     if target is None:
-        return f"&wYou don't see '&W{' '.join(args)}&w' here.&N"
-    if not isinstance(target, Mob):
-        return f"&w{target_name(target)}&w is not something you can fight.&N"
+        return f"Consider killing who?"
 
-    ensure_hp(target)
+    # Non-killable mobs get the PC message
+    if not isinstance(target, Mob) or not target.killable:
+        return "Would you like to borrow a cross and a shovel?"
+
     diff = target.level - char.level
-    if   diff <= -10: diff_str = "&+Gcompletely helpless before you&N"
-    elif diff <=  -5: diff_str = "&+Gvery easy&N"
-    elif diff <=  -2: diff_str = "&Geasy&N"
-    elif diff <=   2: diff_str = "&Yan even match&N"
-    elif diff <=   5: diff_str = "&Ychallenging&N"
-    elif diff <=  10: diff_str = "&Rdangerous&N"
-    else:             diff_str = "&+RSUICIDAL&N"
 
-    return "\n".join([
-        f"&wYou size up &N{target.name}&w:&N",
-        f"  &wDifficulty:&N {diff_str}",
-        f"  &wCondition:&N  {condition_str(target)}",
-        f"  &wLevel:&N      &W{target.level}&N",
-        f"  &wRace:&N       {target.race}",
-        f"  &wClass:&N      {target.cclass}",
-    ])
+    if   diff <= -10: return "That creature appears to be no match for you!"
+    elif diff <=  -5: return "You could do it with a needle!"
+    elif diff <=  -2: return "Easy."
+    elif diff <=  -1: return "Fairly easy."
+    elif diff ==   0: return "The perfect match!"
+    elif diff <=   1: return "You would need some luck!"
+    elif diff <=   2: return "You would need a lot of luck!"
+    elif diff <=   3: return "You would need a lot of luck and great equipment!"
+    elif diff <=   5: return "Do you feel lucky, punk?"
+    elif diff <=  10: return "Are you mad!?"
+    elif diff <=  15: return "You ARE mad!"
+    elif diff <=  20: return "Why don't you just lie down and pretend you're dead instead?"
+    elif diff <=  25: return "What do you want your epitaph to say?!?"
+    else:             return "LAUGH This thing will kill you so fast, its not EVEN funny!"
 
 
 def cmd_rest(state, args: list) -> str:

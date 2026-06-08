@@ -6,10 +6,12 @@ from .mobs    import TEMPLATES as MOB_TEMPLATES
 from .rooms   import ROOMS
 
 ZONE = Zone(
-    name             = ZONE_NAME,
-    rooms            = apply_vnums(ROOMS, ZONE_NUMBER),
-    object_templates = OBJECT_TEMPLATES,
-    mob_templates    = MOB_TEMPLATES,
-    vnum_base        = ZONE_NUMBER,
-    author           = ZONE_AUTHOR,
+    name              = ZONE_NAME,
+    rooms             = apply_vnums(ROOMS, ZONE_NUMBER),
+    object_templates  = OBJECT_TEMPLATES,
+    mob_templates     = MOB_TEMPLATES,
+    vnum_base         = ZONE_NUMBER,
+    author            = ZONE_AUTHOR,
+    respawn_ticks     = RESPAWN_TICKS,
+    repop_with_player = REPOP_WITH_PLAYER,
 )

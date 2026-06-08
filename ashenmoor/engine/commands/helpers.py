@@ -125,15 +125,20 @@ def item_matches(item, keyword: str) -> bool:
 
 def find_container(target_str, char, room):
     from ...engine.targeting import parse_target
-    _, keyword = parse_target(target_str)
+    idx, keyword = parse_target(target_str)
+    matches = 0
     if char is not None:
-        for item in char.inventory:
+        for item in reversed(char.inventory):
             if item_matches(item, keyword):
-                return item
+                matches += 1
+                if matches == idx:
+                    return item
     if room is not None:
-        for obj in room.objects:
+        for obj in reversed(room.objects):
             if item_matches(obj, keyword):
-                return obj
+                matches += 1
+                if matches == idx:
+                    return obj
     return None
 
 
@@ -141,7 +146,7 @@ def find_in_container(target_str, container):
     from ...engine.targeting import parse_target
     idx, keyword = parse_target(target_str)
     matches = 0
-    for item in container.contents:
+    for item in reversed(container.contents):
         if item_matches(item, keyword):
             matches += 1
             if matches == idx:
@@ -153,7 +158,7 @@ def find_in_inventory(target_str, char):
     from ...engine.targeting import parse_target
     idx, keyword = parse_target(target_str)
     matches = 0
-    for item in char.inventory:
+    for item in reversed(char.inventory):
         if item_matches(item, keyword):
             matches += 1
             if matches == idx:
@@ -183,7 +188,7 @@ def look_in_container(c) -> str:
         return f"&N{c.name}&w is closed.&N"
     if not c.contents:
         return f"&wYou look in &N{c.name}&w, it is empty.&N"
-    lines = stack_items(c.contents)
+    lines = stack_items(list(reversed(c.contents)))
     return "\n".join([f"&wYou look in &N{c.name}&w, it contains:&N"] + [f"  {l}" for l in lines])
 
 

@@ -23,7 +23,7 @@ def cmd_inventory(state) -> str:
         return "&RNo character found.&N"
     if not char.inventory:
         return "&wYou are carrying nothing.&N"
-    lines = stack_items(char.inventory)
+    lines = stack_items(list(reversed(char.inventory)))
     return "\n".join(["&wYou are carrying:&N"] + [f"  {l}" for l in lines])
 
 

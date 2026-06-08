@@ -12,7 +12,8 @@ data is ever lost — the queue itself is unaffected.
 NetworkClient uses asyncio StreamReader + telnet IAC parser + MCCP2.
 
 Two async loops run independently:
-  _tick_loop      — every 4 seconds: combat, mob aggro, rest ability restore
+  _tick_loop      — every 4 seconds: combat, mob aggro, rest ability restore,
+                    corpse decay, mob respawn
   _hp_regen_loop  — every 1 second:  silent out-of-combat HP regeneration
 """
 
@@ -34,17 +35,6 @@ if TYPE_CHECKING:
 class LocalConsoleClient(MudClient):
     """
     stdin / stdout shell — no telnet negotiation.
-
-    A daemon thread reads from stdin using the normal blocking readline,
-    keeping the terminal in cooked mode.  This means:
-      - Enter sends \\n  (not \\r / ^M)
-      - Backspace works normally
-      - Ctrl-C / Ctrl-D are handled by the OS as expected
-
-    Lines are placed into an asyncio.Queue via call_soon_threadsafe.
-    The async game loop awaits Queue.get() with a short timeout so it
-    can flush tick output between keystrokes.  Cancelling Queue.get()
-    while the queue is empty is safe — no data is consumed or lost.
     """
 
     def __init__(self, state: "GameState"):
@@ -53,12 +43,6 @@ class LocalConsoleClient(MudClient):
         self._reader_started = False
 
     def _start_stdin_reader(self) -> None:
-        """
-        Spawn a single daemon thread that reads stdin lines forever.
-        Puts each stripped line into the queue; puts None on EOF.
-        Called lazily on the first _raw_readline() so the event loop
-        is already running when we call get_event_loop().
-        """
         loop = asyncio.get_event_loop()
 
         def _read_loop() -> None:
@@ -70,7 +54,7 @@ class LocalConsoleClient(MudClient):
                 line: str | None = raw.rstrip("\r\n") if raw else None
                 loop.call_soon_threadsafe(self._line_queue.put_nowait, line)
                 if line is None:
-                    break   # EOF — stop the thread
+                    break
 
         t = threading.Thread(target=_read_loop, daemon=True, name="stdin-reader")
         t.start()
@@ -169,14 +153,14 @@ class MudServer:
         self._port    = port
         self._clients: dict[str, MudClient] = {}
 
-    # ── 4-second tick: combat / rest / aggro ──────────────────────────────────
+    # ── 4-second tick: combat / rest / aggro / respawn ────────────────────────
 
     async def _tick_loop(self) -> None:
         while True:
             await asyncio.sleep(TICK_INTERVAL)
 
-            broadcasts: list[tuple[str, int, str]] = []   # (sender, room_id, msg)
-            hp_statuses: dict[str, str]            = {}   # player_name → status line
+            broadcasts:  list[tuple[str, int, str]] = []
+            hp_statuses: dict[str, str]             = {}
 
             for name, client in list(self._clients.items()):
                 if client._closed:
@@ -215,14 +199,21 @@ class MudServer:
                     if aggro_out:
                         await client.send(aggro_out)
 
-            # Decay corpses in all rooms (runs once per tick regardless of players)
+            # ── Per-room maintenance: corpse decay + mob respawn ───────────────
+            # Build a set of room vnums that currently have players in them
+            occupied: set[int] = set(self._state.locations.values())
+
             for room in list(self._state.rooms.values()):
+                # Corpse decay
                 for obj in list(getattr(room, "objects", [])):
                     if getattr(obj, "is_corpse", False):
                         obj.tick(room)
 
-            # Send room broadcasts before HP statuses so all combat
-            # messages appear together, then the status line last.
+                # Mob respawn — pass whether any player is present
+                player_present = room.number in occupied
+                room.respawn_tick(player_present)
+
+            # ── Broadcast room combat messages ────────────────────────────────
             for sender_name, room_id, msg in broadcasts:
                 for other_name, other_client in list(self._clients.items()):
                     if other_name == sender_name or other_client._closed:
@@ -230,7 +221,7 @@ class MudServer:
                     if state.locations.get(other_name) == room_id:
                         await other_client.send(msg)
 
-            # HP status lines last — after every other player's attacks
+            # ── HP status lines last ──────────────────────────────────────────
             for name, status in hp_statuses.items():
                 client = self._clients.get(name)
                 if client and not client._closed:
@@ -239,7 +230,6 @@ class MudServer:
     # ── 1-second tick: HP regeneration ────────────────────────────────────────
 
     async def _hp_regen_loop(self) -> None:
-        """Silent HP regen every second for all out-of-combat players."""
         while True:
             await asyncio.sleep(1.0)
             for name in list(self._clients):

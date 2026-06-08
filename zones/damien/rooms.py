@@ -157,7 +157,6 @@ ROOMS: dict[int, Room] = {
             ],
             "objects": [
                 O.spawn("sword_that_seals_the_darkness"),
-                O.spawn("sword_that_seals_the_darkness")
             ]
         }
     ),
