@@ -158,7 +158,7 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("ethereal", "amulet"),
         "room_description": "a necklace is strewn on the ground.",
         "description": "The &mpurple&N stone glows softly and the silver chain is comfortable and cool in your fingers",
-        "wear_on":   "necl",
+        "wear_on":   "neck",
         "weight":    2.0,
         "cost":      200,
         "ac_bonus": 5,
