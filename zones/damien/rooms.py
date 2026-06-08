@@ -146,8 +146,7 @@ ROOMS: dict[int, Room] = {
             "number": 8,
             "name": "Sword Shrine",
             "description":  ("You ascend into the room and look around. You are walking on &Xdark&N &Wclouds&N.",
-                            "In the middle of the room there is a stone triangular stone platform.",
-                             ),
+                            "In the middle of the room there is a triangular stone platform."),
             "indoors": False,
             "terrain": "cloud",
             "exits": [
