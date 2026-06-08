@@ -1,7 +1,7 @@
 """
 zones.the_void.rooms
 ────────────────────
-Room definitions for The Void zone.  Vnum range: 1 – 99.
+Room definitions for The Void zone.  Vnum range: 1 - 99.
 
 Each room entry calls O.spawn() / M.spawn() to place fresh object and mob
 instances.  Calling spawn() twice places two independent copies, so loot

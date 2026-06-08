@@ -84,7 +84,7 @@ def _item_to_dict(item) -> dict:
     are included -- including the proc key on weapons so procs survive
     save/load cycles.
     """
-    from ..world.objects import Weapon, Container, Item
+    from ..world.objects import Weapon, Container, Item, Scroll, Potion
 
     base = {
         "type":             type(item).__name__,
@@ -106,6 +106,36 @@ def _item_to_dict(item) -> dict:
             # proc and powers must be saved so they survive logout/login
             "proc":       item.proc,
             "powers":     item.powers,
+            # stat/AC bonuses
+            "stat_mods":  getattr(item, "stat_mods", {}),
+            "save_mods":  getattr(item, "save_mods", {}),
+            "ac_bonus":   getattr(item, "ac_bonus",  0),
+            "armor_type": getattr(item, "armor_type", None),
+        })
+
+    elif isinstance(item, Scroll):
+        base.update({
+            "weight":    item.weight,
+            "mod":       item.mod,
+            "wear_on":   item.wear_on,
+            "effect":    item.effect,
+            "apply_msg": item.apply_msg,
+            "room_msg":  item.room_msg,
+            # Preserve full data dict so multi-effect scrolls survive
+            **{k: v for k, v in item._data.items()
+               if k not in ("name", "key_words", "room_description", "description", "type")},
+        })
+
+    elif isinstance(item, Potion):
+        base.update({
+            "weight":    item.weight,
+            "mod":       item.mod,
+            "wear_on":   item.wear_on,
+            "effect":    item.effect,
+            "apply_msg": item.apply_msg,
+            # Preserve full data dict so multi-effect potions survive
+            **{k: v for k, v in item._data.items()
+               if k not in ("name", "key_words", "room_description", "description", "type")},
         })
 
     elif isinstance(item, Container):
@@ -121,9 +151,16 @@ def _item_to_dict(item) -> dict:
 
     elif isinstance(item, Item):
         base.update({
-            "weight":  item.weight,
-            "mod":     item.mod,
-            "wear_on": item.wear_on,
+            "weight":     item.weight,
+            "mod":        item.mod,
+            "wear_on":    item.wear_on,
+            # armor / stat fields — critical for gear to work after login
+            "stat_mods":  getattr(item, "stat_mods", {}),
+            "save_mods":  getattr(item, "save_mods", {}),
+            "ac_bonus":   getattr(item, "ac_bonus",  0),
+            "armor_type": getattr(item, "armor_type", None),
+            "is_key":     getattr(item, "is_key",    False),
+            "key_name":   getattr(item, "key_name",  None),
         })
 
     return base
@@ -134,7 +171,7 @@ def _dict_to_item(data: dict):
     Reconstruct an Object / Item / Weapon / Container from a plain dict.
     Container contents are deserialized recursively.
     """
-    from ..world.objects import Weapon, Container, Item, Object
+    from ..world.objects import Weapon, Container, Item, Scroll, Potion, Object
 
     t = data.get("type", "Object")
 
@@ -147,6 +184,12 @@ def _dict_to_item(data: dict):
         obj      = Container(d)
         obj.contents = [_dict_to_item(c) for c in contents]
         return obj
+
+    if t == "Scroll":
+        return Scroll(data)
+
+    if t == "Potion":
+        return Potion(data)
 
     if t == "Item":
         return Item(data)
@@ -308,5 +351,13 @@ def load_character(
             char.equipment.setdefault(slot, []).append(item)
         else:
             char.equipment[slot] = item
+
+    # Restore class powers if missing — handles characters saved before
+    # powers were added, or any load path that skips power assignment.
+    if not getattr(char, "powers", []):
+        cclass = getattr(char, "cclass", "").lower()
+        if cclass in ("warrior", "fighter"):
+            from ..dnd.classes.warrior import WARRIOR_POWERS
+            char.powers = WARRIOR_POWERS
 
     return row["location"]

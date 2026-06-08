@@ -11,13 +11,14 @@ Procs are called by combat_round() after each successful hit on the primary
 hand weapon.  They receive (attacker, defender) and return a list of
 diku-coloured message strings.
 
-Stat bonuses on items
-─────────────────────
-Add a "stat_mods" dict to any item template to give it ability bonuses.
+Stat and AC bonuses on items
+─────────────────────────────
+Add "stat_mods" and/or "ac_bonus" to any item template.
+All equipped ac_bonus values stack freely; unarmored AC is 0.
 
 D&D 5.5e weapon properties
 ───────────────────────────
-  light, finesse, versatile, thrown, reach, is_shield, armor_type
+  light, finesse, versatile, thrown, reach, is_shield
 """
 
 from .equipment import VALID_WEAR_ON
@@ -49,7 +50,6 @@ class Item(Object):
         self.stat_mods: dict[str,int] = d.get("stat_mods", {})
         self.save_mods: dict[str,int] = d.get("save_mods", {})
         self.ac_bonus:  int           = d.get("ac_bonus",  0)
-        self.armor_type: str | None   = d.get("armor_type", None)
         # Key identity — items with is_key=True can lock/unlock containers
         self.is_key:    bool           = d.get("is_key",    False)
         self.key_name:  str | None     = d.get("key_name",  None)
@@ -81,10 +81,7 @@ class Weapon(Item):
         self.thrown:         bool       = d.get("thrown",         False)
         self.reach:          bool       = d.get("reach",          False)
         self.is_shield:      bool       = d.get("is_shield",      False)
-        self.armor_type:     str | None = d.get("armor_type",     None)
         # ── Weapon proc ───────────────────────────────────────────────────────
-        # Store as a string key; combat_round() resolves it via PROCS at runtime
-        # to avoid circular imports between world.objects and engine.combat.
         self.proc:           str | None = d.get("proc",           None)
         # Weapon powers — list of power dicts; available to wielder while equipped
         self.powers:         list       = list(d.get("powers",    []))

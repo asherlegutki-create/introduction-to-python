@@ -19,7 +19,7 @@ ROOMS: dict[int, Room] = {
             {"direction": "west",  "roomId": 3},
             {"direction": "east",  "roomId": 4},
             {"direction": "south", "roomId": 5},
-            {"direction": "down",  "roomId": 6},
+            {"direction": "down",  "roomId": 16001, "external": True},
             {"direction": "up",  "roomId": 7}
         ],
         "objects": [
@@ -89,17 +89,6 @@ ROOMS: dict[int, Room] = {
             {"direction": "south", "roomId": 12001, "external": True},
         ],
     }),
-    6: Room({
-        "number": 6,
-        "name": "This is the abyss",
-        "description": (
-        ),
-        "indoors": False,
-        "terrain": "abyss",
-        "exits": [
-            {"direction": "up", "roomId": 1}
-        ],
-    }),
     7: Room({
         "number": 7,
         "name": "Treasure Room",
@@ -112,6 +101,17 @@ ROOMS: dict[int, Room] = {
         ],
         "objects": [
             O.spawn("treasure_chest")
+        ],
+    }),
+    6: Room({
+        "number": 6,
+        "name": "This is the abyss",
+        "description": (
+        ),
+        "indoors": False,
+        "terrain": "abyss",
+        "exits": [
+            {"direction": "up", "roomId": 1},
         ],
     }),
 }
