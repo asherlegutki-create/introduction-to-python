@@ -55,7 +55,6 @@
     flex-shrink: 0;
   }
   #conn-form { display: flex; gap: 6px; flex: 1; align-items: center; }
-  /* connection form — input removed, buttons only */
   .btn {
     background: transparent;
     border: 1px solid var(--accent);
@@ -85,11 +84,7 @@
   #status-dot.connected { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
   #status-text { font-size: 11px; color: var(--dim); min-width: 80px; }
 
-  .tab-bar {
-    display: flex;
-    gap: 4px;
-    margin-left: auto;
-  }
+  .tab-bar { display: flex; gap: 4px; margin-left: auto; }
   .tab {
     background: transparent;
     border: 1px solid var(--border);
@@ -106,19 +101,10 @@
   .tab.active, .tab:hover { border-color: var(--accent); color: var(--accent); }
 
   /* ── MAIN AREA ── */
-  #main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
+  #main { display: flex; flex: 1; overflow: hidden; }
 
   /* ── TERMINAL ── */
-  #terminal-pane {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-  }
+  #terminal-pane { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 
   #output {
     flex: 1;
@@ -127,7 +113,7 @@
     line-height: 1.6;
     font-family: var(--mono);
     font-size: 14px;
-    font-variant-ligatures: none;  /* keep MUD ASCII art intact */
+    font-variant-ligatures: none;
   }
   #output::-webkit-scrollbar { width: 6px; }
   #output::-webkit-scrollbar-track { background: transparent; }
@@ -135,11 +121,11 @@
   #output::-webkit-scrollbar-thumb:hover { background: var(--dim); }
 
   .line { white-space: pre-wrap; word-break: break-word; }
-  .line.echo    { color: var(--dim); }
-  .line.sys    { color: var(--accent); font-style: italic; }
-  .line.err    { color: var(--danger); }
-  .line.trig   { color: var(--warn); }
-  .line.prompt-line { color: var(--text); }  /* unterminated prompt */
+  .line.echo     { color: var(--dim); }
+  .line.sys      { color: var(--accent); font-style: italic; }
+  .line.err      { color: var(--danger); }
+  .line.trig     { color: var(--warn); }
+  .line.prompt-line { color: var(--text); }
 
   /* ── INPUT BAR ── */
   #input-bar {
@@ -174,13 +160,8 @@
     flex-direction: column;
     overflow: hidden;
   }
-  #side-panel.hidden { display: none; }
 
-  .panel-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
+  .panel-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .panel-tab {
     flex: 1;
     padding: 8px 4px;
@@ -198,7 +179,6 @@
 
   .panel-section { display: none; flex-direction: column; flex: 1; overflow: hidden; padding: 10px; gap: 8px; }
   .panel-section.active { display: flex; }
-
   .panel-section label { font-size: 11px; color: var(--dim); letter-spacing: 1px; text-transform: uppercase; }
   .panel-section input, .panel-section textarea, .panel-section select {
     background: var(--panel);
@@ -222,11 +202,8 @@
   .row > .btn { flex: 0 0 auto; }
 
   .item-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex: 1; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 4px;
   }
   .item-list::-webkit-scrollbar { width: 4px; }
   .item-list::-webkit-scrollbar-thumb { background: var(--border); }
@@ -258,7 +235,6 @@
   .icon-btn:hover.edit   { color: var(--accent); }
   .icon-btn:hover.del    { color: var(--danger); }
 
-  /* ── SCRIPT EDITOR ── */
   #script-editor {
     flex: 1;
     background: var(--panel);
@@ -287,21 +263,8 @@
   }
   #script-output .script-err { color: var(--danger); }
 
-  /* ANSI color classes */
-  .ansi-30{color:#333} .ansi-31{color:#ff5555} .ansi-32{color:#55ff55}
-  .ansi-33{color:#ffff55} .ansi-34{color:#5599ff} .ansi-35{color:#ff55ff}
-  .ansi-36{color:#55ffff} .ansi-37{color:#dddddd} .ansi-39{color:inherit}
-  .ansi-1{font-weight:bold} .ansi-3{font-style:italic} .ansi-4{text-decoration:underline}
-  .ansi-90{color:#666} .ansi-91{color:#ff8888} .ansi-92{color:#88ff88}
-  .ansi-93{color:#ffff88} .ansi-94{color:#88aaff} .ansi-95{color:#ff88ff}
-  .ansi-96{color:#88ffff} .ansi-97{color:#ffffff}
-
-  /* Resize handle */
   #resize-handle {
-    width: 4px;
-    background: var(--border);
-    cursor: col-resize;
-    flex-shrink: 0;
+    width: 4px; background: var(--border); cursor: col-resize; flex-shrink: 0;
     transition: background .2s;
   }
   #resize-handle:hover { background: var(--accent); }
@@ -316,8 +279,6 @@
     padding-bottom: 4px;
     border-bottom: 1px solid var(--border);
   }
-
-  /* checkbox toggle */
   input[type=checkbox] { accent-color: var(--accent); width: auto; }
   .check-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
 </style>
@@ -341,7 +302,6 @@
 
 <!-- MAIN -->
 <div id="main">
-  <!-- TERMINAL PANE -->
   <div id="terminal-pane">
     <div id="output"></div>
     <div id="input-bar">
@@ -352,10 +312,8 @@
     </div>
   </div>
 
-  <!-- RESIZE HANDLE -->
   <div id="resize-handle" onmousedown="startResize(event)"></div>
 
-  <!-- SIDE PANEL -->
   <div id="side-panel">
     <div class="panel-tabs">
       <div class="panel-tab active" onclick="switchPanel('triggers')">Triggers</div>
@@ -364,7 +322,6 @@
       <div class="panel-tab" onclick="switchPanel('log')">Log</div>
     </div>
 
-    <!-- TRIGGERS -->
     <div class="panel-section active" id="panel-triggers">
       <div class="section-title">Triggers</div>
       <label>Pattern (regex)</label>
@@ -380,7 +337,6 @@
       <div class="hint">Actions: send:&lt;cmd&gt; | echo:&lt;msg&gt; | script:&lt;fn()&gt; | notify:&lt;msg&gt;</div>
     </div>
 
-    <!-- ALIASES -->
     <div class="panel-section" id="panel-aliases">
       <div class="section-title">Aliases</div>
       <label>Alias name</label>
@@ -394,7 +350,6 @@
       <div class="hint">Use $1, $2… for positional args. E.g. alias "k" → "kill $1"</div>
     </div>
 
-    <!-- SCRIPTS -->
     <div class="panel-section" id="panel-scripts">
       <div class="section-title">Script Console</div>
       <div class="hint" style="margin-bottom:4px">
@@ -402,11 +357,6 @@
       </div>
       <textarea id="script-editor" rows="12" spellcheck="false">// Example: send a command every 30 seconds
 // setInterval(() => send("score"), 30000);
-
-// Example: heal when HP drops (set up a trigger with script:checkHp())
-// function checkHp() {
-//   if (parseInt(vars.hp) < 50) send("heal self");
-// }
 
 echo("Script engine ready.");</textarea>
       <div class="row">
@@ -416,7 +366,6 @@ echo("Script engine ready.");</textarea>
       <div id="script-output"></div>
     </div>
 
-    <!-- LOG -->
     <div class="panel-section" id="panel-log">
       <div class="section-title">System Log</div>
       <div class="row">
@@ -438,16 +387,15 @@ let cmdHistory = [];
 let historyIndex = -1;
 let triggers = JSON.parse(localStorage.getItem('mud_triggers') || '[]');
 let aliases  = JSON.parse(localStorage.getItem('mud_aliases')  || '[]');
-let vars = {};         // shared scripting variables
-let match = [];        // last trigger regex captures
-let outputBuffer = '';      // partial line buffer
-let promptFlushTimer = null; // debounce timer for unterminated prompt lines
-let promptLineDiv  = null;   // the DOM node showing the current partial line
+let vars = {};
+let match = [];
+let outputBuffer  = '';
+let promptFlushTimer = null;
+let promptLineDiv    = null;
 
 // ─────────────────────────────────────────────
 //  WEBSOCKET
 // ─────────────────────────────────────────────
-// Always connect to the same origin — no user-supplied URL accepted.
 function _serverUrl() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   return `${proto}://${location.host}/ws`;
@@ -459,46 +407,23 @@ function reconnect() {
 }
 
 function connect() {
-  if (ws && (ws.readyState === WebSocket.OPEN ||
-             ws.readyState === WebSocket.CONNECTING)) return;
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
   if (ws) ws.close();
-
   const url = _serverUrl();
   sysEcho(`Connecting to ${url}…`);
   log(`Connect attempt: ${url}`);
-
   try {
     ws = new WebSocket(url);
     ws.binaryType = 'arraybuffer';
-
-    ws.onopen = () => {
-      connected = true;
-      setStatus(true);
-      sysEcho('Connected.');
-      log('WebSocket connected');
-    };
-
+    ws.onopen    = () => { connected = true;  setStatus(true);  sysEcho('Connected.');    log('WebSocket connected'); };
     ws.onmessage = (e) => {
-      let text;
-      if (e.data instanceof ArrayBuffer) {
-        text = new TextDecoder('latin1').decode(e.data);
-      } else {
-        text = e.data;
-      }
+      let text = (e.data instanceof ArrayBuffer)
+        ? new TextDecoder('latin1').decode(e.data)
+        : e.data;
       handleServerData(text);
     };
-
-    ws.onerror = () => {
-      sysEcho('Connection error.', 'err');
-      log('WebSocket error');
-    };
-
-    ws.onclose = () => {
-      connected = false;
-      setStatus(false);
-      sysEcho('Disconnected.', 'err');
-      log('WebSocket closed');
-    };
+    ws.onerror  = () => { sysEcho('Connection error.', 'err'); log('WebSocket error'); };
+    ws.onclose  = () => { connected = false; setStatus(false); sysEcho('Disconnected.', 'err'); log('WebSocket closed'); };
   } catch(ex) {
     sysEcho('Failed: ' + ex.message, 'err');
   }
@@ -509,10 +434,7 @@ function disconnect() {
 }
 
 function sendRaw(text) {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(text + '\r\n');
-    return true;
-  }
+  if (ws && ws.readyState === WebSocket.OPEN) { ws.send(text + '\r\n'); return true; }
   return false;
 }
 
@@ -520,30 +442,16 @@ function sendRaw(text) {
 //  DATA PROCESSING
 // ─────────────────────────────────────────────
 function handleServerData(raw) {
-  // Strip telnet IAC sequences (basic)
   raw = stripTelnet(raw);
-
-  // If we were showing a partial prompt line, remove it — we're about to
-  // reprocess the buffer with the new data appended.
   if (promptLineDiv && promptLineDiv.parentNode) {
     promptLineDiv.parentNode.removeChild(promptLineDiv);
     promptLineDiv = null;
   }
   if (promptFlushTimer) { clearTimeout(promptFlushTimer); promptFlushTimer = null; }
-
-  // Append to partial buffer
   outputBuffer += raw;
-
-  // Process complete lines (keep final partial)
   const lines = outputBuffer.split('\n');
-  outputBuffer = lines.pop(); // last element may be incomplete
+  outputBuffer = lines.pop();
   lines.forEach(line => processLine(line.replace(/\r/g, '')));
-
-  // If there is still content in the buffer after processing all complete
-  // lines, it is an unterminated prompt (e.g. "Who would you like to be
-  // known as? ").  Wait 50 ms — if no further data arrives it is safe to
-  // render it.  If more data does arrive handleServerData will be called
-  // again, the timer will be cleared, and we reprocess cleanly.
   if (outputBuffer.trim()) {
     promptFlushTimer = setTimeout(flushPromptBuffer, 50);
   }
@@ -557,17 +465,14 @@ function flushPromptBuffer() {
   div.className = 'line prompt-line';
   div.innerHTML = html;
   output.appendChild(div);
-  promptLineDiv = div;         // remember it so we can remove it if more data arrives
+  promptLineDiv = div;
   if (!userScrolledUp && !scrollPending) {
     scrollPending = true;
     requestAnimationFrame(_scrollToBottom);
   }
-  // Do NOT clear outputBuffer — the server expects us to wait for the
-  // player's reply on the same logical line.
 }
 
 function processLine(line) {
-  // A completed line clears any lingering prompt div
   if (promptLineDiv && promptLineDiv.parentNode) {
     promptLineDiv.parentNode.removeChild(promptLineDiv);
     promptLineDiv = null;
@@ -578,38 +483,87 @@ function processLine(line) {
 }
 
 function stripTelnet(data) {
-  // Remove IAC sequences (very basic — expand for full telnet negotiation)
   return data.replace(/\xFF[\xFB-\xFE]./g, '').replace(/\xFF\xFF/g, '\xFF');
 }
 
 // ─────────────────────────────────────────────
 //  ANSI → HTML
+//  Xterm 16-color palette — light/dark aware
+//
+//  Normal (non-bold) = dark variant
+//  Bold              = bright variant
+//  Codes 90-97       = always bright (high-intensity)
 // ─────────────────────────────────────────────
+const _ANSI_NORMAL = {
+  30: '#000000', 31: '#AA0000', 32: '#00AA00', 33: '#AA5500',
+  34: '#0000AA', 35: '#AA00AA', 36: '#00AAAA', 37: '#AAAAAA',
+};
+const _ANSI_BRIGHT = {
+  30: '#555555', 31: '#FF5555', 32: '#55FF55', 33: '#FFFF55',
+  34: '#5555FF', 35: '#FF55FF', 36: '#55FFFF', 37: '#FFFFFF',
+};
+const _ANSI_HIGH = {
+  90: '#555555', 91: '#FF5555', 92: '#55FF55', 93: '#FFFF55',
+  94: '#5555FF', 95: '#FF55FF', 96: '#55FFFF', 97: '#FFFFFF',
+};
+
 function ansiToHtml(text) {
-  const escapeHtml = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  let result = '';
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  let result    = '';
   let openSpans = 0;
-  const parts = text.split(/\x1b\[([0-9;]*)m/);
-  for (let i = 0; i < parts.length; i++) {
-    if (i % 2 === 0) {
-      result += escapeHtml(parts[i]);
-    } else {
-      const codes = parts[i].split(';').map(Number);
-      let classes = [];
-      codes.forEach(c => {
-        if (c === 0) {
-          if (openSpans > 0) { result += '</span>'.repeat(openSpans); openSpans = 0; }
-        } else {
-          classes.push('ansi-' + c);
-        }
-      });
-      if (classes.length) {
-        result += `<span class="${classes.join(' ')}">`;
-        openSpans++;
-      }
+  let bold      = false;
+  let fgCode    = null;   // current fg ANSI code, or null = default
+
+  function closeSpans() {
+    if (openSpans > 0) { result += '</span>'.repeat(openSpans); openSpans = 0; }
+  }
+
+  function currentColor() {
+    if (fgCode === null) return null;
+    if (fgCode >= 90 && fgCode <= 97) return _ANSI_HIGH[fgCode];
+    return bold ? _ANSI_BRIGHT[fgCode] : _ANSI_NORMAL[fgCode];
+  }
+
+  function openSpan() {
+    const color = currentColor();
+    if (color || bold) {
+      let style = color ? `color:${color}` : '';
+      if (bold) style += (style ? ';' : '') + 'font-weight:bold';
+      result += `<span style="${style}">`;
+      openSpans++;
     }
   }
-  if (openSpans > 0) result += '</span>'.repeat(openSpans);
+
+  const parts = text.split(/\x1b\[([0-9;]*)m/);
+
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 0) {
+      // Text segment
+      const escaped = esc(parts[i]);
+      if (escaped) {
+        // Open a span if we have active styling and none is open
+        if (openSpans === 0 && (fgCode !== null || bold)) openSpan();
+        result += escaped;
+      }
+    } else {
+      // Escape sequence — close current span, update state
+      closeSpans();
+      const codes = parts[i] ? parts[i].split(';').map(Number) : [0];
+      for (const c of codes) {
+        if      (c === 0)                          { bold = false; fgCode = null; }
+        else if (c === 1)                          { bold = true; }
+        else if (c === 22)                         { bold = false; }
+        else if ((c >= 30 && c <= 37) ||
+                 (c >= 90 && c <= 97))             { fgCode = c; }
+        else if (c === 39)                         { fgCode = null; }
+        // ignore background codes, underline, etc.
+      }
+      // Span opens lazily when the next text segment arrives
+    }
+  }
+
+  closeSpans();
   return result;
 }
 
@@ -617,18 +571,12 @@ function ansiToHtml(text) {
 //  OUTPUT
 // ─────────────────────────────────────────────
 const output = document.getElementById('output');
-
-// Track whether the user has manually scrolled up.
-// We only suppress auto-scroll when they have — any other time we
-// always follow the bottom so new game output is always visible.
 let userScrolledUp = false;
 let scrollPending  = false;
 
 output.addEventListener('scroll', () => {
-  // Consider the user "at the bottom" if within 40px — covers rounding
-  // and sub-pixel rendering differences across browsers.
-  const distFromBottom = output.scrollHeight - output.scrollTop - output.clientHeight;
-  userScrolledUp = distFromBottom > 40;
+  const dist = output.scrollHeight - output.scrollTop - output.clientHeight;
+  userScrolledUp = dist > 40;
 });
 
 function _scrollToBottom() {
@@ -641,13 +589,7 @@ function appendLine(html, cls) {
   div.className = 'line ' + (cls || '');
   div.innerHTML = html;
   output.appendChild(div);
-
-  // Trim old lines (keep max 5000)
   while (output.childElementCount > 5000) output.removeChild(output.firstChild);
-
-  // Scroll to bottom after paint unless the user has scrolled up to read.
-  // requestAnimationFrame waits until the browser has rendered the new node,
-  // so scrollHeight is accurate when we measure / set it.
   if (!userScrolledUp && !scrollPending) {
     scrollPending = true;
     requestAnimationFrame(_scrollToBottom);
@@ -693,21 +635,11 @@ function sendCommand() {
   if (!cmd) return;
   input.value = '';
   historyIndex = -1;
-
-  // Add to history (avoid duplicates)
   if (cmdHistory[cmdHistory.length-1] !== cmd) cmdHistory.push(cmd);
   if (cmdHistory.length > 200) cmdHistory.shift();
-
-  // Expand aliases
   cmd = expandAlias(cmd);
-
-  // Echo locally
   appendLine('&gt; ' + escHtml(cmd), 'echo');
-
-  // Send to server
-  if (!sendRaw(cmd)) {
-    sysEcho('Not connected. Use Connect first.', 'err');
-  }
+  if (!sendRaw(cmd)) sysEcho('Not connected. Use Reconnect first.', 'err');
 }
 
 // ─────────────────────────────────────────────
@@ -715,17 +647,11 @@ function sendCommand() {
 // ─────────────────────────────────────────────
 function expandAlias(cmd) {
   const parts = cmd.split(/\s+/);
-  const name = parts[0];
-  const alias = aliases.find(a => a.enabled && a.name === name);
+  const alias = aliases.find(a => a.enabled && a.name === parts[0]);
   if (!alias) return cmd;
   let expanded = alias.expand;
-  // Replace $1, $2… with args
-  for (let i = 1; i < parts.length; i++) {
-    expanded = expanded.replace(new RegExp('\\$'+i, 'g'), parts[i]);
-  }
-  // Remove unused placeholders
+  for (let i = 1; i < parts.length; i++) expanded = expanded.replace(new RegExp('\\$'+i,'g'), parts[i]);
   expanded = expanded.replace(/\$\d+/g, '').trim();
-  log(`Alias: "${cmd}" → "${expanded}"`);
   return expanded;
 }
 
@@ -736,97 +662,56 @@ function checkTriggers(line) {
   triggers.forEach(t => {
     if (!t.enabled) return;
     try {
-      let matched = false;
-      let captures = [];
+      let matched = false; let captures = [];
       if (t.useRegex) {
-        const flags = t.caseInsensitive ? 'i' : '';
-        const re = new RegExp(t.pattern, flags);
-        const m = line.match(re);
+        const re = new RegExp(t.pattern, t.caseInsensitive ? 'i' : '');
+        const m  = line.match(re);
         if (m) { matched = true; captures = Array.from(m); }
       } else {
         const a = t.caseInsensitive ? line.toLowerCase() : line;
         const b = t.caseInsensitive ? t.pattern.toLowerCase() : t.pattern;
         if (a.includes(b)) matched = true;
       }
-      if (matched) {
-        match = captures;
-        executeTriggerAction(t.action, line);
-      }
-    } catch(ex) {
-      log('Trigger error [' + t.pattern + ']: ' + ex.message);
-    }
+      if (matched) { match = captures; executeTriggerAction(t.action, line); }
+    } catch(ex) { log('Trigger error [' + t.pattern + ']: ' + ex.message); }
   });
 }
 
 function executeTriggerAction(action, sourceLine) {
   const colonIdx = action.indexOf(':');
-  if (colonIdx === -1) {
-    // bare text → send
-    sendRaw(action);
-    return;
-  }
-  const type = action.substring(0, colonIdx).trim().toLowerCase();
+  if (colonIdx === -1) { sendRaw(action); return; }
+  const type    = action.substring(0, colonIdx).trim().toLowerCase();
   const payload = action.substring(colonIdx + 1).trim();
-
   switch(type) {
-    case 'send':
-      sendRaw(payload);
-      log('Trigger fired → send: ' + payload);
-      break;
-    case 'echo':
-      appendLine('&#x2605; ' + escHtml(payload), 'line trig');
-      break;
+    case 'send':   sendRaw(payload); log('Trigger fired → send: ' + payload); break;
+    case 'echo':   appendLine('&#x2605; ' + escHtml(payload), 'line trig'); break;
     case 'notify':
-      if (Notification.permission === 'granted') {
-        new Notification('MUD', { body: payload });
-      } else {
-        appendLine('&#x2605; NOTIFY: ' + escHtml(payload), 'line trig');
-      }
-      log('Trigger fired → notify: ' + payload);
+      if (Notification.permission === 'granted') new Notification('MUD', { body: payload });
+      else appendLine('&#x2605; NOTIFY: ' + escHtml(payload), 'line trig');
       break;
-    case 'script':
-      try {
-        // payload is a JS expression / function call
-        evalScript(payload);
-      } catch(ex) {
-        log('Trigger script error: ' + ex.message);
-      }
-      break;
-    default:
-      log('Unknown trigger action type: ' + type);
+    case 'script': try { evalScript(payload); } catch(ex) { log('Trigger script error: ' + ex.message); } break;
+    default: log('Unknown trigger action type: ' + type);
   }
 }
 
 // ─────────────────────────────────────────────
 //  SCRIPTING
 // ─────────────────────────────────────────────
-
-// Public API exposed to scripts
-function send(cmd) { 
-  appendLine('&gt; ' + escHtml(cmd), 'echo');
-  if (!sendRaw(cmd)) scriptLog('Not connected', true);
-}
+function send(cmd) { appendLine('&gt; ' + escHtml(cmd), 'echo'); if (!sendRaw(cmd)) scriptLog('Not connected', true); }
 function echo(msg) { appendLine(escHtml(String(msg)), 'line'); }
 
 function evalScript(code) {
-  // Runs in a function scope with the API available
-  const fn = new Function('send','echo','vars','match','log',
-    '"use strict";\n' + code
-  );
+  const fn = new Function('send','echo','vars','match','log', '"use strict";\n' + code);
   fn(send, echo, vars, match, msg => scriptLog(msg));
 }
 
 function runScript() {
   const code = document.getElementById('script-editor').value;
-  try {
-    evalScript(code);
-  } catch(ex) {
-    scriptLog('Error: ' + ex.message, true);
-  }
+  try { evalScript(code); } catch(ex) { scriptLog('Error: ' + ex.message, true); }
 }
 
 function scriptLog(msg, isError) {
-  const out = document.getElementById('script-output');
+  const out  = document.getElementById('script-output');
   const span = document.createElement('div');
   span.className = isError ? 'script-err' : '';
   span.textContent = msg;
@@ -834,9 +719,7 @@ function scriptLog(msg, isError) {
   out.scrollTop = out.scrollHeight;
 }
 
-function clearScriptOutput() {
-  document.getElementById('script-output').innerHTML = '';
-}
+function clearScriptOutput() { document.getElementById('script-output').innerHTML = ''; }
 
 // ─────────────────────────────────────────────
 //  TRIGGERS UI
@@ -847,15 +730,11 @@ function addTrigger() {
   if (!pattern || !action) { alert('Fill in pattern and action.'); return; }
   const useRegex = document.getElementById('trig-re').checked;
   const caseInsensitive = document.getElementById('trig-ci').checked;
-  // Validate regex
-  if (useRegex) {
-    try { new RegExp(pattern); } catch(ex) { alert('Invalid regex: ' + ex.message); return; }
-  }
+  if (useRegex) { try { new RegExp(pattern); } catch(ex) { alert('Invalid regex: ' + ex.message); return; } }
   triggers.push({ id: Date.now(), pattern, action, useRegex, caseInsensitive, enabled: true });
-  saveTriggers();
-  renderTriggers();
+  saveTriggers(); renderTriggers();
   document.getElementById('trig-pattern').value = '';
-  document.getElementById('trig-action').value = '';
+  document.getElementById('trig-action').value  = '';
 }
 
 function renderTriggers() {
@@ -877,15 +756,9 @@ function renderTriggers() {
   });
 }
 
-function toggleTrigger(i) {
-  triggers[i].enabled = !triggers[i].enabled;
-  saveTriggers(); renderTriggers();
-}
-function deleteTrigger(i) {
-  triggers.splice(i, 1);
-  saveTriggers(); renderTriggers();
-}
-function saveTriggers() { localStorage.setItem('mud_triggers', JSON.stringify(triggers)); }
+function toggleTrigger(i) { triggers[i].enabled = !triggers[i].enabled; saveTriggers(); renderTriggers(); }
+function deleteTrigger(i) { triggers.splice(i,1); saveTriggers(); renderTriggers(); }
+function saveTriggers()    { localStorage.setItem('mud_triggers', JSON.stringify(triggers)); }
 
 // ─────────────────────────────────────────────
 //  ALIASES UI
@@ -894,12 +767,11 @@ function addAlias() {
   const name   = document.getElementById('alias-name').value.trim();
   const expand = document.getElementById('alias-expand').value.trim();
   if (!name || !expand) { alert('Fill in alias name and expansion.'); return; }
-  // Replace or add
   const existing = aliases.findIndex(a => a.name === name);
   if (existing >= 0) aliases[existing] = { name, expand, enabled: true };
   else aliases.push({ name, expand, enabled: true });
   saveAliases(); renderAliases();
-  document.getElementById('alias-name').value = '';
+  document.getElementById('alias-name').value   = '';
   document.getElementById('alias-expand').value = '';
 }
 
@@ -923,8 +795,8 @@ function renderAliases() {
 }
 
 function toggleAlias(i) { aliases[i].enabled = !aliases[i].enabled; saveAliases(); renderAliases(); }
-function deleteAlias(i) { aliases.splice(i, 1); saveAliases(); renderAliases(); }
-function saveAliases() { localStorage.setItem('mud_aliases', JSON.stringify(aliases)); }
+function deleteAlias(i) { aliases.splice(i,1); saveAliases(); renderAliases(); }
+function saveAliases()   { localStorage.setItem('mud_aliases', JSON.stringify(aliases)); }
 
 // ─────────────────────────────────────────────
 //  SYSTEM LOG
@@ -935,16 +807,16 @@ function log(msg) {
   logLines.push('[' + ts + '] ' + msg);
   if (logLines.length > 500) logLines.shift();
   const list = document.getElementById('system-log');
-  const el = document.createElement('div');
+  const el   = document.createElement('div');
   el.textContent = logLines[logLines.length-1];
   list.appendChild(el);
   list.scrollTop = list.scrollHeight;
 }
-function clearLog() { logLines = []; document.getElementById('system-log').innerHTML = ''; }
-function exportLog() {
+function clearLog()   { logLines = []; document.getElementById('system-log').innerHTML = ''; }
+function exportLog()  {
   const blob = new Blob([logLines.join('\n')], {type:'text/plain'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
   a.download = 'mud-log-' + Date.now() + '.txt';
   a.click();
 }
@@ -955,8 +827,6 @@ function exportLog() {
 function showView(v) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   event.target.classList.add('active');
-  // In this single-pane layout the side panel is always visible
-  // "settings" just highlights the panel; terminal is always on
 }
 
 function switchPanel(name) {
@@ -969,13 +839,8 @@ function switchPanel(name) {
 function setStatus(isConnected) {
   const dot = document.getElementById('status-dot');
   const txt = document.getElementById('status-text');
-  if (isConnected) {
-    dot.classList.add('connected');
-    txt.textContent = 'Connected';
-  } else {
-    dot.classList.remove('connected');
-    txt.textContent = 'Disconnected';
-  }
+  if (isConnected) { dot.classList.add('connected');    txt.textContent = 'Connected'; }
+  else             { dot.classList.remove('connected'); txt.textContent = 'Disconnected'; }
 }
 
 // ─────────────────────────────────────────────
@@ -983,38 +848,25 @@ function setStatus(isConnected) {
 // ─────────────────────────────────────────────
 function startResize(e) {
   e.preventDefault();
-  const panel = document.getElementById('side-panel');
+  const panel  = document.getElementById('side-panel');
   const startX = e.clientX;
   const startW = panel.offsetWidth;
-  function onMove(e) {
-    const w = Math.max(200, Math.min(600, startW + startX - e.clientX));
-    panel.style.width = w + 'px';
-  }
-  function onUp() {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-  }
+  function onMove(e) { panel.style.width = Math.max(200, Math.min(600, startW + startX - e.clientX)) + 'px'; }
+  function onUp()    { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
 }
 
 // ─────────────────────────────────────────────
-//  NOTIFICATIONS PERMISSION
-// ─────────────────────────────────────────────
-if (Notification && Notification.permission === 'default') {
-  Notification.requestPermission();
-}
-
-// ─────────────────────────────────────────────
 //  INIT
 // ─────────────────────────────────────────────
+if (Notification && Notification.permission === 'default') Notification.requestPermission();
 renderTriggers();
 renderAliases();
 sysEcho('Triggers, aliases and scripts are saved in your browser.');
 sysEcho('Scripting API: send(cmd), echo(msg), vars{}, match[]');
 document.getElementById('cmd-input').focus();
 log('Client initialized');
-// Auto-connect on page load
 connect();
 </script>
 </body>

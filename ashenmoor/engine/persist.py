@@ -84,7 +84,7 @@ def _item_to_dict(item) -> dict:
     are included -- including the proc key on weapons so procs survive
     save/load cycles.
     """
-    from ..world.objects import Weapon, Container, Item
+    from ..world.objects import Weapon, Container, Item, Scroll, Potion
 
     base = {
         "type":             type(item).__name__,
@@ -111,6 +111,31 @@ def _item_to_dict(item) -> dict:
             "save_mods":  getattr(item, "save_mods", {}),
             "ac_bonus":   getattr(item, "ac_bonus",  0),
             "armor_type": getattr(item, "armor_type", None),
+        })
+
+    elif isinstance(item, Scroll):
+        base.update({
+            "weight":    item.weight,
+            "mod":       item.mod,
+            "wear_on":   item.wear_on,
+            "effect":    item.effect,
+            "apply_msg": item.apply_msg,
+            "room_msg":  item.room_msg,
+            # Preserve full data dict so multi-effect scrolls survive
+            **{k: v for k, v in item._data.items()
+               if k not in ("name", "key_words", "room_description", "description", "type")},
+        })
+
+    elif isinstance(item, Potion):
+        base.update({
+            "weight":    item.weight,
+            "mod":       item.mod,
+            "wear_on":   item.wear_on,
+            "effect":    item.effect,
+            "apply_msg": item.apply_msg,
+            # Preserve full data dict so multi-effect potions survive
+            **{k: v for k, v in item._data.items()
+               if k not in ("name", "key_words", "room_description", "description", "type")},
         })
 
     elif isinstance(item, Container):
@@ -146,7 +171,7 @@ def _dict_to_item(data: dict):
     Reconstruct an Object / Item / Weapon / Container from a plain dict.
     Container contents are deserialized recursively.
     """
-    from ..world.objects import Weapon, Container, Item, Object
+    from ..world.objects import Weapon, Container, Item, Scroll, Potion, Object
 
     t = data.get("type", "Object")
 
@@ -159,6 +184,12 @@ def _dict_to_item(data: dict):
         obj      = Container(d)
         obj.contents = [_dict_to_item(c) for c in contents]
         return obj
+
+    if t == "Scroll":
+        return Scroll(data)
+
+    if t == "Potion":
+        return Potion(data)
 
     if t == "Item":
         return Item(data)
