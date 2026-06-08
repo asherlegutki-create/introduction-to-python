@@ -143,6 +143,9 @@ ROOMS: dict[int, Room] = {
                 O.spawn('ethereal_cloak'),
                 O.spawn('ethereal_sword'),
                 O.spawn('ethereal_shield'),
+                O.spawn('ethereal_helmet'),
+                O.spawn('ethereal_visor'),
+                O.spawn('ethereal_amulet'),
                 O.spawn('star'),                 
             ],
         }
