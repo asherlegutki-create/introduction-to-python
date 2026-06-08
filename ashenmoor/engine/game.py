@@ -2,7 +2,6 @@
 ashenmoor.engine.game
 ─────────────────────
 GameState: world container, tick handlers, power system, and command dispatch.
-All command implementations live in ashenmoor.engine.commands.*
 """
 
 from __future__ import annotations
@@ -17,7 +16,7 @@ if TYPE_CHECKING:
 from .targeting import find_target, target_name, parse_target
 from .combat    import (
     combat_round, mob_counter_attacks, one_attack, ensure_hp,
-    compute_max_hp, hp_status, condition_str, calc_damage,
+    compute_max_hp, hp_status, condition_str, calc_damage, apply_damage,
 )
 
 # ── Tick / power constants ────────────────────────────────────────────────────
@@ -34,11 +33,6 @@ def _power_cooldown_secs(power: dict) -> float:
         return float(power["cooldown_ticks"]) * _TICK_INTERVAL
     return float(power.get("cooldown", 8))
 
-def _power_cooldown_ticks(power: dict) -> float:
-    if "cooldown_ticks" in power:
-        return float(power["cooldown_ticks"])
-    return power.get("cooldown", 8) / _TICK_INTERVAL
-
 def _power_key(power: dict) -> str:
     name = power.get("name", "?")
     slot = power.get("_slot")
@@ -52,7 +46,7 @@ def _collect_tagged_powers(char) -> list[dict]:
         items = item if isinstance(item, list) else ([item] if item else [])
         for it in items:
             for p in (getattr(it, "powers", None) or []):
-                tagged        = dict(p)
+                tagged          = dict(p)
                 tagged["_slot"] = slot
                 result.append(tagged)
     return result
@@ -131,6 +125,25 @@ def _resolve_verb(verb: str) -> str | list | None:
     if len(matched) > 1:
         return sorted(matched.keys())
     return None
+
+
+# ── Rest helpers ──────────────────────────────────────────────────────────────
+
+def _rest_default_max(uses_key: str, level: int) -> int:
+    """
+    Return the correct maximum for a Fighter rest ability based on level.
+    Used to repair dnd dicts missing the _max key — migrated Warriors or
+    characters created before the Fighter rewrite.
+    """
+    if uses_key == "second_wind_uses":
+        return 2
+    if uses_key == "action_surge_uses":
+        return 2 if level >= 43 else 1
+    if uses_key == "indomitable_uses":
+        if level >= 33: return 3
+        if level >= 23: return 2
+        return 0
+    return 1
 
 
 # ── GameState ─────────────────────────────────────────────────────────────────
@@ -229,8 +242,8 @@ class GameState:
         srv = getattr(self, "_server", None)
         if srv is None:
             return
-        rid     = room_id if room_id is not None else self.locations.get(self._player)
-        sender  = self._player
+        rid    = room_id if room_id is not None else self.locations.get(self._player)
+        sender = self._player
         for name, client in list(getattr(srv, "_clients", {}).items()):
             if name == sender or getattr(client, "_closed", True):
                 continue
@@ -384,6 +397,7 @@ class GameState:
         from ..world.corpse import Corpse
         from ..world.mob    import Mob
         from .commands.helpers import personalize_msg
+        from .subclass import check_levelup_subclass
 
         target = self.fighting.get(self._player)
         if not target:
@@ -405,7 +419,7 @@ class GameState:
         extra_atks = 0
         surge_msg  = None
         if dnd_state.get("action_surge_active"):
-            from ..dnd.classes.warrior import attack_count
+            from ..dnd.classes.fighter import attack_count
             extra_atks = attack_count(player.level)
             dnd_state["action_surge_active"] = False
             surge_msg = "&+W[ACTION SURGE]&N"
@@ -443,6 +457,11 @@ class GameState:
             target.remove_attacker(self._player)
             room.mobs.remove(target)
             room.notify_mob_death(target)
+
+            # Reset riposte — battle over
+            if dnd_state.get("riposte_armed"):
+                dnd_state["riposte_armed"] = False
+
             exp        = mob_xp_award(target.level, player.level)
             player.xp  = getattr(player, "xp", 0) + exp
             _, pct     = level_for_xp(player.xp)
@@ -454,7 +473,17 @@ class GameState:
                 f"(&W{player.xp:,}&w total | &W{pct}&w% into level)&N"
             )
             player_msgs.append(xp_msg)
-            player_msgs.extend(apply_level_up(player))
+            lvl_msgs = apply_level_up(player)
+            player_msgs.extend(lvl_msgs)
+
+            # Check if leveling up just triggered subclass selection
+            if check_levelup_subclass(player):
+                player_msgs.append(
+                    "\n&+WYou have reached the rank where you must choose your "
+                    "Martial Archetype!&N\n"
+                    "&wType any command to be taken to the selection.&N"
+                )
+
             corpse = Corpse(target)
             room.objects.append(corpse)
             if corpse.contents:
@@ -465,6 +494,7 @@ class GameState:
             else:
                 player_msgs.append("&xA corpse is left behind.&N")
                 room_msgs.append(f"&xThe corpse of {target.name}&x lies here.&N")
+
             next_mob = next(
                 (m for m in getattr(room, "mobs", [])
                  if self._player in getattr(m, "attackers", set()) and m.is_alive()),
@@ -472,9 +502,7 @@ class GameState:
             )
             if next_mob:
                 self.fighting[self._player] = next_mob
-                player_msgs.append(
-                    f"&wYou turn to face &+W{next_mob.name}&w!&N"
-                )
+                player_msgs.append(f"&wYou turn to face &+W{next_mob.name}&w!&N")
             else:
                 self.fighting.pop(self._player, None)
 
@@ -482,6 +510,8 @@ class GameState:
 
         elif player.hp <= 0:
             self.fighting.pop(self._player, None)
+            if dnd_state.get("riposte_armed"):
+                dnd_state["riposte_armed"] = False
             player.hp = max(1, player.max_hp // 4)
             for mob in list(getattr(room, "mobs", [])):
                 mob.remove_attacker(self._player) if hasattr(mob, "remove_attacker") else None
@@ -547,16 +577,12 @@ class GameState:
             _aggro_dogpile(self, room, exclude=mob)
 
             aggro_msg = (
-                f"&+R{mob.name}&w spots you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
-                if mob.aggressive else
-                f"&+R{mob.name}&w sees you and attacks!&N\n&x(Auto-attack fires every 4 seconds.)&N"
+                f"&+R{mob.name}&w spots you and attacks!&N\n"
+                f"&x(Auto-attack fires every 4 seconds.)&N"
             )
-            room_aggro = (
+            self._broadcast_to_room(
                 f"&+R{mob.name}&w spots &w{self._player}&N and attacks!&N"
-                if mob.aggressive else
-                f"&+R{mob.name}&w sees &w{self._player}&N and attacks!&N"
             )
-            self._broadcast_to_room(room_aggro)
             first_out, first_room, first_hp = self._combat_tick_inner()
             if first_room:
                 self._broadcast_to_room(first_room)
@@ -587,24 +613,45 @@ class GameState:
         dnd  = getattr(char, "dnd", {}) or {}
         msgs = []
 
-        if ticks == 4:
+        # ── Short rest (4 ticks / ~16 seconds) ───────────────────────────
+        # Use >= and a done-flag so this fires exactly once even if ticks
+        # somehow jumps past 4, and never fires again on the same rest.
+        if ticks >= 4 and not rest.get("short_done"):
+            rest["short_done"] = True
+
             for uses_key, max_key, label in [
                 ("second_wind_uses",  "second_wind_max",  "Second Wind"),
                 ("action_surge_uses", "action_surge_max", "Action Surge"),
             ]:
                 if uses_key in dnd:
-                    max_val = dnd.get(max_key, 1)
+                    # Use the stored max; fall back to the dnd default for
+                    # that ability so migrated characters get the right value.
+                    max_val = dnd.get(max_key) or _rest_default_max(uses_key, char.level)
+                    dnd[max_key] = max_val          # repair missing key in place
                     if dnd[uses_key] < max_val:
                         dnd[uses_key] = max_val
                         msgs.append(f"&+GYour &W{label}&+G is now available.&N")
+
             dnd["action_surge_active"] = False
 
-        if ticks == 8:
+            # Restore Superiority Dice on short rest
+            sd_max = dnd.get("superiority_dice_max", 0)
+            if sd_max and dnd.get("superiority_dice", sd_max) < sd_max:
+                dnd["superiority_dice"] = sd_max
+                msgs.append(
+                    f"&+GYour &WSuperiority Dice&+G are restored (&W{sd_max}&+G).&N"
+                )
+
+        # ── Long rest (8 ticks / ~32 seconds) ────────────────────────────
+        if ticks >= 8 and not rest.get("long_done"):
+            rest["long_done"] = True
+
             for uses_key, max_key, label in [
                 ("indomitable_uses", "indomitable_max", "Indomitable"),
             ]:
                 if uses_key in dnd:
-                    max_val = dnd.get(max_key, 0)
+                    max_val = dnd.get(max_key) or _rest_default_max(uses_key, char.level)
+                    dnd[max_key] = max_val
                     if dnd[uses_key] < max_val:
                         dnd[uses_key] = max_val
                         msgs.append(f"&+GYour &W{label}&+G is now available.&N")
@@ -617,7 +664,9 @@ class GameState:
 
             if char.hp < char.max_hp:
                 char.hp = char.max_hp
-                msgs.append(f"&+GYou feel fully rested. (&W{char.max_hp}&+G hp restored)&N")
+                msgs.append(
+                    f"&+GYou feel fully rested. (&W{char.max_hp}&+G hp restored)&N"
+                )
 
             if getattr(char, "potion_log", []):
                 char.potion_log = []
@@ -668,7 +717,11 @@ class GameState:
 
         now = time.monotonic()
         for power in matches:
-            if now >= self._power_cooldowns.get(_power_key(power), 0):
+            pkey = _power_key(power)
+            # Charge-based powers bypass time cooldown check
+            if power.get("charges_key"):
+                return self._execute_power(power)
+            if now >= self._power_cooldowns.get(pkey, 0):
                 return self._execute_power(power)
 
         soonest = min(matches, key=lambda p: self._power_cooldowns.get(_power_key(p), 0))
@@ -680,6 +733,7 @@ class GameState:
         name = power.get("name", "power")
         char = self.characters.get(self._player)
 
+        # ── Charge-based powers ───────────────────────────────────────────
         charges_key = power.get("charges_key")
         if charges_key:
             dnd     = getattr(char, "dnd", {}) if char else {}
@@ -689,6 +743,12 @@ class GameState:
             dnd[charges_key] = charges - 1
             return self._execute_charge_power(power, char, dnd)
 
+        # ── Maneuver powers (SD cost, one per tick, cooldowns) ────────────
+        effect = power.get("effect", "")
+        if effect.startswith("maneuver_") or effect == "riposte_arm":
+            return self._execute_maneuver(power, char)
+
+        # ── Time-cooldown powers ──────────────────────────────────────────
         now      = time.monotonic()
         pkey     = _power_key(power)
         ready_at = self._power_cooldowns.get(pkey, 0)
@@ -718,33 +778,127 @@ class GameState:
                 if effect_msg:
                     parts.append(effect_msg)
                 if target.hp <= 0:
-                    self.fighting.pop(self._player, None)
-                    if room and target in room.mobs:
-                        room.mobs.remove(target)
-                        room.notify_mob_death(target)
-                    from ..dnd.xp       import mob_xp_award, level_for_xp, apply_level_up
-                    from ..world.corpse import Corpse
-                    exp        = mob_xp_award(target.level, char.level)
-                    char.xp    = getattr(char, "xp", 0) + exp
-                    _, pct     = level_for_xp(char.xp)
-                    parts.append(f"&+W{target.name}&w crumples and dies!&N")
-                    parts.append(
-                        f"&wYou gain &W{exp:,}&w xp  "
-                        f"(&W{char.xp:,}&w total | &W{pct}&w% into level)&N"
-                    )
-                    parts.extend(apply_level_up(char))
-                    corpse = Corpse(target)
-                    if room:
-                        room.objects.append(corpse)
-                    if corpse.contents:
-                        parts.append(
-                            "&xA corpse is left behind. Type &Wexa corpse&x to search it.&N"
-                        )
-                    else:
-                        parts.append("&xA corpse is left behind.&N")
-                    self._save_player()
+                    self._handle_kill(char, target, room, parts)
                 else:
                     parts.append(f"{hp_status(char)}   {hp_status(target)}")
+
+        return "\n".join(p for p in parts if p)
+
+    def _execute_maneuver(self, power: dict, char) -> str:
+        """Execute a Battle Master maneuver."""
+        import random as _random
+        effect = power.get("effect", "")
+        name   = power.get("name", "maneuver")
+        dnd    = getattr(char, "dnd", {}) or {}
+
+        # ── Riposte arming — no SD cost, no per-tick limit ────────────────
+        if effect == "riposte_arm":
+            sd_pool = dnd.get("superiority_dice", 0)
+            if sd_pool <= 0:
+                return "&wYou have no Superiority Dice remaining. Rest to restore them.&N"
+            if dnd.get("riposte_armed"):
+                return "&wRiposte is already armed and waiting.&N"
+            dnd["riposte_armed"] = True
+            user_msg = power.get("user_msg", "")
+            room_msg = power.get("room_msg", "").format(name=char.name)
+            if room_msg:
+                self._broadcast_to_room(room_msg)
+            return user_msg or "&+WRiposte armed.&N"
+
+        # ── All other maneuvers: one per tick, SD cost, cooldown ──────────
+        if dnd.get("maneuver_used"):
+            return "&wYou can only use one maneuver per combat round.&N"
+
+        sd_pool = dnd.get("superiority_dice", 0)
+        if sd_pool <= 0:
+            return "&wYou have no Superiority Dice remaining. Rest to restore them.&N"
+
+        # Check per-maneuver cooldown
+        maneuver_key = effect.replace("maneuver_", "")
+        cooldowns    = dnd.get("maneuver_cooldowns", {})
+        remaining_cd = cooldowns.get(maneuver_key, 0)
+        if remaining_cd > 0:
+            return f"&w{name}&w is not ready yet ({remaining_cd} tick{'s' if remaining_cd != 1 else ''} remaining).&N"
+
+        # Not in combat — only rally is usable out of combat
+        if self._player not in self.fighting and effect != "maneuver_rally":
+            return f"&wYou must be in combat to use {name}.&N"
+
+        # Consume SD and mark maneuver used this tick
+        sd_size               = dnd.get("superiority_die_size", 8)
+        sd_roll               = _random.randint(1, sd_size)
+        dnd["superiority_dice"] = max(0, sd_pool - 1)
+        dnd["maneuver_used"]    = True
+
+        # Set cooldown
+        cd_ticks = power.get("cooldown_ticks", 3)
+        cooldowns[maneuver_key] = cd_ticks
+
+        user_msg = power.get("user_msg", "")
+        room_msg = power.get("room_msg", "").format(name=char.name)
+        parts: list[str] = []
+        if user_msg:
+            parts.append(user_msg)
+        if room_msg:
+            self._broadcast_to_room(room_msg)
+
+        target = self.fighting.get(self._player) if self._player in self.fighting else None
+
+        if effect == "maneuver_trip":
+            if target and target.hp > 0:
+                dmg = calc_damage(char) + sd_roll
+                apply_damage(target, dmg)
+                debuffs = dnd.setdefault("target_debuffs", {})
+                debuffs["ac_penalty"] = 10
+                parts.append(
+                    f"&+WTrip Attack: &W{dmg}&w dmg (+{sd_roll} SD), "
+                    f"target &W-10 AC&w next tick!&N"
+                )
+
+        elif effect == "maneuver_disarm":
+            if target and target.hp > 0:
+                dmg = calc_damage(char) + sd_roll
+                apply_damage(target, dmg)
+                debuffs = dnd.setdefault("target_debuffs", {})
+                debuffs["hit_penalty"] = sd_roll
+                parts.append(
+                    f"&+WDisarming Strike: &W{dmg}&w dmg (+{sd_roll} SD), "
+                    f"target &W-{sd_roll} hitroll&w next tick!&N"
+                )
+
+        elif effect == "maneuver_precise":
+            # Store precision bonus to be consumed in _attack_mod this tick
+            dnd["precision_bonus"] = sd_roll
+            parts.append(
+                f"&+WPrecision Attack: &W+{sd_roll}&w added to your attack roll this tick!&N"
+            )
+
+        elif effect == "maneuver_menace":
+            if target and target.hp > 0:
+                dmg = calc_damage(char) + sd_roll
+                apply_damage(target, dmg)
+                debuffs = dnd.setdefault("target_debuffs", {})
+                debuffs["no_counter"] = True
+                parts.append(
+                    f"&+WMenacing Attack: &W{dmg}&w dmg (+{sd_roll} SD), "
+                    f"target &Wskips their counter-attack&w this tick!&N"
+                )
+
+        elif effect == "maneuver_rally":
+            from ..dnd.abilities import char_modifier
+            cha_mod   = char_modifier(char, "cha")
+            temp_gain = max(1, sd_roll + cha_mod)
+            char.temp_hp = getattr(char, "temp_hp", 0) + temp_gain
+            parts.append(
+                f"&+GRally: &W+{temp_gain}&+G temp HP "
+                f"(SD {sd_roll} + CHA {cha_mod:+})!&N"
+            )
+
+        # Show HP status
+        if target:
+            parts.append(f"{hp_status(char)}   {hp_status(target)}")
+        else:
+            parts.append(f"&wHP: &W{char.hp + getattr(char, 'temp_hp', 0)}&w/&W{char.max_hp}&N")
 
         return "\n".join(p for p in parts if p)
 
@@ -774,7 +928,6 @@ class GameState:
             parts.append("&+WYour next combat round will have double attacks!&N")
 
         elif effect == "indomitable":
-            # Apply +20 AC status effect for 7 ticks (~28 seconds)
             import copy
             from ..world.effects import INDOMITABLE, apply_effect
             eff_msg = apply_effect(char, copy.deepcopy(INDOMITABLE))
@@ -798,13 +951,13 @@ class GameState:
             return f"&+GYou recover &W{amount}&+G hit points.&N"
         if effect == "damage":
             dmg = max(1, int(calc_damage(player) * power.get("damage_mult", 1.5)))
-            target.hp = max(0, target.hp - dmg)
+            apply_damage(target, dmg)
             return f"&+WYour power strikes &N{target.name}&+W for &W{dmg}&+W bonus damage!&N"
         if effect == "apply_poison":
             from ..world.effects import POISON, apply_effect
             import copy
             poison = copy.deepcopy(POISON)
-            if "duration"  in power: poison["duration"]  = power["duration"]
+            if "duration" in power: poison["duration"] = power["duration"]
             if "dot_dice"  in power: poison["dot_dice"]  = power["dot_dice"]
             apply_effect(target, poison)
             return f"&cThe poison takes hold of &N{target.name}&c!&N"
@@ -812,7 +965,7 @@ class GameState:
             import ashenmoor.world.procs as _procs_mod
             weapon = (player.equipment.get("primary_hand")
                       if hasattr(player, "equipment") else None)
-            old_force          = _procs_mod._windsong_force
+            old_force                  = _procs_mod._windsong_force
             _procs_mod._windsong_force = True
             try:
                 raw = _procs_mod.windsong(player, target, weapon=weapon)
@@ -831,6 +984,47 @@ class GameState:
                 self._broadcast_to_room("\n".join(room_out))
             return "\n".join(player_out) if player_out else None
         return None
+
+    def _handle_kill(self, char, target, room, parts: list) -> None:
+        """Shared kill resolution used by power execution."""
+        from ..dnd.xp       import mob_xp_award, level_for_xp, apply_level_up
+        from ..world.corpse import Corpse
+        from .subclass      import check_levelup_subclass
+
+        self.fighting.pop(self._player, None)
+        if room and target in room.mobs:
+            room.mobs.remove(target)
+            room.notify_mob_death(target)
+
+        dnd = getattr(char, "dnd", {}) or {}
+        if dnd.get("riposte_armed"):
+            dnd["riposte_armed"] = False
+
+        exp       = mob_xp_award(target.level, char.level)
+        char.xp   = getattr(char, "xp", 0) + exp
+        _, pct    = level_for_xp(char.xp)
+        parts.append(f"&+W{target.name}&w crumples and dies!&N")
+        parts.append(
+            f"&wYou gain &W{exp:,}&w xp  "
+            f"(&W{char.xp:,}&w total | &W{pct}&w% into level)&N"
+        )
+        lvl_msgs = apply_level_up(char)
+        parts.extend(lvl_msgs)
+        if check_levelup_subclass(char):
+            parts.append(
+                "\n&+WYou have reached the rank where you must choose your "
+                "Martial Archetype!&N\n"
+                "&wType any command to be taken to the selection.&N"
+            )
+        corpse = Corpse(target)
+        if room:
+            room.objects.append(corpse)
+        parts.append(
+            "&xA corpse is left behind. Type &Wexa corpse&x to search it.&N"
+            if corpse.contents else
+            "&xA corpse is left behind.&N"
+        )
+        self._save_player()
 
     # ── Convenience aliases ───────────────────────────────────────────────────
 
