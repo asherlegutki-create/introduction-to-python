@@ -44,6 +44,7 @@ from zones.reese     import ZONE as REESE
 from zones.timothy   import ZONE as TIMOTHY
 from zones.wilson    import ZONE as WILSON
 from zones.wyatt     import ZONE as WYATT
+from zones.abyss     import ZONE as ABYSS
 
 DB_PATH    = "ashenmoor.db"
 START_ROOM = 99001   # Hub room in new_zone — where new characters spawn
@@ -115,7 +116,7 @@ def load_world() -> GameState:
     for zone in (
         THE_VOID, ARCHER, ASHER, CHARLOTTE, DAMIEN,
         DREW, EVA, GABE, ISAAC, JORDAN, JOSHUA,
-        LINDI, NEW_ZONE, REESE, TIMOTHY, WILSON, WYATT,
+        LINDI, NEW_ZONE, REESE, TIMOTHY, WILSON, WYATT, ABYSS
     ):
         state.load_zone(zone)
 
@@ -131,7 +132,7 @@ async def async_main(args: argparse.Namespace) -> None:
     ws_server  = WebSocketServer(
         state      = state,
         mud_server = mud_server,
-        host       = args.host,
+        host       = "127.0.0.1",
         port       = args.ws_port,
     )
  

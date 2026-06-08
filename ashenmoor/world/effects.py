@@ -26,24 +26,6 @@ Effect schema
     "expire_msg":str   — shown on expiry
     "flags":     set   — optional tags: "no_dispel", "hidden"
 }
-
-Stacking
-────────
-All ac_mod values are summed across active effects.
-All stat_mods are summed per-stat across active effects.
-dr_pct values are summed (capped at 75%).
-dot_flat + dot_dice and hot_flat + hot_dice are each applied independently
-per effect every tick — the net HP change is the sum of all of them.
-
-Example:
-  Barkskin  ac_mod=+15
-  Armor     ac_mod=+10
-  Broken    ac_mod=-10
-  Net AC bonus = +15
-
-  Bleeding  dot_flat=10  (loses 10 hp/tick)
-  HealAura  hot_flat=15  (gains 15 hp/tick)
-  Net per tick = +5 hp — when HealAura expires, back to -10/tick
 """
 
 from __future__ import annotations
@@ -67,7 +49,6 @@ def _roll(dice_str: str) -> int:
 
 
 def _dot_per_tick(eff: dict) -> int:
-    """Total damage this effect deals per tick (flat + dice roll)."""
     total = eff.get("dot_flat", 0)
     if eff.get("dot_dice"):
         total += _roll(eff["dot_dice"])
@@ -75,7 +56,6 @@ def _dot_per_tick(eff: dict) -> int:
 
 
 def _hot_per_tick(eff: dict) -> int:
-    """Total healing this effect provides per tick (flat + dice roll)."""
     total = eff.get("hot_flat", 0)
     if eff.get("hot_dice"):
         total += _roll(eff["hot_dice"])
@@ -179,6 +159,27 @@ STONESKIN: dict = {
     "flags":     set(),
 }
 
+# Indomitable: +20 AC for 7 ticks (28 seconds).
+# Applied when the warrior uses the Indomitable power.
+INDOMITABLE: dict = {
+    "id":        "indomitable",
+    "name":      "Indomitable",
+    "duration":  7,
+    "stat_mods": {},
+    "ac_mod":    20,
+    "dr_pct":    0,
+    "dot_dice":  "",
+    "dot_flat":  0,
+    "hot_dice":  "",
+    "hot_flat":  0,
+    "dot_type":  "",
+    "tick_msg":  "",
+    "room_msg":  "",
+    "apply_msg": "&+YA surge of indomitable will hardens your defenses — &W+20 AC!&N",
+    "expire_msg":"&wYour indomitable defense fades.&N",
+    "flags":     set(),
+}
+
 # Registry — id → template dict
 EFFECTS: dict[str, dict] = {
     "poisoned":     POISON,
@@ -186,6 +187,7 @@ EFFECTS: dict[str, dict] = {
     "healing_aura": HEALING_AURA,
     "barkskin":     BARKSKIN,
     "stoneskin":    STONESKIN,
+    "indomitable":  INDOMITABLE,
 }
 
 
@@ -226,10 +228,7 @@ def remove_effect(char, effect_id: str) -> str | None:
 def tick_effects(char) -> tuple[list[str], list[str]]:
     """
     Called every combat tick (4 seconds) for any character -- PC or NPC.
-
-    Returns (self_msgs, room_msgs):
-      self_msgs  -- tick_msg strings shown to the affected character
-      room_msgs  -- room_msg strings (with {name} formatted) shown to observers
+    Returns (self_msgs, room_msgs).
     """
     effects = _ensure(char)
     if not effects:
@@ -280,10 +279,6 @@ def recalc_status(char) -> None:
     """
     Sum all active effect modifiers and store on the character.
     Called after any effect is applied or expires.
-
-    char.effect_stats  — dict of additive stat bonuses
-    char.effect_ac     — total flat AC modifier from all effects
-    char.effect_dr     — total damage reduction % (capped 75)
     """
     effects      = _ensure(char)
     effect_stats: dict[str, int] = {}
@@ -304,11 +299,6 @@ def recalc_status(char) -> None:
 # ── Combat helpers ────────────────────────────────────────────────────────────
 
 def apply_dr(char, damage: int) -> int:
-    """
-    Reduce incoming damage by the character's total damage reduction.
-    DR = sum of all active dr_pct values, capped at 75%.
-    Expressed as percentage of max HP absorbed per hit.
-    """
     dr = getattr(char, "effect_dr", 0)
     if dr <= 0:
         return damage
@@ -317,7 +307,6 @@ def apply_dr(char, damage: int) -> int:
 
 
 def effective_stat(char, stat: str) -> int:
-    """Return a stat with all active effect modifiers applied, clamped 0-100."""
     base  = char.stats.get(stat, 10)
     bonus = getattr(char, "effect_stats", {}).get(stat, 0)
     return max(0, min(100, base + bonus))
@@ -329,8 +318,6 @@ def format_effects(char) -> str | None:
     """
     Format active effects for the score command.
     Shows each effect with its duration and modifiers.
-    Shows net HP-per-tick when multiple DoT/HoT effects are active.
-    Returns None if no active effects.
     """
     effects = _ensure(char)
     if not effects:
@@ -349,7 +336,6 @@ def format_effects(char) -> str | None:
         dur   = eff.get("duration", 0)
         parts = []
 
-        # DoT description
         dot_d = eff.get("dot_dice", "")
         dot_f = eff.get("dot_flat", 0)
         if dot_d and dot_f:
@@ -359,7 +345,6 @@ def format_effects(char) -> str | None:
         elif dot_f:
             parts.append(f"{dot_f} {eff.get('dot_type','damage')}/tick")
 
-        # HoT description
         hot_d = eff.get("hot_dice", "")
         hot_f = eff.get("hot_flat", 0)
         if hot_d and hot_f:
@@ -382,18 +367,24 @@ def format_effects(char) -> str | None:
 
         detail  = ", ".join(parts) if parts else ""
         dur_str = f"{dur} ticks" if dur > 0 else "permanent"
-        color   = "&c" if not (dot_d or dot_f) else "&R"
-        if hot_d or hot_f:
+
+        # Color: yellow for AC buffs, green for HoT, red for DoT, cyan otherwise
+        if eff.get("ac_mod", 0) > 0 and not (dot_d or dot_f or hot_d or hot_f):
+            color = "&+Y"
+        elif hot_d or hot_f:
             color = "&G"
+        elif dot_d or dot_f:
+            color = "&R"
+        else:
+            color = "&c"
+
         lines.append(f"  {color}{name:<18}&N &w{dur_str:<16}&N {detail}")
 
-        # Accumulate net tick totals (use average for dice)
         if dot_f:
             total_dot += dot_f
         if hot_f:
             total_hot += hot_f
 
-    # Net HP summary when multiple tick effects are present
     net_effects = [e for e in effects if e.get("dot_flat") or e.get("hot_flat")
                    or e.get("dot_dice") or e.get("hot_dice")]
     if len(net_effects) > 1:
@@ -405,7 +396,6 @@ def format_effects(char) -> str | None:
         else:
             lines.append(f"\n  &wNet per tick (flat): balanced&N")
 
-    # Net AC summary when multiple AC effects present
     ac_effects = [e for e in effects if e.get("ac_mod")]
     if len(ac_effects) > 1:
         net_ac = sum(e.get("ac_mod", 0) for e in effects)
@@ -418,7 +408,6 @@ def format_effects(char) -> str | None:
 # ── Internal ──────────────────────────────────────────────────────────────────
 
 def _ensure(char) -> list:
-    """Lazily initialise char.status_effects and return it."""
     if not hasattr(char, "status_effects") or char.status_effects is None:
         char.status_effects = []
     return char.status_effects

@@ -19,11 +19,11 @@ Features by level
   6   Ability Score Improvement
   7   Archetype feature
   8   Ability Score Improvement
-  9   Indomitable (1 use / long rest)
+  9   Indomitable (2 uses / long rest) — +20 AC for 30 seconds
   10  Archetype feature
   11  Extra Attack (3 attacks / round)
   12  Ability Score Improvement
-  13  Indomitable (2 uses)
+  13  Indomitable (3 uses)
   14  Ability Score Improvement
   15  Archetype feature
   16  Ability Score Improvement
@@ -43,9 +43,9 @@ Fighting Styles
 
 Powers  (charged via rest, not time-cooldown)
 ──────────────────────────────────────────────
-  second wind   heal 1d10 + level  (1/short rest)
+  second wind   heal 1d10 + level  (2/short rest)
   action surge  extra attacks next tick  (1/short rest, 2 at lvl 17)
-  indomitable   reroll a failed saving throw  (1/long rest, +1 at 13 and 17)
+  indomitable   +20 AC for 30 seconds  (2/long rest, 3 at lvl 13)
 """
 
 import random
@@ -86,7 +86,7 @@ _FEATURES: dict[int, list[str]] = {
     6:  ["Ability Score Improvement"],
     9:  ["Indomitable"],
     11: ["Extra Attack (×3)"],
-    13: ["Indomitable (2 uses)"],
+    13: ["Indomitable (3 uses)"],
     17: ["Action Surge (2 uses)"],
     19: ["Ability Score Improvement / Epic Boon"],
     20: ["Extra Attack (×4)"],
@@ -109,29 +109,20 @@ def new_warrior_dnd(
     """
     Return a fresh dnd state dict for a new Warrior character.
 
-    Pass this as the "dnd" key inside the Character dict in main.py:
-
-        Character({
-            "name": "Aegis",
-            "class": "Warrior",
-            "level": 5,
-            "dnd": new_warrior_dnd(level=5, fighting_style="defense"),
-            "stats": [80]*6,   # kept for legacy compat
-        })
-
-    Stats come from char.stats (the legacy 1-100 scale).
-    Adjust them to reflect the character's point buy or rolled stats.
+    Second Wind: 2 charges / short rest (up from 1)
+    Indomitable: 2 charges / long rest at level 9, 3 at level 13
+                 Effect: +20 AC for 30 seconds (7 combat ticks)
     """
-    surge_uses = 2 if level >= 17 else (1 if level >= 2 else 0)
-    indom_uses = (3 if level >= 17 else 2 if level >= 13 else 1) if level >= 9 else 0
+    surge_uses  = 2 if level >= 17 else (1 if level >= 2 else 0)
+    indom_uses  = (3 if level >= 13 else 2) if level >= 9 else 0
 
     return {
         "class":    "warrior",
-        "subclass": None,       # set to "champion", "battle_master", etc.
+        "subclass": None,
 
         # Hit dice
         "hit_die":            10,
-        "hit_dice_remaining": level,   # starts at maximum
+        "hit_dice_remaining": level,
 
         # Fighting style
         "fighting_style": fighting_style,
@@ -140,11 +131,11 @@ def new_warrior_dnd(
         "saving_throw_proficiencies": ["str", "con"],
 
         # Short-rest abilities
-        "second_wind_uses": 1,
-        "second_wind_max":  1,
+        "second_wind_uses": 2,          # 2 charges per short rest
+        "second_wind_max":  2,
         "action_surge_uses": surge_uses,
         "action_surge_max":  surge_uses,
-        "action_surge_active": False,   # True → extra attacks next tick
+        "action_surge_active": False,
 
         # Long-rest abilities
         "indomitable_uses": indom_uses,
@@ -152,9 +143,6 @@ def new_warrior_dnd(
     }
 
 # ── Warrior power definitions ─────────────────────────────────────────────────
-#
-# These use the "charges_key" system instead of time-based cooldowns.
-# _execute_power() in game.py checks charges_key and deducts accordingly.
 
 WARRIOR_POWERS: list[dict] = [
 
@@ -163,7 +151,7 @@ WARRIOR_POWERS: list[dict] = [
         "name":        "Second Wind",
         "charges_key": "second_wind_uses",
         "rest_type":   "short",
-        "effect":      "second_wind",       # heal 1d10 + level
+        "effect":      "second_wind",
         "user_msg":    "&+GYou draw on your fighting spirit to recover some health!&N",
         "room_msg":    "&+G{name} draws on inner strength and looks healthier!&N",
     },
@@ -173,7 +161,7 @@ WARRIOR_POWERS: list[dict] = [
         "name":        "Action Surge",
         "charges_key": "action_surge_uses",
         "rest_type":   "short",
-        "effect":      "action_surge",      # doubles attack count next tick
+        "effect":      "action_surge",
         "user_msg":    "&+WYou surge with unstoppable energy — "
                        "your next round of attacks will be devastating!&N",
         "room_msg":    "&+W{name} surges with terrifying energy!&N",
@@ -184,9 +172,9 @@ WARRIOR_POWERS: list[dict] = [
         "name":        "Indomitable",
         "charges_key": "indomitable_uses",
         "rest_type":   "long",
-        "effect":      "indomitable",       # placeholder; reroll saving throws
-        "user_msg":    "&+YYour indomitable will refuses to yield!&N",
-        "room_msg":    "&+Y{name}'s indomitable spirit steels them against defeat!&N",
+        "effect":      "indomitable",
+        "user_msg":    "&+YYour indomitable will hardens your defenses!&N",
+        "room_msg":    "&+Y{name}'s form seems to blur and harden, becoming harder to strike!&N",
     },
 
 ]

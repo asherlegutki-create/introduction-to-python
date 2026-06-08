@@ -45,7 +45,7 @@ TEMPLATES: dict[str, dict] = {
     },
     "Mr. Carlson": {
         "name": "Mr. Carlson",
-        "key_words": ("Mr.Carlson"),
+        "key_words": ("Mr. Carlson"),
         "room_description": "Mr.Carlson wanders from room to room.",
         "description": ( ". \n She has been givin the job of taking care of the earth. She is wearing nothing because she doesn't know what is right from wrong."),
         "race": "Human",
