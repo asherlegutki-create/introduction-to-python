@@ -3,8 +3,11 @@ ashenmoor.engine.combat
 ────────────────────────
 Unified d20 combat system, 0-100 AC scale.
 
-combat_round()       — player attacks their current target only
-mob_counter_attacks() — one mob swings back at a player (called per mob per tick)
+combat_round()        — player attacks their current target
+mob_counter_attacks() — one mob swings back, parry resolves here
+attempt_parry()       — passive parry for Fighter/Ranger
+apply_damage()        — drain temp_hp first, then real hp
+trigger_riposte()     — fires when parry succeeds with riposte armed
 """
 
 from __future__ import annotations
@@ -43,20 +46,58 @@ def ensure_hp(char) -> None:
         char.max_hp = compute_max_hp(char)
     if not hasattr(char, "hp"):
         char.hp = char.max_hp
+    if not hasattr(char, "temp_hp"):
+        char.temp_hp = 0
 
-def hp_bar(hp: int, max_hp: int, width: int = 10) -> str:
-    max_hp = max(1, max_hp)
-    hp     = max(0, min(hp, max_hp))
-    pct    = hp / max_hp
-    filled = int(pct * width)
-    empty  = width - filled
-    color  = "&+G" if pct > 0.66 else ("&+Y" if pct > 0.33 else "&+R")
-    return f"[{color}{'|' * filled}&x{'.' * empty}&N]"
+def apply_damage(char, amount: int) -> int:
+    """
+    Apply damage, draining temp_hp before real hp.
+    Returns the amount of real hp damage taken.
+    """
+    if amount <= 0:
+        return 0
+    temp = getattr(char, "temp_hp", 0)
+    if temp > 0:
+        absorbed     = min(temp, amount)
+        char.temp_hp = temp - absorbed
+        amount      -= absorbed
+    if amount > 0:
+        char.hp = max(0, char.hp - amount)
+    return amount
+
+def hp_bar(hp: int, max_hp: int, temp_hp: int = 0, width: int = 10) -> str:
+    max_hp  = max(1, max_hp)
+    real_hp = max(0, min(hp, max_hp))
+    pct     = real_hp / max_hp
+    filled  = int(pct * width)
+    empty   = width - filled
+
+    if temp_hp > 0:
+        bar_color = "&M"
+    elif pct > 0.66:
+        bar_color = "&+G"
+    elif pct > 0.33:
+        bar_color = "&+Y"
+    else:
+        bar_color = "&+R"
+
+    return f"[{bar_color}{'|' * filled}&x{'.' * empty}&N]"
 
 def hp_status(char) -> str:
-    hp  = getattr(char, "hp",     0)
-    mhp = getattr(char, "max_hp", 1)
-    return f"&w{char.name}&N {hp_bar(hp, mhp)} &W{hp}&w/&W{mhp}&w hp&N"
+    hp   = getattr(char, "hp",      0)
+    mhp  = getattr(char, "max_hp",  1)
+    temp = getattr(char, "temp_hp", 0)
+
+    if temp > 0:
+        hp_color   = "&M"
+        hp_display = hp + temp
+    else:
+        pct      = hp / max(1, mhp)
+        hp_color = "&+G" if pct > 0.66 else ("&+Y" if pct > 0.33 else "&+R")
+        hp_display = hp
+
+    bar = hp_bar(hp, mhp, temp)
+    return f"&w{char.name}&N {bar} {hp_color}{hp_display}&w/&W{mhp}&w hp&N"
 
 def condition_str(char) -> str:
     hp  = getattr(char, "hp",     1)
@@ -70,6 +111,91 @@ def condition_str(char) -> str:
     if pct >  0.10: return "&+Rcritically wounded&N"
     return "&+RAT DEATH'S DOOR&N"
 
+# ── Parry ─────────────────────────────────────────────────────────────────────
+
+_PARRY_CLASSES = frozenset({"fighter", "warrior", "ranger"})
+
+def attempt_parry(char, attack_score: int) -> dict:
+    """
+    Passive parry — resolves automatically on every incoming melee hit.
+
+    Returns:
+        {
+            "success":   bool,
+            "reduction": int,   — damage absorbed (0 on failure)
+            "shrug":     bool,  — True means zero damage (Champion only)
+            "msg":       str,   — coloured message for the player
+        }
+
+    Roll: (d20 + DEX_mod [+ prof if Champion]) × 5  vs  attack_score
+    On success: damage reduced by max(0, 2d6 + DEX_mod)
+    Champion shrug: 1-in-4 chance on success → zero damage
+    """
+    from ..dnd.abilities import char_modifier, proficiency_bonus as _prof
+
+    cclass = getattr(char, "cclass", "").lower()
+    if cclass not in _PARRY_CLASSES:
+        return {"success": False, "reduction": 0, "shrug": False, "msg": ""}
+
+    dnd      = getattr(char, "dnd", {}) or {}
+    subclass = dnd.get("subclass", "")
+    dex_mod  = char_modifier(char, "dex")
+    bonus    = _prof(char.level) if subclass == "champion" else 0
+
+    parry_score = (random.randint(1, 20) + dex_mod + bonus) * 5
+
+    if parry_score < attack_score:
+        return {"success": False, "reduction": 0, "shrug": False, "msg": ""}
+
+    # Parry succeeded — calculate reduction
+    reduction = max(0, roll_dice("2d6") + dex_mod)
+
+    # Champion shrug check
+    shrug = False
+    if subclass == "champion" and random.randint(1, 4) == 4:
+        shrug     = True
+        reduction = 99999   # absorbs everything
+
+    if shrug:
+        msg = "&+WYou deflect your opponent's attack entirely!&N"
+    else:
+        msg = "&wYou deflect your opponent's attack.&N"
+
+    return {"success": True, "reduction": reduction, "shrug": shrug, "msg": msg}
+
+# ── Riposte ───────────────────────────────────────────────────────────────────
+
+def trigger_riposte(player, target, dnd: dict) -> tuple[list[str], list[str]]:
+    """
+    Fire a riposte bonus attack after a successful parry.
+    Consumes 1 SD from the Battle Master pool.
+    Returns (player_msgs, room_msgs).
+    """
+    from ..dnd.abilities import char_modifier
+
+    dnd["riposte_armed"]    = False   # consumed
+    sd_size                 = dnd.get("superiority_die_size", 8)
+    dnd["superiority_dice"] = max(0, dnd.get("superiority_dice", 0) - 1)
+
+    sd_roll  = random.randint(1, sd_size)
+    str_mod  = char_modifier(player, "str")
+    weapon   = (player.equipment.get("primary_hand")
+                if hasattr(player, "equipment") else None)
+    base_dmg = calc_damage(player)
+    total    = max(1, base_dmg + sd_roll)
+
+    apply_damage(target, total)
+
+    p_msg = (
+        f"&+WYou deflect your opponent's attack striking back at them! "
+        f"(&W{total}&+W dmg, +{sd_roll} SD)&N"
+    )
+    r_msg = (
+        f"&+W{player.name}&N deflects the blow and answers with a devastating counter! "
+        f"(&W{total}&+W dmg)&N"
+    )
+    return [p_msg], [r_msg]
+
 # ── Attack modifier ───────────────────────────────────────────────────────────
 
 def _attack_mod(attacker) -> int:
@@ -82,9 +208,12 @@ def _attack_mod(attacker) -> int:
     finesse = getattr(weapon, "finesse", False)
     att_mod = max(str_mod, dex_mod) if finesse else str_mod
     magic   = getattr(weapon, "hitroll", 0) if weapon else 0
-    return att_mod + prof + magic
 
-# ── Accumulated damroll ───────────────────────────────────────────────────────
+    # Precision Attack maneuver — adds SD roll to attack this tick
+    dnd = getattr(attacker, "dnd", {}) or {}
+    precision_bonus = dnd.pop("precision_bonus", 0)
+
+    return att_mod + prof + magic + precision_bonus
 
 def _accumulated_damroll(attacker) -> int:
     eq    = getattr(attacker, "equipment", {})
@@ -109,11 +238,11 @@ def calc_damage(attacker, crit: bool = False) -> int:
     if weapon and hasattr(weapon, "dice"):
         n, s    = parse_dice(weapon.dice)
         two_h   = getattr(weapon, "two_handed", False)
-        finesse = getattr(weapon, "finesse", False)
+        finesse = getattr(weapon, "finesse",    False)
         rolls   = [random.randint(1, s) for _ in range(n * (2 if crit else 1))]
 
         if dnd.get("fighting_style") == "great_weapon" and two_h:
-            from ..dnd.classes.warrior import great_weapon_reroll
+            from ..dnd.classes.fighter import great_weapon_reroll
             rolls = great_weapon_reroll(rolls, s)
 
         base    = sum(rolls)
@@ -152,28 +281,48 @@ def _damage_verb(damage: int, target_max_hp: int) -> str:
             return verb
     return "&+ROBLITERATES&N"
 
+# ── Crit range ────────────────────────────────────────────────────────────────
+
+def _crit_threshold(attacker) -> int:
+    """Minimum d20 roll that counts as a critical hit."""
+    from ..dnd.classes.fighter import crit_range
+    return crit_range(attacker)
+
 # ── Single attack ─────────────────────────────────────────────────────────────
 
 def one_attack(attacker, defender) -> tuple[int, int, str]:
+    """
+    Resolve one attack swing.
+    Attack score = (d20 + ability_modifier) × 5
+    Hit if attack_score ≥ target AC (0-100)
+    """
     from ..dnd.armor import get_ac
 
-    roll = random.randint(1, 20)
-    ac   = get_ac(defender)
+    roll      = random.randint(1, 20)
+    ac        = get_ac(defender)
+    crit_min  = _crit_threshold(attacker)
+
+    # Adjust AC for any target debuffs (from maneuvers)
+    dnd_atk  = getattr(attacker, "dnd", {}) or {}
+    debuffs  = dnd_atk.get("target_debuffs", {})
+    ac       = max(0, ac - debuffs.get("ac_penalty", 0))
 
     if roll == 1:
         return (0, MISS,
                 f"&w{attacker.name}&N fumbles and misses completely!&N")
 
-    if roll == 20:
-        dmg         = calc_damage(attacker, crit=True)
+    if roll >= crit_min:
+        dmg = calc_damage(attacker, crit=True)
         from ..world.effects import apply_dr
-        dmg         = apply_dr(defender, dmg)
-        defender.hp = max(0, defender.hp - dmg)
+        dmg = apply_dr(defender, dmg)
+        apply_damage(defender, dmg)
         return (dmg, CRIT,
                 f"&+W[CRITICAL HIT!] &w{attacker.name}&N devastates "
                 f"&N{defender.name}&w for &W{dmg}&w damage!&N")
 
-    att_mod      = _attack_mod(attacker)
+    att_mod = _attack_mod(attacker)
+    # Apply hit penalty debuff (from disarm)
+    att_mod -= debuffs.get("hit_penalty", 0)
     attack_score = (roll + att_mod) * 5
 
     if attack_score < ac:
@@ -181,11 +330,11 @@ def one_attack(attacker, defender) -> tuple[int, int, str]:
                 f"&w{attacker.name}&N misses &N{defender.name}&w "
                 f"(score &W{attack_score}&w vs AC &W{ac}&w).&N")
 
-    dmg         = calc_damage(attacker, crit=False)
+    dmg = calc_damage(attacker, crit=False)
     from ..world.effects import apply_dr
-    dmg         = apply_dr(defender, dmg)
-    defender.hp = max(0, defender.hp - dmg)
-    verb        = _damage_verb(dmg, getattr(defender, "max_hp", dmg))
+    dmg = apply_dr(defender, dmg)
+    apply_damage(defender, dmg)
+    verb = _damage_verb(dmg, getattr(defender, "max_hp", dmg))
 
     return (dmg, HIT,
             f"&w{attacker.name}&N {verb} &N{defender.name}&w "
@@ -193,7 +342,7 @@ def one_attack(attacker, defender) -> tuple[int, int, str]:
 
 # ── Weapon proc ───────────────────────────────────────────────────────────────
 
-def _fire_weapon_proc(attacker, defender, player_msgs: list, room_msgs: list,
+def _fire_weapon_proc(attacker, defender, player_msgs, room_msgs,
                       slot: str = "primary_hand") -> None:
     eq     = getattr(attacker, "equipment", {})
     weapon = eq.get(slot)
@@ -202,13 +351,10 @@ def _fire_weapon_proc(attacker, defender, player_msgs: list, room_msgs: list,
     proc_key = getattr(weapon, "proc", None)
     if not proc_key:
         return
-
     from ..world.procs import PROCS
     proc_fn = PROCS.get(proc_key) if isinstance(proc_key, str) else proc_key
     if proc_fn is None:
-        print(f"[warn] unknown weapon proc key: {proc_key!r}", flush=True)
         return
-
     extra_msgs = proc_fn(attacker, defender, weapon=weapon)
     if extra_msgs:
         for m in extra_msgs:
@@ -228,24 +374,23 @@ def off_hand_attack(attacker, defender) -> tuple[int, int, str] | None:
 
     eq     = getattr(attacker, "equipment", {})
     weapon = eq.get("secondary_hand")
-
     if weapon is None or not hasattr(weapon, "dice"):
         return None
     if getattr(weapon, "two_handed", False):
         return None
 
-    roll = random.randint(1, 20)
-    ac   = get_ac(defender)
+    roll      = random.randint(1, 20)
+    ac        = get_ac(defender)
+    crit_min  = _crit_threshold(attacker)
 
     if roll == 1:
-        return (0, MISS,
-                f"&w{attacker.name}&N's off-hand swing misses entirely!&N")
+        return (0, MISS, f"&w{attacker.name}&N's off-hand swing misses entirely!&N")
 
-    if roll == 20:
+    if roll >= crit_min:
         n, s        = parse_dice(weapon.dice)
         dmg         = sum(random.randint(1, s) for _ in range(n * 2))
         dmg         = max(1, dmg + getattr(weapon, "damroll", 0))
-        defender.hp = max(0, defender.hp - dmg)
+        apply_damage(defender, dmg)
         return (dmg, CRIT,
                 f"&+W[CRIT OFF-HAND] &w{attacker.name}&N hits "
                 f"&N{defender.name}&w for &W{dmg}&w damage!&N")
@@ -270,9 +415,9 @@ def off_hand_attack(attacker, defender) -> tuple[int, int, str] | None:
         finesse = getattr(weapon, "finesse", False)
         base   += max(str_mod, dex_mod) if finesse else str_mod
 
-    dmg         = max(1, base)
-    defender.hp = max(0, defender.hp - dmg)
-    verb        = _damage_verb(dmg, getattr(defender, "max_hp", dmg))
+    dmg  = max(1, base)
+    apply_damage(defender, dmg)
+    verb = _damage_verb(dmg, getattr(defender, "max_hp", dmg))
 
     return (dmg, HIT,
             f"&w{attacker.name}&N {verb} &N{defender.name}&w off-hand "
@@ -282,10 +427,8 @@ def off_hand_attack(attacker, defender) -> tuple[int, int, str] | None:
 
 def combat_round(player, target, extra_attacks: int = 0) -> tuple[list[str], list[str]]:
     """
-    Player's attack round against their current target only.
-    Does NOT include mob counter-attacks — those are handled separately
-    by mob_counter_attacks() so every mob in the room can swing back.
-
+    Player's attack round against their current target.
+    Clears maneuver_used and decrements maneuver cooldowns at the START.
     Returns (player_msgs, room_msgs).
     """
     ensure_hp(player)
@@ -294,9 +437,25 @@ def combat_round(player, target, extra_attacks: int = 0) -> tuple[list[str], lis
     player_msgs: list[str] = []
     room_msgs:   list[str] = []
 
+    # ── Clear per-tick maneuver state ─────────────────────────────────────
     dnd = getattr(player, "dnd", {}) or {}
-    if dnd.get("class") == "warrior":
-        from ..dnd.classes.warrior import attack_count
+    dnd["maneuver_used"] = False
+
+    # Decrement maneuver cooldowns
+    cooldowns = dnd.get("maneuver_cooldowns", {})
+    for key in cooldowns:
+        if cooldowns[key] > 0:
+            cooldowns[key] -= 1
+
+    # Clear target debuffs from last tick
+    debuffs = dnd.get("target_debuffs", {})
+    debuffs["ac_penalty"]  = 0
+    debuffs["hit_penalty"] = 0
+    # no_counter cleared in mob_counter_attacks after use
+
+    # ── Determine attack count ────────────────────────────────────────────
+    if dnd.get("class") in ("fighter", "warrior"):
+        from ..dnd.classes.fighter import attack_count
         n_attacks = attack_count(player.level) + extra_attacks
     else:
         n_attacks = 1 + extra_attacks
@@ -318,7 +477,6 @@ def combat_round(player, target, extra_attacks: int = 0) -> tuple[list[str], lis
             dmg, hit_type, msg = result
             player_msgs.append(msg)
             room_msgs.append(msg)
-
             if hit_type != MISS and target.hp > 0:
                 _fire_weapon_proc(player, target, player_msgs, room_msgs,
                                   slot="secondary_hand")
@@ -331,14 +489,86 @@ def combat_round(player, target, extra_attacks: int = 0) -> tuple[list[str], lis
 def mob_counter_attacks(mob, player) -> tuple[list[str], list[str]]:
     """
     One mob swings back at a player.
-    Called once per mob that has the player in its attackers set.
-    Returns (player_msgs, room_msgs).
+    Parry resolves here — passive for all Fighters/Rangers.
+    Riposte triggers here on successful parry if armed.
+    Menace blocks the counter entirely.
     """
+    from ..dnd.armor import get_ac
+
     ensure_hp(mob)
     ensure_hp(player)
+
     player_msgs: list[str] = []
     room_msgs:   list[str] = []
-    _, _, msg = one_attack(mob, player)
-    player_msgs.append(msg)
-    room_msgs.append(msg)
+
+    dnd     = getattr(player, "dnd", {}) or {}
+    debuffs = dnd.get("target_debuffs", {})
+
+    # ── Menacing Attack block ─────────────────────────────────────────────
+    if debuffs.get("no_counter"):
+        debuffs["no_counter"] = False
+        p_msg = "&+WYour menacing strike leaves your foe momentarily frozen — they cannot counter!&N"
+        r_msg = f"&+W{player.name}'s menacing strike leaves their foe frozen!&N"
+        return [p_msg], [r_msg]
+
+    # ── Roll mob attack ───────────────────────────────────────────────────
+    roll     = random.randint(1, 20)
+    ac       = get_ac(player)
+    att_mod  = _attack_mod(mob)
+    attack_score = (roll + att_mod) * 5
+
+    if roll == 1:
+        msg = f"&w{mob.name}&N fumbles and misses you completely!&N"
+        return [msg], [msg]
+
+    # ── Parry resolution — passive for all Fighters/Rangers ──────────────
+    parry = attempt_parry(player, attack_score)
+
+    # Crit check — uses base 20 for mobs
+    is_crit = (roll == 20)
+
+    if attack_score < ac and not is_crit:
+        msg = (f"&w{mob.name}&N misses you "
+               f"(score &W{attack_score}&w vs AC &W{ac}&w).&N")
+        return [msg], [msg]
+
+    # Hit — calculate raw damage
+    dmg = calc_damage(mob, crit=is_crit)
+    from ..world.effects import apply_dr
+    dmg = apply_dr(player, dmg)
+
+    # Apply parry reduction
+    if parry["success"]:
+        player_msgs.append(parry["msg"])
+        room_msgs.append(
+            f"&w{player.name}&N deflects {mob.name}'s attack.&N"
+            if not parry["shrug"] else
+            f"&w{player.name}&N shrugs off {mob.name}'s attack entirely!&N"
+        )
+        dmg = max(0, dmg - parry["reduction"])
+
+    if dmg > 0:
+        apply_damage(player, dmg)
+        verb  = _damage_verb(dmg, getattr(player, "max_hp", dmg))
+        p_msg = (f"&w{mob.name}&N {verb} you "
+                 f"(&W{dmg}&w dmg | score &W{attack_score}&w vs AC &W{ac}&w)&N")
+        r_msg = (f"&w{mob.name}&N {verb} &w{player.name}&N "
+                 f"(&W{dmg}&w dmg)&N")
+        if is_crit:
+            p_msg = f"&+W[CRITICAL HIT!] &N" + p_msg
+            r_msg = f"&+W[CRITICAL HIT!] &N" + r_msg
+        player_msgs.append(p_msg)
+        room_msgs.append(r_msg)
+    elif parry["success"] and dmg == 0:
+        # Already added parry message above, nothing more needed
+        pass
+
+    # ── Riposte trigger ───────────────────────────────────────────────────
+    if parry["success"] and dnd.get("riposte_armed"):
+        sd_pool = dnd.get("superiority_dice", 0)
+        if sd_pool > 0:
+            rp, rr = trigger_riposte(player, mob, dnd)
+            player_msgs.extend(rp)
+            room_msgs.extend(rr)
+
     return player_msgs, room_msgs
