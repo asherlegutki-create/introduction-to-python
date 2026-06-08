@@ -147,6 +147,7 @@ ROOMS: dict[int, Room] = {
             "name": "Sword Shrine",
             "description":  ("You ascend into the room and look around. You are walking on &Xdark&N &Wclouds&N.",
                             "In the middle of the room there is a stone triangular stone platform.",
+                             ),
             "indoors": False,
             "terrain": "cloud",
             "exits": [
@@ -156,7 +157,7 @@ ROOMS: dict[int, Room] = {
                 M.spawn("void_dragon"),
             ],
             "objects": [
-                O.spawn("sword_that_seals_the_darkness")
+                O.spawn("sword_that_seals_the_darkness"),
                 O.spawn("sword_that_seals_the_darkness")
             ]
         }
