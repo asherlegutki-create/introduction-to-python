@@ -51,7 +51,9 @@ ROOMS: dict[int, Room] = {
         "exits": [
             {"direction": "south", "roomId": 4},
         ],
-        "objects": [O.spawn("dagger of detriment")],
+        "objects": [
+            O.spawn("dagger of detriment")
+        ],
         "mobs": [],
     }),
     9: Room({

@@ -148,6 +148,22 @@ TEMPLATES: dict[str, dict] = {
         "killable": True,
         "wander": False,
     },
+
+    "adrian": {
+        "name": "adrian",
+        "key_words": ("adrian"),
+        "room_description": "adrian sits spacing out because of bordom.&N",
+        "description": (
+            "adrian is being annoying to his fellow peers at full volume,\n though they ignore his pester for they know he means well"
+        ),
+        "race": "Human",
+        "class": "Student",
+        "level": 8,
+        "stats": [60, 40, 90, 90, 80, 9], #btw adrian agreed with these and was right next to me when i made them
+        "aggro": False,
+        "killable": False,
+        "wander": True,
+    },
 }
 
 # Module-level spawn — rooms.py calls  M.spawn("void_guardian")
