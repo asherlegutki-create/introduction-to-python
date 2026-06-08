@@ -106,6 +106,11 @@ def _item_to_dict(item) -> dict:
             # proc and powers must be saved so they survive logout/login
             "proc":       item.proc,
             "powers":     item.powers,
+            # stat/AC bonuses
+            "stat_mods":  getattr(item, "stat_mods", {}),
+            "save_mods":  getattr(item, "save_mods", {}),
+            "ac_bonus":   getattr(item, "ac_bonus",  0),
+            "armor_type": getattr(item, "armor_type", None),
         })
 
     elif isinstance(item, Container):
@@ -121,9 +126,16 @@ def _item_to_dict(item) -> dict:
 
     elif isinstance(item, Item):
         base.update({
-            "weight":  item.weight,
-            "mod":     item.mod,
-            "wear_on": item.wear_on,
+            "weight":     item.weight,
+            "mod":        item.mod,
+            "wear_on":    item.wear_on,
+            # armor / stat fields — critical for gear to work after login
+            "stat_mods":  getattr(item, "stat_mods", {}),
+            "save_mods":  getattr(item, "save_mods", {}),
+            "ac_bonus":   getattr(item, "ac_bonus",  0),
+            "armor_type": getattr(item, "armor_type", None),
+            "is_key":     getattr(item, "is_key",    False),
+            "key_name":   getattr(item, "key_name",  None),
         })
 
     return base

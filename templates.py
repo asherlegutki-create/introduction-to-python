@@ -86,11 +86,10 @@ MOB: dict = {
 
     # ── HP ────────────────────────────────────────────────────────────────────
     # Calculated automatically as level × 8 × 5.
-    # hp / max_hp / hit_dice keys in the template are IGNORED.
 
     # ── AC ────────────────────────────────────────────────────────────────────
-    # Omit to let the engine calculate from DEX stat + equipped gear.
-    # Include to override (0 = impossible to hit, 100 = no protection).
+    # Omit to let the engine calculate from equipped gear (sum of ac_bonus).
+    # Include to override with a flat value.
     # "ac": 40,
 
     # ── Combat ────────────────────────────────────────────────────────────────
@@ -146,6 +145,11 @@ _ITEM_BASE: dict = {
     "weight": 1.0,     # pounds
     "cost":   0,       # gold value
 
+    # ── AC bonus ──────────────────────────────────────────────────────────────
+    # Flat AC added while this item is equipped. Stacks with all other gear.
+    # Unarmored AC is 0; all protection comes from ac_bonus values.
+    "ac_bonus": 0,
+
     # ── Modifiers (stacks with others; displayed in att/score) ───────────────
     # stat_mods: flat bonus applied to displayed stat while worn
     "stat_mods": {},   # e.g. {"str": 5, "dex": -2}
@@ -176,7 +180,7 @@ WEAPON: dict = {
     "damroll": 0,   # bonus to damage roll
 
     # ── Weapon properties ─────────────────────────────────────────────────────
-    "two_handed": False,   # True → occupies both hands, +1 damage die
+    "two_handed": False,   # True → occupies both hands
     "finesse":    False,   # True → use higher of STR/DEX for attack + damage
     "light":      False,   # True → eligible for Two-Weapon Fighting
     "thrown":     False,   # True → can be thrown (ranged attack)
@@ -187,18 +191,18 @@ WEAPON: dict = {
     "versatile_dice":  "1d8",   # damage dice when wielded two-handed
 
     # ── Weapon is also a shield? ───────────────────────────────────────────────
-    "is_shield": False,   # True → grants +10 AC when in secondary_hand
+    "is_shield": False,   # True → grants ac_bonus when in secondary_hand
 
-    # ── Shared fields ─────────────────────────────────────────────────────────
     "weight":    2.0,
     "cost":      50,
+    "ac_bonus":  0,
     "stat_mods": {},
     "save_mods": {},
 }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ARMOR  (body protection that provides an AC value)
+# ARMOR  (wearable protection)
 # ══════════════════════════════════════════════════════════════════════════════
 
 ARMOR: dict = {
@@ -208,22 +212,11 @@ ARMOR: dict = {
     "key_words": ("armour",),
     "wear_on":   "on_body",   # Usually on_body; can be any slot
 
-    # ── Armour type → AC value + DEX rules (from dnd/armor.py) ───────────────
-    # padded      30 AC  light  full DEX bonus
-    # leather     35 AC  light  full DEX bonus
-    # studded     40 AC  light  full DEX bonus
-    # hide        45 AC  medium DEX capped at +5 mod
-    # chain_shirt 50 AC  medium DEX capped at +5 mod
-    # scale_mail  55 AC  medium DEX capped at +5 mod
-    # breastplate 55 AC  medium DEX capped at +5 mod
-    # half_plate  60 AC  medium DEX capped at +5 mod
-    # ring_mail   60 AC  heavy  no DEX bonus
-    # chain_mail  65 AC  heavy  no DEX bonus
-    # splint      70 AC  heavy  no DEX bonus
-    # plate       75 AC  heavy  no DEX bonus
-    "armor_type": "leather",   # REQUIRED — key from table above
+    # ── AC ────────────────────────────────────────────────────────────────────
+    # Set ac_bonus to however much protection this piece provides.
+    # All equipped ac_bonus values stack; unarmored AC is 0.
+    "ac_bonus":  20,
 
-    # ── Shared fields ─────────────────────────────────────────────────────────
     "weight":    10.0,
     "cost":      200,
     "stat_mods": {},
@@ -242,12 +235,12 @@ SHIELD: dict = {
     "key_words": ("shield",),
     "wear_on":   "secondary_hand",
 
-    "is_shield": True,   # REQUIRED — grants +10 AC when equipped
-    "dice":      "1d4",  # Bash damage if used as an improvised weapon
+    "is_shield": True,   # marks it as a shield for display purposes
+    "dice":      "1d4",  # bash damage if used as an improvised weapon
     "hitroll":   0,
     "damroll":   0,
 
-    "armor_type": None,   # Shields don't use armor_type
+    "ac_bonus":  10,     # flat AC while equipped
     "weight":    6.0,
     "cost":      80,
     "stat_mods": {},
@@ -256,7 +249,7 @@ SHIELD: dict = {
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# CLOTHING / JEWELRY  (wearable, no armor_type — does not affect AC)
+# CLOTHING / JEWELRY  (wearable, no AC — or small AC bonus)
 # ══════════════════════════════════════════════════════════════════════════════
 
 CLOTHING: dict = {
@@ -266,7 +259,7 @@ CLOTHING: dict = {
     "key_words": ("ring",),
     "wear_on":   "ring",   # Any wearable slot — see _ITEM_BASE for full list
 
-    # stat_mods / save_mods are the primary reason to wear clothing/jewelry
+    "ac_bonus":  0,
     "stat_mods": {"dex": 5},   # e.g. Ring of Agility
     "save_mods": {},
 
@@ -292,6 +285,7 @@ CONTAINER: dict = {
 
     "weight":    1.0,
     "cost":      30,
+    "ac_bonus":  0,
     "stat_mods": {},
     "save_mods": {},
 }
@@ -306,20 +300,21 @@ FOOD: dict = {
     "name":      "&wa piece of bread&N",
     "room_desc": "&wA piece of bread lies here.&N",
     "key_words": ("bread", "food"),
-    "wear_on":   None,   # food is not wearable
+    "wear_on":   None,
 
-    "hunger":   4,   # hunger restored (arbitrary units)
+    "hunger":   4,
     "poisoned": False,
 
     "weight":    0.2,
     "cost":      2,
+    "ac_bonus":  0,
     "stat_mods": {},
     "save_mods": {},
 }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# DRINK CONTAINER  (flask, canteen, waterskin, etc.)
+# DRINK CONTAINER
 # ══════════════════════════════════════════════════════════════════════════════
 
 DRINK: dict = {
@@ -329,14 +324,15 @@ DRINK: dict = {
     "key_words": ("waterskin", "skin"),
     "wear_on":   "held",
 
-    "liquid":       "water",   # water | ale | wine | beer | juice | blood | …
-    "capacity":     5,         # max drinks
-    "current":      5,         # drinks remaining
-    "poisoned":     False,
-    "thirst":       1,         # thirst restored per drink
+    "liquid":   "water",
+    "capacity": 5,
+    "current":  5,
+    "poisoned": False,
+    "thirst":   1,
 
     "weight":    0.5,
     "cost":      5,
+    "ac_bonus":  0,
     "stat_mods": {},
     "save_mods": {},
 }
@@ -353,12 +349,11 @@ KEY: dict = {
     "key_words": ("key",),
     "wear_on":   None,
 
-    # key_for: vnum of the door/container this key unlocks.
-    # The engine checks this against the exit's key_vnum.
     "key_for": 0,
 
     "weight":    0.1,
     "cost":      5,
+    "ac_bonus":  0,
     "stat_mods": {},
     "save_mods": {},
 }
@@ -375,17 +370,18 @@ LIGHT: dict = {
     "key_words": ("torch", "light"),
     "wear_on":   "light",
 
-    "hours":    -1,   # hours of light remaining (-1 = permanent / magical)
+    "hours":    -1,
 
     "weight":    0.5,
     "cost":      1,
+    "ac_bonus":  0,
     "stat_mods": {},
     "save_mods": {},
 }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TREASURE  (valuable but has no special function)
+# TREASURE
 # ══════════════════════════════════════════════════════════════════════════════
 
 TREASURE: dict = {
@@ -397,13 +393,14 @@ TREASURE: dict = {
 
     "weight":    0.1,
     "cost":      500,
+    "ac_bonus":  0,
     "stat_mods": {},
     "save_mods": {},
 }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MISC  (generic carry-able item with no special behaviour)
+# MISC
 # ══════════════════════════════════════════════════════════════════════════════
 
 MISC: dict = {
@@ -415,6 +412,7 @@ MISC: dict = {
 
     "weight":    1.0,
     "cost":      0,
+    "ac_bonus":  0,
     "stat_mods": {},
     "save_mods": {},
 }

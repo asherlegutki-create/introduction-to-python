@@ -11,14 +11,6 @@ or without (ring, neck, wrist).  actual_slot() collapses all variants to
 the bare canonical name so _wear_one() always stores into the same key
 and the list-of-2 logic fires correctly.
 
-  item.wear_on = "ring1"  →  actual_slot() → "ring"  →  DUAL_SLOT
-  item.wear_on = "ring2"  →  actual_slot() → "ring"  →  DUAL_SLOT  (same key!)
-  item.wear_on = "ring"   →  actual_slot() → "ring"  →  DUAL_SLOT
-
-Result: a player can wear any two ring-type items regardless of whether
-the zone author wrote ring, ring1, or ring2 as the wear_on value.
-Same for neck (necklace/neck1/neck2) and wrist (bracelet/wrist1/wrist2).
-
 Slot ordering in SLOTS
 ──────────────────────
 The dict is insertion-ordered (Python 3.7+).  _cmd_equipment() iterates
@@ -29,30 +21,26 @@ display order shown to players.
 # ── Canonical slot → display label ───────────────────────────────────────────
 
 SLOTS: dict[str, str] = {
-    "light":          "Light Source",
-    "floating":       "Floating Nearby",
-    "head":           "Head",
-    "face":           "Face",
-    "earring":        "Ear",
-    "neck":           "Neck",
-    "on_body":        "Torso",
-    "about_body":     "Worn About Body",
-    "back":           "Back",
-    "arms":           "Arms",
-    "hands":          "Hands",
-    "waist":          "Waist",
-    "legs":           "Legs",
-    "feet":           "Feet",
-    "wrist":          "Wrist",
-    "ring":           "Finger",
-    "primary_hand":   "Primary Hand",
-    "secondary_hand": "Off Hand",
+    "head":           "<worn on head>         ",
+    "eyes":           "<worn on eyes>         ",
+    "earring":        "<worn in ear>          ",
+    "face":           "<worn on face>         ",
+    "neck":           "<worn around neck>     ",
+    "on_body":        "<worn on body>         ",
+    "about_body":     "<worn about body>      ",
+    "back":           "<worn on back>         ",
+    "waist":          "<worn about waist>     ",
+    "arms":           "<worn on arms>         ",
+    "wrist":          "<worn on wrist>        ",
+    "hands":          "<worn on hands>        ",
+    "ring":           "<worn on finger>       ",
+    "primary_hand":   "<primary weapon>       ",
+    "secondary_hand": "<secondary weapon>     ",
+    "legs":           "<worn on legs>         ",
+    "feet":           "<worn on feet>         ",
 }
 
 # ── Dual slots: each holds a list[item] of up to 2 items ─────────────────────
-#
-# Adding a slot here is all that is needed to make it hold two items.
-# The wear/remove logic in game.py checks DUAL_SLOTS and branches accordingly.
 
 DUAL_SLOTS: frozenset[str] = frozenset({
     "ring",
@@ -62,13 +50,6 @@ DUAL_SLOTS: frozenset[str] = frozenset({
 })
 
 # ── wear_on alias map ─────────────────────────────────────────────────────────
-#
-# Maps raw wear_on values (as written in zone templates) → canonical slot key.
-#
-# Rules:
-#   • Numbered variants (ring1, ring2) collapse to the bare name (ring).
-#   • Common synonyms (necklace, bracelet, finger, ear, shield) are mapped.
-#   • "shield" and "held" both route to secondary_hand (game checks is_shield).
 
 _SLOT_MAP: dict[str, str] = {
     # ── Primary / secondary hand ──────────────────────────────────────────────
@@ -144,29 +125,46 @@ _SLOT_MAP: dict[str, str] = {
     "hover":          "floating",
 }
 
-# Build VALID_WEAR_ON from _SLOT_MAP keys (used by Item.__init__ for validation)
+# Build VALID_WEAR_ON from _SLOT_MAP keys
 VALID_WEAR_ON: frozenset[str] = frozenset(_SLOT_MAP.keys())
 
 
 # ── Helper functions ──────────────────────────────────────────────────────────
 
 def actual_slot(wear_on: str) -> str:
-    """
-    Map a raw wear_on value to its canonical equipment slot key.
-
-    ring1  → ring   (DUAL_SLOT: can hold 2 rings)
-    ring2  → ring
-    ring   → ring
-    neck1  → neck   (DUAL_SLOT: can hold 2 necklaces)
-    wrist2 → wrist  (DUAL_SLOT: can hold 2 bracelets)
-    shield → secondary_hand
-    """
     return _SLOT_MAP.get(wear_on, wear_on)
 
 
 def is_blocking_secondary(item) -> bool:
-    """
-    Return True if the item requires both hands (two_handed=True),
-    which prevents anything from being held in the secondary_hand slot.
-    """
     return getattr(item, "two_handed", False)
+
+
+def hand_label(slot: str, item) -> str:
+    """
+    Return the contextual display label for a hand slot based on what
+    is actually equipped there.
+
+      primary_hand:
+        two_handed weapon  → <wielding two-handed>
+        otherwise          → <primary weapon>
+
+      secondary_hand:
+        shield             → <held as shield>
+        weapon (off-hand)  → <secondary weapon>
+        other held item    → <held>
+    """
+    from .objects import Weapon
+
+    if slot == "primary_hand":
+        if isinstance(item, Weapon) and getattr(item, "two_handed", False):
+            return "<wielding two-handed>  "
+        return "<primary weapon>       "
+
+    if slot == "secondary_hand":
+        if getattr(item, "is_shield", False):
+            return "<held as shield>       "
+        if isinstance(item, Weapon):
+            return "<secondary weapon>     "
+        return "<held>                 "
+
+    return SLOTS.get(slot, f"<{slot}>")
