@@ -315,6 +315,12 @@ def new_fighter_dnd(
         # Long-rest abilities
         "indomitable_uses": indom_uses,
         "indomitable_max":  indom_uses,
+
+        # Fighting style change charges
+        # Start at 3 for new chars; on load these come from the saved dnd dict.
+        "style_change_charges":  3,
+        "style_change_max":      3,
+        "style_long_rest_ready": False,
     }
 
     if subclass == "battle_master":

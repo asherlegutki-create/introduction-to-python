@@ -26,7 +26,10 @@ def cmd_wiz(state, args: list) -> str:
             "  &Wwiz effects &w[player]&N\n"
             "  &Wwiz heal &w[player]&N\n"
             "  &Wwiz poison &w[player]&N\n"
-            "  &Wwiz change_sex &w[male|m|female|f] <player>&N"
+            "  &Wwiz change_sex &w[male|m|female|f] <player>&N\n"
+            "  &Wwiz account list&N\n"
+            "  &Wwiz account info &w<account>&N\n"
+            "  &Wwiz account resetpassword &w<account>&N"
         )
 
     sub  = args[0].lower()
@@ -98,7 +101,7 @@ def cmd_wiz(state, args: list) -> str:
     if sub in ("apply_effect", "ae"):
         if not rest:
             return "&wUsage: wiz apply_effect <effect_id> [player]&N"
-        eid        = rest[0].lower()
+        eid         = rest[0].lower()
         char, tname = _get_target(rest[1:])
         if eid not in EFFECTS:
             return f"&wUnknown effect &W{eid}&w. Use &Wwiz list_effects&w to see options.&N"
@@ -111,7 +114,7 @@ def cmd_wiz(state, args: list) -> str:
     if sub in ("remove_effect", "re"):
         if not rest:
             return "&wUsage: wiz remove_effect <effect_id> [player]&N"
-        eid        = rest[0].lower()
+        eid         = rest[0].lower()
         char, tname = _get_target(rest[1:])
         if char is None:
             return f"&wPlayer &W{tname}&w not found.&N"
@@ -168,4 +171,79 @@ def cmd_wiz(state, args: list) -> str:
         state._save_player()
         return f"&W{tname}&w is now &W{new_sex}&w.&N"
 
+    if sub == "account":
+        return _cmd_wiz_account(state, rest)
+
     return f"&wUnknown wiz subcommand &W{sub}&w. Type &Wwiz&w for help.&N"
+
+
+def _cmd_wiz_account(state, args: list) -> str:
+    """Wiz account management subcommands."""
+    if not args:
+        return (
+            "&wWiz account commands:&N\n"
+            "  &Wwiz account list&N\n"
+            "  &Wwiz account info &w<account>&N\n"
+            "  &Wwiz account resetpassword &w<account>&N"
+        )
+
+    if state._db is None:
+        return "&RDatabase not available.&N"
+
+    from ...engine.persist import (
+        wiz_list_accounts, wiz_account_info, wiz_reset_password,
+    )
+    import time as _t
+
+    sub = args[0].lower()
+
+    if sub == "list":
+        rows = wiz_list_accounts(state._db)
+        if not rows:
+            return "&wNo accounts found.&N"
+        lines = [
+            f"&W{'Account':<20} {'Email':<28} {'Chars':>5} {'Created'}&N",
+            "&w" + "─" * 64 + "&N",
+        ]
+        for r in rows:
+            created = _t.strftime("%Y-%m-%d", _t.localtime(r["created_at"]))
+            email   = (r["email"] or "—")[:26]
+            lines.append(
+                f"{r['name']:<20} {email:<28} {r['char_count']:>5}  {created}"
+            )
+        return "\n".join(lines)
+
+    if sub == "info":
+        if len(args) < 2:
+            return "&wUsage: wiz account info <account>&N"
+        info = wiz_account_info(state._db, args[1])
+        if info is None:
+            return f"&wAccount '&W{args[1]}&w' not found.&N"
+        acc   = info["account"]
+        chars = info["characters"]
+        lines = [
+            f"&+WAccount: &N{acc['name']}&N",
+            f"&wEmail:   &N{acc['email'] or '(none)'}&N",
+            f"&wCreated: &N{_t.strftime('%Y-%m-%d %H:%M', _t.localtime(acc['created_at']))}&N",
+            "",
+            f"&wCharacters ({len(chars)}):&N",
+        ]
+        for i, c in enumerate(chars, 1):
+            lines.append(
+                f"  {i}) {c['name']:<28} Level {c['level']} {c['class']} ({c['race']})"
+            )
+        return "\n".join(lines)
+
+    if sub == "resetpassword":
+        if len(args) < 2:
+            return "&wUsage: wiz account resetpassword <account>&N"
+        temp_pw = wiz_reset_password(state._db, args[1])
+        if temp_pw is None:
+            return f"&wAccount '&W{args[1]}&w' not found.&N"
+        return (
+            f"&wPassword for &W{args[1]}&w has been reset.\n"
+            f"Temporary password: &W{temp_pw}&N\n"
+            f"&xRelay this to the player. Email delivery coming soon.&N"
+        )
+
+    return f"&wUnknown account subcommand '&W{sub}&w'. Type &Wwiz account&w for help.&N"
