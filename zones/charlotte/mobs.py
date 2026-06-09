@@ -54,6 +54,7 @@ TEMPLATES: dict[str, dict] = {
         "stats": [70, 65, 81, 74, 89, 93],
         "aggro":  False,
         "wander": False,
+        "killable": False,
         "responses":{
             "hi":("Hi? What are you doing out of class?"),
             "i don't Know": ("Do you need a quest?"),               
