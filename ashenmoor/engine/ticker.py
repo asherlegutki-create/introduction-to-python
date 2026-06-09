@@ -194,8 +194,17 @@ def auto_crepl(state, prompt: str = "&g> &N",
         if (now - last_tick) >= TICK_INTERVAL:
             last_tick += TICK_INTERVAL
             tick_output = None
+
             if state.fighting:
-                tick_output = state.combat_tick()
+                player_out, room_out, hp_out = state.combat_tick()
+                # Ticker is single-player — room_out is the same as player_out,
+                # so just show player_out and the HP status line.
+                parts = []
+                if player_out:
+                    parts.append(player_out)
+                if hp_out:
+                    parts.append(hp_out)
+                tick_output = "\n".join(parts) if parts else None
             else:
                 tick_output = state.mob_aggro_tick()
 
