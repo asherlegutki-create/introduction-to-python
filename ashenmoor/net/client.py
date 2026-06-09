@@ -2,10 +2,7 @@
 ashenmoor.net.client
 ────────────────────
 Abstract MudClient base class and the async per-client game loop.
-
-The subclass selection flow is handled via the shared
-ashenmoor.engine.subclass module, keeping local and network
-paths identical — only the send/recv primitives differ.
+Login flow is handled by ashenmoor.engine.login (shared with ticker.py).
 """
 
 from __future__ import annotations
@@ -24,6 +21,7 @@ class MudClient(ABC):
     def __init__(self, state: "GameState"):
         self._state       = state
         self._player_name = ""
+        self._account_id  = 0
         self._outbox: asyncio.Queue[str] = asyncio.Queue()
         self._closed      = False
 
@@ -39,24 +37,13 @@ class MudClient(ABC):
     async def send(self, text: str) -> None:
         await self._outbox.put(text)
 
-    # ── Prompt builder ────────────────────────────────────────────────────────
+    # ── Prompt ────────────────────────────────────────────────────────────────
 
     def _build_prompt(self) -> str:
-        """
-        Full prompt showing HP (with temp_hp in magenta), movement, and
-        all active resource pools.
-
-        Format:
-          [<hp>/<maxhp>hp <mv>/<maxmv>mv | SW:2/2 AS:1/1 IND:2/2 SD:4d8 RIP:armed] >
-
-        The > is red in combat, green out of combat.
-        """
         from ..color import diku_to_ansi
-
         state = self._state
         name  = self._player_name
         char  = state.characters.get(name)
-
         if not char:
             return diku_to_ansi("&g> &N")
 
@@ -66,7 +53,6 @@ class MudClient(ABC):
         mv   = getattr(char, "moves",     0)
         mmv  = getattr(char, "max_moves", 1)
 
-        # HP colour and display value
         if temp > 0:
             hp_color   = "&M"
             hp_display = hp + temp
@@ -75,33 +61,27 @@ class MudClient(ABC):
             hp_color = "&+G" if pct > 0.66 else ("&+Y" if pct > 0.33 else "&+R")
             hp_display = hp
 
-        # Resource pools
         dnd       = getattr(char, "dnd", {}) or {}
         resources = []
 
         sw  = dnd.get("second_wind_uses", 0)
         swm = dnd.get("second_wind_max",  0)
-        if swm:
-            resources.append(f"SW:{sw}/{swm}")
+        if swm: resources.append(f"SW:{sw}/{swm}")
 
         as_ = dnd.get("action_surge_uses", 0)
         asm = dnd.get("action_surge_max",  0)
-        if asm:
-            resources.append(f"AS:{as_}/{asm}")
+        if asm: resources.append(f"AS:{as_}/{asm}")
 
         ind  = dnd.get("indomitable_uses", 0)
         indm = dnd.get("indomitable_max",  0)
-        if indm:
-            resources.append(f"IND:{ind}/{indm}")
+        if indm: resources.append(f"IND:{ind}/{indm}")
 
         sd  = dnd.get("superiority_dice",     0)
         sdm = dnd.get("superiority_dice_max", 0)
         sds = dnd.get("superiority_die_size", 8)
         if sdm:
-            if sd > 0:
-                rip_state = "&Garmed&N" if dnd.get("riposte_armed") else "ready"
-            else:
-                rip_state = "&R0&N"
+            rip_state = "&Garmed&N" if dnd.get("riposte_armed") else "ready"
+            if sd == 0: rip_state = "&R0&N"
             resources.append(f"SD:{sd}d{sds} RIP:{rip_state}")
 
         res_str  = " ".join(resources)
@@ -123,151 +103,57 @@ class MudClient(ABC):
             text = self._outbox.get_nowait()
             await self._raw_send(diku_to_ansi(text) + "\r\n")
 
+    # ── Send adapter (plain text, no diku conversion) ─────────────────────────
+
+    async def _plain_send(self, text: str) -> None:
+        from ..color import diku_to_ansi
+        await self._raw_send(diku_to_ansi(text))
+
     # ── Login ─────────────────────────────────────────────────────────────────
 
     async def run_login(self, start_room: int, races: dict,
                         db_path: str = "ashenmoor.db") -> bool:
-        from ..engine.persist import open_db, save_character, load_character
-        from ..core.character import Character
-        from ..dnd.classes.fighter import new_fighter_dnd, FIGHTER_POWERS
+        from ..engine.persist import open_db
+        from ..engine.login   import run_login_flow
 
         conn = open_db(db_path)
 
-        await self._raw_send("\r\n")
-        await self._raw_send("\033[1;37m╔══════════════════════════════╗\033[0m\r\n")
-        await self._raw_send("\033[1;37m║      W e l c o m e  t o      ║\033[0m\r\n")
-        await self._raw_send("\033[1;37m║      R i v e r m o o r       ║\033[0m\r\n")
-        await self._raw_send("\033[1;37m╚══════════════════════════════╝\033[0m\r\n\r\n")
+        result = await run_login_flow(
+            state      = self._state,
+            conn       = conn,
+            send       = self._plain_send,
+            recv       = self._raw_readline,
+            start_room = start_room,
+            races      = races,
+        )
 
-        while True:
-            await self._raw_send("Who would you like to be known as? ")
-            try:
-                raw = await self._raw_readline()
-            except (EOFError, ConnectionResetError):
-                return False
+        if result is None:
+            return False
 
-            if not raw.strip():
-                continue
-
-            if raw.strip().lower() in ("quit", "exit", "q"):
-                await self._raw_send("Farewell!\r\n")
-                return False
-
-            name = raw.strip()[0].upper() + raw.strip()[1:].lower()
-
-            row = conn.execute(
-                "SELECT race, class, level, hp FROM characters WHERE name = ?",
-                (name,),
-            ).fetchone()
-
-            if row is None:
-                # ── New character ─────────────────────────────────────────
-                await self._raw_send(
-                    f"\r\n\033[1;37mCharacter {name} does not exist.\033[0m\r\n"
-                    f"Would you like to create {name} now? (yes/no) "
-                )
-                try:
-                    answer = await self._raw_readline()
-                except (EOFError, ConnectionResetError):
-                    return False
-                if answer.strip().lower() not in ("yes", "y"):
-                    await self._raw_send("Very well. Enter another name.\r\n\r\n")
-                    continue
-
-                # Sex selection
-                sex = "male"
-                while True:
-                    await self._raw_send("Are you Male or Female (M/F)? ")
-                    try:
-                        sex_raw = await self._raw_readline()
-                    except (EOFError, ConnectionResetError):
-                        return False
-                    s = sex_raw.strip().lower()
-                    if s in ("m", "male"):
-                        sex = "male"; break
-                    elif s in ("f", "female"):
-                        sex = "female"; break
-                    else:
-                        await self._raw_send("Please enter M or F.\r\n")
-
-                char = Character({
-                    "name":      name,
-                    "race":      "Human",
-                    "class":     "Fighter",
-                    "level":     1,
-                    "stats":     [90, 90, 90, 70, 70, 70],
-                    "dnd":       new_fighter_dnd(level=1, fighting_style="dueling"),
-                    "powers":    list(FIGHTER_POWERS),
-                    "alignment": "True Neutral",
-                    "position":  "standing",
-                    "sex":       sex,
-                }, races=races)
-
-                save_character(conn, char, location=start_room, include_hp=True)
-                self._state.characters[name] = char
-                self._state.locations[name]  = start_room
-                self._player_name            = name
-
-                await self._raw_send(
-                    f"\r\n\033[1;37mCharacter {name} has been created!\033[0m\r\n"
-                    f"You are a level 1 Human Fighter.\r\n"
-                    f"(STR 90 / DEX 90 / CON 90 / INT 70 / WIS 70 / CHA 70)\r\n\r\n"
-                )
-                break
-
-            else:
-                # ── Existing character ────────────────────────────────────
-                cclass = row["class"]
-                level  = row["level"]
-
-                # Migrate Warrior → Fighter in the shell dict
-                display_class = "Fighter" if cclass.lower() == "warrior" else cclass
-
-                d = {
-                    "name":  name,
-                    "race":  row["race"],
-                    "class": display_class,
-                    "level": level,
-                    "stats": [75] * 6,
-                }
-                if display_class.lower() in ("fighter", "warrior"):
-                    d["dnd"]    = new_fighter_dnd(level=level)
-                    d["powers"] = list(FIGHTER_POWERS)
-
-                char      = Character(d, races=races)
-                saved_loc = load_character(conn, name, char)
-                room_vnum = saved_loc if saved_loc else start_room
-
-                self._state.characters[name] = char
-                self._state.locations[name]  = room_vnum
-                self._player_name            = name
-
-                await self._raw_send(
-                    f"\r\n\033[1;37mWelcome back, {name}!\033[0m\r\n"
-                    f"(Level {char.level} {char.race} {char.cclass})\r\n\r\n"
-                )
-                break
+        char, account_id, room_vnum = result
+        self._player_name = char.name
+        self._account_id  = account_id
 
         if self._state._db is None:
             self._state._db = conn
 
-        # ── Subclass selection (blocks before room look) ──────────────────
-        from ..engine.subclass import needs_subclass, run_subclass_selection
+        # Store account_id on state for wiz commands and save calls
+        self._state._account_ids = getattr(self._state, "_account_ids", {})
+        self._state._account_ids[char.name] = account_id
 
+        # Subclass selection if needed
+        from ..engine.subclass import needs_subclass, run_subclass_selection
         if needs_subclass(char):
             await run_subclass_selection(
-                char,
-                send = self._async_send,
-                recv = self._raw_readline,
+                char, send=self._async_send, recv=self._raw_readline,
             )
-            # Save immediately so the choice persists
-            from ..engine.persist import save_character as _save
-            _save(conn, char, self._state.locations.get(name, start_room))
+            from ..engine.persist import save_character
+            save_character(conn, char, room_vnum,
+                           account_id=account_id)
 
         return True
 
     async def _async_send(self, text: str) -> None:
-        """Adapter so run_subclass_selection can await send(text)."""
         from ..color import diku_to_ansi
         await self._raw_send(diku_to_ansi(text) + "\r\n")
 
@@ -280,7 +166,7 @@ class MudClient(ABC):
         name  = self._player_name
         state = self._state
 
-        _srv = getattr(state, '_server', None)
+        _srv = getattr(state, "_server", None)
         if _srv is not None and name:
             _srv._clients[name] = self
 
@@ -292,7 +178,7 @@ class MudClient(ABC):
                 f"\033[1;37m{char.level}\033[0m {char.race} {char.cclass}.\r\n"
                 f"Type \033[1;37mscore\033[0m, \033[1;37matt\033[0m, "
                 f"\033[1;37mlook\033[0m, \033[1;37mkill <mob>\033[0m, "
-                f"\033[1;37mhelp\033[0m, or \033[1;37mquit\033[0m.\r\n\r\n"
+                f"or \033[1;37mquit\033[0m.\r\n\r\n"
             )
             result = state.handle("look", player_name=name)
             if result:
@@ -309,8 +195,7 @@ class MudClient(ABC):
 
             try:
                 raw = await asyncio.wait_for(
-                    self._raw_readline(),
-                    timeout=0.5,
+                    self._raw_readline(), timeout=0.5,
                 )
             except asyncio.TimeoutError:
                 if not self._outbox.empty():
@@ -326,18 +211,18 @@ class MudClient(ABC):
                 need_prompt = True
                 continue
 
-            # ── Subclass selection intercept ──────────────────────────────
-            # Triggers when a level-up just set subclass_pending.
+            # Subclass selection intercept
             char = state.characters.get(name)
             if char and needs_subclass(char):
                 await run_subclass_selection(
-                    char,
-                    send = self._async_send,
-                    recv = self._raw_readline,
+                    char, send=self._async_send, recv=self._raw_readline,
                 )
                 if state._db:
-                    from ..engine.persist import save_character as _save
-                    _save(state._db, char, state.locations.get(name, 0))
+                    from ..engine.persist import save_character
+                    account_id = getattr(state, "_account_ids", {}).get(name, 0)
+                    save_character(state._db, char,
+                                   state.locations.get(name, 0),
+                                   account_id=account_id)
                 need_prompt = True
                 continue
 
