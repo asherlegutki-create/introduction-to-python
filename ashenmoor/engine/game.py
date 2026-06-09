@@ -111,6 +111,7 @@ _COMMAND_MAP: dict[str, str] = {
     "recite":   "recite",   "re": "recite",
     "say":  "say",
     "tell": "tell",
+    "style": "style",
 }
 
 def _resolve_verb(verb: str) -> str | list | None:
@@ -125,6 +126,19 @@ def _resolve_verb(verb: str) -> str | list | None:
     if len(matched) > 1:
         return sorted(matched.keys())
     return None
+
+
+def _grant_style_charge(char) -> None:
+    """Award 1 style change charge on level up, capped at max (3)."""
+    cclass = getattr(char, "cclass", "").lower()
+    if cclass not in ("fighter", "warrior"):
+        return
+    dnd = getattr(char, "dnd", {}) or {}
+    charges = dnd.get("style_change_charges", 0)
+    maximum = dnd.get("style_change_max", 3)
+    if charges < maximum:
+        dnd["style_change_charges"] = charges + 1
+    char.dnd = dnd
 
 
 # ── Rest helpers ──────────────────────────────────────────────────────────────
@@ -285,6 +299,7 @@ class GameState:
         )
         from .commands.social     import cmd_say, cmd_ask, cmd_quaff, cmd_recite, cmd_tell
         from .commands.admin      import cmd_wiz, cmd_time
+        from .commands.style      import cmd_style
 
         tokens = raw.strip().lower().split()
         if not tokens:
@@ -314,6 +329,7 @@ class GameState:
         if verb == "ask":      return cmd_ask(self, args)
         if verb == "say":      return cmd_say(self, args)
         if verb == "tell":     return cmd_tell(self, args)
+        if verb == "style":    return cmd_style(self, args)
         if verb == "quaff":    return cmd_quaff(self, args)
         if verb == "recite":   return cmd_recite(self, args)
         if verb == "wiz":      return cmd_wiz(self, args)
@@ -475,6 +491,9 @@ class GameState:
             player_msgs.append(xp_msg)
             lvl_msgs = apply_level_up(player)
             player_msgs.extend(lvl_msgs)
+
+            # Style change charge on level up (Fighter only, max 3)
+            _grant_style_charge(player)
 
             # Check if leveling up just triggered subclass selection
             if check_levelup_subclass(player):
@@ -671,6 +690,10 @@ class GameState:
             if getattr(char, "potion_log", []):
                 char.potion_log = []
                 msgs.append("&+GYou feel ready to benefit from potions again.&N")
+
+            # Mark style change available after long rest
+            if dnd.get("style_change_charges", 0) > 0:
+                dnd["style_long_rest_ready"] = True
 
             if player_name is not None:
                 tok = _active_player.set(player_name)
