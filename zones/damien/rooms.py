@@ -140,7 +140,6 @@ ROOMS: dict[int, Room] = {
             ],
             "objects": [
                 O.spawn("shadow_chest"),
-                O.spawn("shadow_key"),
             ],
         }
     ),
@@ -256,6 +255,9 @@ ROOMS: dict[int, Room] = {
                 M.spawn("vacivus_archer"),
                 M.spawn("vacivus_archer"),
                 M.spawn("vacivus_archer"),
+            ],
+            "objects": [    
+                O.spawn("shadow_key"),
             ],
         }
     ),
