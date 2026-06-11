@@ -111,30 +111,121 @@ def condition_str(char) -> str:
     if pct >  0.10: return "&+Rcritically wounded&N"
     return "&+RAT DEATH'S DOOR&N"
 
+# ── Combat stance detection ───────────────────────────────────────────────────
+
+def get_combat_stance(char) -> str:
+    """
+    Return the player's current combat stance based on equipment.
+
+    Returns one of:
+        "shield"     — shield in secondary hand
+        "two_handed" — two-handed weapon in primary hand
+        "dual"       — weapons in both hands (no shield)
+        "standard"   — one weapon (or unarmed), no special stance
+    """
+    eq      = getattr(char, "equipment", {})
+    primary = eq.get("primary_hand")
+    offhand = eq.get("secondary_hand")
+
+    if offhand is not None and getattr(offhand, "is_shield", False):
+        return "shield"
+    if primary is not None and getattr(primary, "two_handed", False):
+        return "two_handed"
+    from ..world.objects import Weapon as _Weapon
+    if (primary is not None and isinstance(primary, _Weapon)
+            and offhand is not None and isinstance(offhand, _Weapon)):
+        return "dual"
+    return "standard"
+
+
+# ── Level thresholds for defensive abilities ──────────────────────────────────
+
+PARRY_LEVEL        = 5    # Fighters unlock passive parry at level 5
+SHIELD_BLOCK_LEVEL = 15   # Fighters unlock shield block at level 15
+
+# ── Shield Block ──────────────────────────────────────────────────────────────
+
+_SHIELD_BLOCK_CLASSES = frozenset({"fighter", "warrior"})
+
+def attempt_shield_block(char, attack_score: int) -> dict:
+    """
+    Shield block — passive, fires before parry when a shield is equipped.
+
+    Available to Fighters/Warriors at level 15+.
+    Champion adds proficiency bonus to the roll.
+
+    Roll: (d20 + STR_mod [+ prof if Champion]) × 5  vs  attack_score
+    On success: ALL damage absorbed, but player loses 1 attack this tick
+                (tracked via dnd["shield_block_used"] = True).
+
+    Returns the same shape dict as attempt_parry:
+        {
+            "success":   bool,
+            "reduction": int,   — 99999 on success (absorbs everything)
+            "shrug":     False, — shield block never triggers shrug
+            "msg":       str,
+        }
+    """
+    from ..dnd.abilities import char_modifier, proficiency_bonus as _prof
+
+    cclass = getattr(char, "cclass", "").lower()
+    if cclass not in _SHIELD_BLOCK_CLASSES:
+        return {"success": False, "reduction": 0, "shrug": False, "msg": ""}
+
+    if char.level < SHIELD_BLOCK_LEVEL:
+        return {"success": False, "reduction": 0, "shrug": False, "msg": ""}
+
+    if get_combat_stance(char) != "shield":
+        return {"success": False, "reduction": 0, "shrug": False, "msg": ""}
+
+    dnd      = getattr(char, "dnd", {}) or {}
+    subclass = dnd.get("subclass", "")
+    str_mod  = char_modifier(char, "str")
+    bonus    = _prof(char.level) if subclass == "champion" else 0
+
+    block_score = (random.randint(1, 20) + str_mod + bonus) * 5
+
+    if block_score < attack_score:
+        return {"success": False, "reduction": 0, "shrug": False, "msg": ""}
+
+    # Block succeeded — mark that one attack is lost this round
+    dnd["shield_block_used"] = True
+
+    msg = "&+WYou raise your shield, blocking the blow completely!&N"
+    return {"success": True, "reduction": 99999, "shrug": False, "msg": msg}
+
+
 # ── Parry ─────────────────────────────────────────────────────────────────────
 
 _PARRY_CLASSES = frozenset({"fighter", "warrior", "ranger"})
 
 def attempt_parry(char, attack_score: int) -> dict:
     """
-    Passive parry — resolves automatically on every incoming melee hit.
+    Passive parry — resolves automatically on every incoming melee hit
+    when shield block is unavailable or has failed.
 
-    Returns:
-        {
-            "success":   bool,
-            "reduction": int,   — damage absorbed (0 on failure)
-            "shrug":     bool,  — True means zero damage (Champion only)
-            "msg":       str,   — coloured message for the player
-        }
+    Available to Fighters/Warriors/Rangers at level 5+.
+    Champion adds proficiency bonus to the roll.
 
     Roll: (d20 + DEX_mod [+ prof if Champion]) × 5  vs  attack_score
     On success: damage reduced by max(0, 2d6 + DEX_mod)
     Champion shrug: 1-in-4 chance on success → zero damage
+
+    Returns:
+        {
+            "success":   bool,
+            "reduction": int,
+            "shrug":     bool,
+            "msg":       str,
+        }
     """
     from ..dnd.abilities import char_modifier, proficiency_bonus as _prof
 
     cclass = getattr(char, "cclass", "").lower()
     if cclass not in _PARRY_CLASSES:
+        return {"success": False, "reduction": 0, "shrug": False, "msg": ""}
+
+    if char.level < PARRY_LEVEL:
         return {"success": False, "reduction": 0, "shrug": False, "msg": ""}
 
     dnd      = getattr(char, "dnd", {}) or {}
@@ -429,6 +520,11 @@ def combat_round(player, target, extra_attacks: int = 0) -> tuple[list[str], lis
     """
     Player's attack round against their current target.
     Clears maneuver_used and decrements maneuver cooldowns at the START.
+
+    If shield_block_used is set (a block landed last tick), the player
+    loses 1 attack swing this round — the shield arm was committed to
+    the block and isn't free for an instant counter.
+
     Returns (player_msgs, room_msgs).
     """
     ensure_hp(player)
@@ -453,12 +549,24 @@ def combat_round(player, target, extra_attacks: int = 0) -> tuple[list[str], lis
     debuffs["hit_penalty"] = 0
     # no_counter cleared in mob_counter_attacks after use
 
+    # ── Shield block penalty: lose 1 attack if a block landed last tick ───
+    # Champion's combat mastery lets them recover instantly — no penalty.
+    block_penalty = 0
+    if dnd.pop("shield_block_used", False):
+        if dnd.get("subclass") != "champion":
+            block_penalty = 1
+
     # ── Determine attack count ────────────────────────────────────────────
     if dnd.get("class") in ("fighter", "warrior"):
         from ..dnd.classes.fighter import attack_count
-        n_attacks = attack_count(player.level) + extra_attacks
+        n_attacks = max(1, attack_count(player.level) + extra_attacks - block_penalty)
     else:
-        n_attacks = 1 + extra_attacks
+        n_attacks = max(1, 1 + extra_attacks - block_penalty)
+
+    if block_penalty:
+        player_msgs.append(
+            "&xYour shield arm is recovering — one less attack this round.&N"
+        )
 
     for _ in range(n_attacks):
         if target.hp <= 0:
@@ -489,8 +597,11 @@ def combat_round(player, target, extra_attacks: int = 0) -> tuple[list[str], lis
 def mob_counter_attacks(mob, player) -> tuple[list[str], list[str]]:
     """
     One mob swings back at a player.
-    Parry resolves here — passive for all Fighters/Rangers.
-    Riposte triggers here on successful parry if armed.
+
+    Defence resolution order:
+      1. Shield block (Fighter lvl 15+, STR save, absorbs all, costs 1 attack)
+      2. Parry (Fighter/Ranger lvl 5+, DEX save, partial reduction)
+      3. Riposte fires on successful parry if armed (Battle Master)
     Menace blocks the counter entirely.
     """
     from ..dnd.armor import get_ac
@@ -512,17 +623,14 @@ def mob_counter_attacks(mob, player) -> tuple[list[str], list[str]]:
         return [p_msg], [r_msg]
 
     # ── Roll mob attack ───────────────────────────────────────────────────
-    roll     = random.randint(1, 20)
-    ac       = get_ac(player)
-    att_mod  = _attack_mod(mob)
+    roll         = random.randint(1, 20)
+    ac           = get_ac(player)
+    att_mod      = _attack_mod(mob)
     attack_score = (roll + att_mod) * 5
 
     if roll == 1:
         msg = f"&w{mob.name}&N fumbles and misses you completely!&N"
         return [msg], [msg]
-
-    # ── Parry resolution — passive for all Fighters/Rangers ──────────────
-    parry = attempt_parry(player, attack_score)
 
     # Crit check — uses base 20 for mobs
     is_crit = (roll == 20)
@@ -537,15 +645,43 @@ def mob_counter_attacks(mob, player) -> tuple[list[str], list[str]]:
     from ..world.effects import apply_dr
     dmg = apply_dr(player, dmg)
 
-    # Apply parry reduction
-    if parry["success"]:
-        player_msgs.append(parry["msg"])
+    # ── Defence: shield block first, parry as fallback ────────────────────
+    #
+    # Shield block (level 15+, STR):
+    #   Success → absorbs ALL damage, marks dnd["shield_block_used"] so
+    #   combat_round() removes one attack swing this tick.
+    #
+    # Parry (level 5+, DEX):
+    #   Only checked when shield block is unavailable or failed.
+    #   Success → partial damage reduction; Champion can shrug to zero.
+    #   Riposte triggers on any parry success if armed.
+
+    shield = attempt_shield_block(player, attack_score)
+    if shield["success"]:
+        player_msgs.append(shield["msg"])
         room_msgs.append(
-            f"&w{player.name}&N deflects {mob.name}'s attack.&N"
-            if not parry["shrug"] else
-            f"&w{player.name}&N shrugs off {mob.name}'s attack entirely!&N"
+            f"&w{player.name}&N raises their shield, blocking {mob.name}'s attack!&N"
         )
-        dmg = max(0, dmg - parry["reduction"])
+        dmg = 0
+        # Shield block doesn't trigger riposte — you're committed to the block
+    else:
+        parry = attempt_parry(player, attack_score)
+        if parry["success"]:
+            player_msgs.append(parry["msg"])
+            room_msgs.append(
+                f"&w{player.name}&N deflects {mob.name}'s attack.&N"
+                if not parry["shrug"] else
+                f"&w{player.name}&N shrugs off {mob.name}'s attack entirely!&N"
+            )
+            dmg = max(0, dmg - parry["reduction"])
+
+            # ── Riposte trigger ───────────────────────────────────────────
+            if dnd.get("riposte_armed"):
+                sd_pool = dnd.get("superiority_dice", 0)
+                if sd_pool > 0:
+                    rp, rr = trigger_riposte(player, mob, dnd)
+                    player_msgs.extend(rp)
+                    room_msgs.extend(rr)
 
     if dmg > 0:
         apply_damage(player, dmg)
@@ -559,16 +695,5 @@ def mob_counter_attacks(mob, player) -> tuple[list[str], list[str]]:
             r_msg = f"&+W[CRITICAL HIT!] &N" + r_msg
         player_msgs.append(p_msg)
         room_msgs.append(r_msg)
-    elif parry["success"] and dmg == 0:
-        # Already added parry message above, nothing more needed
-        pass
-
-    # ── Riposte trigger ───────────────────────────────────────────────────
-    if parry["success"] and dnd.get("riposte_armed"):
-        sd_pool = dnd.get("superiority_dice", 0)
-        if sd_pool > 0:
-            rp, rr = trigger_riposte(player, mob, dnd)
-            player_msgs.extend(rp)
-            room_msgs.extend(rr)
 
     return player_msgs, room_msgs

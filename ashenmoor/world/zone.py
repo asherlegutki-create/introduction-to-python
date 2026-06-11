@@ -3,11 +3,23 @@ ashenmoor.world.zone
 ─────────────────────
 Zone container and respawn initialisation.
 
-Zone-level respawn defaults are read from the zone module's attributes:
-    respawn_ticks        int   default ticks before a mob respawns (4s each)
-    repop_with_player    bool  default: whether mobs respawn with players present
+The zone's object_templates are now passed into every Mob constructor so
+that mob inventory and equipment entries can reference template keys by
+name — the same way room object contents work.
 
-These can be overridden per mob_spawn entry in each room.
+Example mob template using template keys:
+    "town_guard": {
+        "name": "a town guard",
+        ...
+        "inventory": ["bread_crust", "torch"],
+        "equipment": {
+            "primary_hand": "iron_sword",
+            "on_body":      "leather_jerkin",
+        },
+        "coins": {"gold": 2},
+    }
+
+Raw inline dicts still work exactly as before — mixing is fine.
 """
 
 from __future__ import annotations
@@ -63,27 +75,19 @@ class Zone:
         self.respawn_ticks      = respawn_ticks
         self.repop_with_player  = repop_with_player
 
-        # Wire up respawn for any room that has mob_spawns defined
         self._init_respawn()
 
     def _init_respawn(self) -> None:
-        """
-        For every room that was constructed with a "mob_spawns" key,
-        resolve the spawn config (applying zone-level defaults for missing
-        fields) and call room.init_respawn().
-
-        The spawner is built once per zone so the closure correctly captures
-        the final mob_templates reference rather than a loop variable.
-        """
         from .mob import Mob
 
-        # Single spawner shared by all rooms in this zone.
-        # Captures mob_templates by reference — safe because the dict
-        # is not mutated after Zone.__init__ completes.
-        templates_ref = self.mob_templates
+        templates_ref        = self.mob_templates
+        object_templates_ref = self.object_templates   # passed to every Mob
 
         def spawner(key: str):
-            mob = Mob(dict(templates_ref[key]))
+            mob = Mob(
+                dict(templates_ref[key]),
+                object_templates=object_templates_ref,
+            )
             mob._template_key = key
             return mob
 
@@ -120,7 +124,12 @@ class Zone:
         return _spawn(key, self.object_templates, _default_object_class)
 
     def spawn_mob(self, key: str):
-        return _spawn(key, self.mob_templates, _default_mob_class)
+        from .mob import Mob
+        mob = Mob(
+            dict(self.mob_templates[key]),
+            object_templates=self.object_templates,
+        )
+        return mob
 
     def __repr__(self) -> str:
         author = f", author={self.author!r}" if self.author else ""

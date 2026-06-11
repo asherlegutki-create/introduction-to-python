@@ -165,22 +165,64 @@ def cmd_attributes(state) -> str:
     elif load_pct <= 100: lc, lm = "&+R", "Staggering"
     else:                 lc, lm = "&+R", "OVERLOADED!"
 
-    # Parry info
+    # Parry / shield block info
     dnd      = getattr(char, "dnd", {}) or {}
     subclass = dnd.get("subclass", "")
     cclass   = getattr(char, "cclass", "").lower()
     parry_str = ""
     if cclass in ("fighter", "warrior", "ranger"):
-        dex_mod = char_modifier(char, "dex")
-        if subclass == "champion":
-            parry_str = (
-                f"\n&wParry:&N Champion (+prof bonus to roll, 1-in-4 shrug)  "
-                f"&wReduction:&N 2d6{dex_mod:+d}"
-            )
+        from ...engine.combat import get_combat_stance, PARRY_LEVEL, SHIELD_BLOCK_LEVEL
+        from ...dnd.abilities import char_modifier as _cm
+        stance   = get_combat_stance(char)
+        dex_mod  = _cm(char, "dex")
+        str_mod  = _cm(char, "str")
+
+        stance_labels = {
+            "shield":     "&wShield&N",
+            "two_handed": "&wTwo-handed&N",
+            "dual":       "&wDual wield&N",
+            "standard":   "&wStandard&N",
+        }
+        parry_str = f"\n&wCombat stance:&N {stance_labels.get(stance, stance)}"
+
+        # Shield block line
+        if cclass in ("fighter", "warrior"):
+            if char.level >= SHIELD_BLOCK_LEVEL:
+                if stance == "shield":
+                    block_note = "active (shield equipped)"
+                    if subclass == "champion":
+                        block_note += " +prof bonus"
+                    parry_str += (
+                        f"\n&wShield Block:&N &GAvailable&N — STR{str_mod:+d} save"
+                        f"  &x({block_note})&N"
+                    )
+                else:
+                    parry_str += (
+                        f"\n&wShield Block:&N &xRequires shield equipped&N"
+                    )
+            else:
+                remaining = SHIELD_BLOCK_LEVEL - char.level
+                parry_str += (
+                    f"\n&wShield Block:&N &xUnlocks at level {SHIELD_BLOCK_LEVEL}"
+                    f" ({remaining} level{'s' if remaining != 1 else ''} away)&N"
+                )
+
+        # Parry line
+        if char.level >= PARRY_LEVEL:
+            if subclass == "champion":
+                parry_str += (
+                    f"\n&wParry:&N Champion (+prof bonus to roll, 1-in-4 shrug)  "
+                    f"&wReduction:&N 2d6{dex_mod:+d}"
+                )
+            else:
+                parry_str += (
+                    f"\n&wParry:&N Passive  &wReduction:&N 2d6{dex_mod:+d}"
+                )
         else:
-            parry_str = (
-                f"\n&wParry:&N Passive (always on)  "
-                f"&wReduction:&N 2d6{dex_mod:+d}"
+            remaining = PARRY_LEVEL - char.level
+            parry_str += (
+                f"\n&wParry:&N &xUnlocks at level {PARRY_LEVEL}"
+                f" ({remaining} level{'s' if remaining != 1 else ''} away)&N"
             )
 
     return "\n".join([

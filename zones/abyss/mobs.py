@@ -12,6 +12,7 @@ Three tiers:
 
 from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
+from . import objects as O
 
 TEMPLATES: dict[str, dict] = {
 
