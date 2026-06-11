@@ -10,6 +10,10 @@ Call spawn(key) to get a fresh independent Mob instance — place as many
 copies in rooms as you like, each is independent.
 """
 
+def _monster_attack(state, char, mob):
+    state.fighting[char.name] = mob
+    return f"{mob.name}&N cries because of the insult, then turns in a &rrage and&N &Rattacks!!&N"
+
 from ashenmoor.world import Mob
 from ashenmoor.world.zone import make_spawner
 
@@ -28,6 +32,13 @@ TEMPLATES: dict[str, dict] = {
         "stats": [46, 59, 65, 55, 75, 80],
         "aggro": False,
         "wander": False,
+        "responses": {
+            "hi": ("the cheese monster looks at you and says hello",),
+            "hello": ("the cheese monster looks at you and says hi",),
+            "how are you": ("the cheese monster looks at you and says im doing good",),
+            "friend": ("the cheese monster looks at you and says lets be friends",),
+            "enemy": _monster_attack
+        },
     },
 
      "the cheez sniffer": {
