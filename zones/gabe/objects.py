@@ -62,16 +62,34 @@ TEMPLATES: dict[str, dict] = {
         "room_description": "the &Ychez&N &Rd&N&re&Rs&N&rt&Rr&N&ro&N&ry&Re&N&rr&N sits here thinking about the &Rarm&N &Wcanon&N",
         "description": "a &Ychez&N &Rd&N&re&Rs&N&rt&Rr&N&ro&N&ry&Re&N&rr&N is laying here",
         "weight": 5,
-        "dice": "10d20",
-        "hitroll": 15,
-        "damroll": 20,
+        "dice": "7d10",
+        "hitroll": 4,
+        "damroll": 8,
+        "proc": "windsong",
+        "powers": [
+            {
+                "keywords":       ("SolarSlash", "ss"),
+                "name":           "Solar Slash",
+                "cooldown_ticks": 4,
+                "effect":         "apply_damage",
+                "user_msg": (
+                    "&W your &Ychez&N &Rd&N&re&Rs&N&rt&Rr&N&ro&N&ry&Re&N&rr&N &Wglows brightly&N as it unleashes a blazing slash!&N"
+                    "&WThe air around the attack shimmers with intense &rheat&N, and a wave of &Rfire&N surges forward, engulfing the target in &Rf&N&rl&N&Ra&N&rm&N&Re&N&rs&N!&N"
+                ),
+                "room_msg": (
+                    "&c wan_juans &Ychez&N &Rd&N&re&Rs&N&rt&Rr&N&ro&N&ry&Re&N&rr&N &Wglows brightly&N as it unleashes a blazing slash!&N"
+                    "A &Rf&N&rl&N&Ra&N&rm&N&Re&N&rs&N!&N &cEnergy surges through it!&N"
+                ),
+            },
+        ]
+
     },
     "cheese scroll": {
         "spawn_as": Item,
         "name": "a cheese scroll",
         "key_words": ("cheese", "scroll"),
         "room_description": "an &bunderwater&N &Ycheese scroll&N is lying on the ground here.",
-        "description": "This ancient scroll says that there is a secret recipe for the best cheese in the world hidden somewhere in this zone. It also says that the recipe is written in a code that can only be deciphered by someone who likes reading books.",
+        "description": "&WThis ancient scroll says that there is a secret &Rrecipe&N for the best&N &ycheese&N &Win the&N &Gw&N&Bo&N&Gr&N&Bl&N&Gd&N &Whidden somewhere in this zone. It also says that the recipe is written in a &gcode&N that can only be deciphered by someone who likes reading&N &bbooks&N.",
         "weight": 25,
      },
      "cheese book": {
