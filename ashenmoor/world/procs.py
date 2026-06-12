@@ -30,6 +30,106 @@ _windsong_depth: int  = 0
 _windsong_force: bool = False
 
 
+_ethereal_depth: int  = 0
+_ethereal_force: bool = False
+
+
+def ethereal_sword(attacker, defender, weapon=None) -> list:
+    """
+    The Windsong proc — a glittering elven scimitar.
+
+    Returns a list where each element is either:
+      str          — same message shown to wielder and room observers
+      (str, str)   — (player_msg, room_msg) — different for each audience
+    """
+    global _ethereal_depth, _ethereal_force
+    from ..engine.combat import one_attack, MISS
+
+    msgs: list = []
+
+    cclass = getattr(attacker, "cclass", "").lower()
+    if cclass not in _WINDSONG_ALLOWED:
+        dmg         = max(1, getattr(attacker, "max_hp", 20) // 2)
+        attacker.hp = max(1, attacker.hp - dmg)
+        eq = getattr(attacker, "equipment", {})
+        for slot in ("primary_hand", "secondary_hand"):
+            item = eq.get(slot)
+            if item and getattr(item, "proc", None) == "ethereal":
+                del eq[slot]
+                attacker.inventory.append(item)
+                msgs.append(
+                    f"&cYour &N{item.name}&c sends waves of pain "
+                    f"through your body!\n&cYou drop the weapon.&N"
+                )
+                break
+        return msgs
+
+    if _ethereal_depth >= _WINDSONG_MAX_DEPTH:
+        return []
+
+    is_outer = (_ethereal_depth == 0)
+    if not _ethereal_force:
+        chance = _WINDSONG_OUTER_CHANCE if is_outer else _WINDSONG_INNER_CHANCE
+        if random.randint(0, chance - 1) != 0:
+            return []
+
+    _ethereal_force = False
+
+    extra_swings = 3
+
+    if random.randint(0, 2) == 0:
+        extra_swings += 1
+
+    if random.randint(0, 2) == 0:
+        extra_swings += 1
+    if random.randint(0, 3) == 0:
+        extra_swings += 1
+
+    if is_outer:
+        extra_swings = max(1, extra_swings)
+    elif extra_swings == 0:
+        return []
+
+    if is_outer:
+        weapon_name  = getattr(weapon, "name", "the scimitar") if weapon else "the scimitar"
+        player_flash = (
+            "&mThere is a &Wflash of light&N&m at the tip of your scimitar\n"
+            "&mas &mw&Ma&N&mv&Me&N&ms &Mo&N&mf &Me&N&mn&Me&N&mr&Mg&N&my&N&m "
+            "flow down its blade and enter your body.\n"
+            "&mYour vision &Lfad&N&wes t&Wo &N&wa b&Llur&N&m "
+            "as your blade comes to life!&N"
+        )
+        room_flash = (
+            f"&mThere is a &Wflash of light&N&m at the tip of {weapon_name}\n"
+            f"&mas waves of energy flow down its blade and enter &w{attacker.name}&N&m, whose\n"
+            f"&mmovements &Lfad&N&wes t&Wo &N&wa b&Llur&N&m as it comes to life!&N"
+        )
+        msgs.append((player_flash, room_flash))
+    else:
+        msgs.append((
+            "&mIn a &wb&Llur&N&m of strikes, you turn on your heel "
+            "reversing your swing.&N",
+            "&mIn a &wb&Llur&N&m of strikes, &w{attacker.name}&N&m turns on his heel "
+            "reversing his swing.&N",
+        ))
+
+    _ethereal_depth += 1
+    try:
+        for _ in range(extra_swings):
+            if defender.hp <= 0:
+                break
+            dmg, hit_type, hit_msg = one_attack(attacker, defender)
+            msgs.append(hit_msg)
+            if hit_type != MISS and defender.hp > 0:
+                chain_msgs = ethereal_sword(attacker, defender, weapon=weapon)
+                msgs.extend(chain_msgs)
+    finally:
+        _ethereal_depth -= 1
+
+    return msgs
+
+
+
 def windsong(attacker, defender, weapon=None) -> list:
     """
     The Windsong proc — a glittering elven scimitar.
@@ -168,5 +268,6 @@ def random_poison(attacker, defender, weapon=None) -> list:
 
 PROCS: dict[str, callable] = {
     "windsong":     windsong,
+    "ethereal_sword": ethereal_sword,
     "random_poison": random_poison,
 }

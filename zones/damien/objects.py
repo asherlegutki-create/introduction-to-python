@@ -31,7 +31,6 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("sword", "seals", "darkness"),
         "room_description": "&CT&Bh&Ce &BS&Cw&Bo&Cr&Bd &Ct&Bh&Ca&Bt &CS&Be&Ca&Bl&Cs &Bt&Ch&Be &CD&Ba&Cr&Bk&Cn&Be&Cs&Bs&N lies here.\nIts light &Willuminates&N the ground around it.",
         "description": "The sword is beautiful. It was forged by the &GElves&N as a tool against the &rGreat Darkness&N. It glows softly with &Bbluish&N &Wlight&N",
-        # "proc":    "windsong",
         "weight": 2,
         "dice": "5d7",
         "hitroll": 5,
@@ -64,6 +63,7 @@ TEMPLATES: dict[str, dict] = {
         "key_words": ("sword", "ethereal"),
         "room_description": "A &msword&N is stuck into the ground.",
         "description": "This sword was built to fight against the &Xdarkest enemies&N. It was once wielded by a great warrior.",
+        "proc": "ethereal_sword",
         "weight": 2,
         "dice": "4d8",
         "hitroll": 5,
@@ -290,6 +290,7 @@ TEMPLATES: dict[str, dict] = {
         "weightless_capacity": 1000.0,
         "weight":              0,
         "is_open":             True,
+    },
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")

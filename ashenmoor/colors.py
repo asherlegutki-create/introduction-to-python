@@ -43,7 +43,7 @@ class C:
     # Structural
     RESET   = "&N"       # reset after any colored segment
     SEP     = "&w"       # separator lines  -=-=-=-
-    DIM     = "&x"       # dim / secondary info
+    DIM     = "&L"       # dim / secondary info
     PLAIN   = "&g"       # plain text for UI
 
     # Text roles
