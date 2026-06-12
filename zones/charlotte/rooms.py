@@ -56,9 +56,9 @@ ROOMS: dict[int, Room] = {
               # O.spawn("")
             ],
             "mobs": [  
-                #M.spawn("") ,
-                #M.spawn(""),
-                #M.spawn("")
+                M.spawn("zombie") ,
+                M.spawn("zombie"),
+                M.spawn("zombie")
             ],  
         }
     ),
@@ -80,9 +80,10 @@ ROOMS: dict[int, Room] = {
             ],
             "mobs": [  
               M.spawn("Mr. Carlson") ,
-#                M.spawn(""),
-#                M.spawn(""),
-#                
+              M.spawn("zombie"),
+              M.spawn("zombie"),
+              M.spawn("zombie"), 
+              M.spawn("zombie"),
             ],
         }
     ),
@@ -95,7 +96,7 @@ ROOMS: dict[int, Room] = {
             "terrain": "carpet floor",
             "exits": [
                 {"direction": "east", "roomId": 2},
-                {"direction": "north", "roomId": 6},
+                {"direction": "south", "roomId": 6},
                 {"direction": "north", "roomId": 7},
             ],
             "objects": [
@@ -104,10 +105,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
-#                
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                
             ],
         }
     ),
@@ -128,10 +131,13 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
-#                
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                
             ],
         }
     ),  
@@ -152,10 +158,11 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
-#                
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
             ],
         }
     ),  
@@ -177,9 +184,11 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
 #                
             ],
         }
@@ -204,10 +213,11 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
-#                
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),
+                M.spawn("zombie"),                
             ],
         }
     ),  
@@ -229,10 +239,11 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
-#                
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
             ],
         }
     ),  
@@ -254,9 +265,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -278,9 +292,11 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
 #                
             ],
         }
@@ -302,9 +318,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -326,9 +345,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -350,9 +372,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -374,9 +399,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -399,10 +427,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
-#                
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
             ],
         }
     ),  
@@ -423,10 +453,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
-#                
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
             ],
         }
     ),  
@@ -447,9 +479,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -471,9 +506,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -495,9 +533,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -519,9 +560,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -543,9 +587,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -567,9 +614,11 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+    M.spawn("zombie"),
 #                
             ],
         }
@@ -591,9 +640,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+
 #                
             ],
         }
@@ -615,10 +667,12 @@ ROOMS: dict[int, Room] = {
                 #O.spawn("")
             ],
             "mobs": [  
-#                M.spawn("") ,
-#                M.spawn(""),
-#                M.spawn(""),
-#                
+    M.spawn("zombie"),
+        M.spawn("zombie"),
+            M.spawn("zombie"),
+                M.spawn("zombie"),
+                    M.spawn("zombie"),
+                    
             ],
         }
     ),  
