@@ -290,6 +290,7 @@ TEMPLATES: dict[str, dict] = {
         "weightless_capacity": 1000.0,
         "weight":              0,
         "is_open":             True,
+},
 }
 
 # Module-level spawn — rooms.py calls  O.spawn("red_marker")
