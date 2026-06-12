@@ -56,7 +56,8 @@ TEMPLATES: dict[str, dict] = {
         "stats": [100, 100, 100, 100, 100, 100],
         "aggro": False,
         "killable": False,
-        "wander": True
+        "wander": True,
+        
     },
     "Enemy": {
         "name": "Enemy",
@@ -82,8 +83,8 @@ TEMPLATES: dict[str, dict] = {
         ),
         "race": "Dragon",
         "class": "Enemy",
-        "level": 60,
-        "stats": [1000, 100, 1000, 1000, 1000, 100],
+        "level": 30,
+        "stats": [100, 100, 100, 100, 100, 100],
         "aggro": True,
         "killable": True,
         "wander": True,
@@ -147,6 +148,27 @@ TEMPLATES: dict[str, dict] = {
         "aggro": False,
         "killable": True,
         "wander": False,
+    },
+
+    "adrian": {
+        "name": "adrian",
+        "key_words": ("adrian"),
+        "room_description": "adrian sits spacing out because of bordom.&N",
+        "description": (
+            "adrian is being annoying to his fellow peers at full volume,\n though they ignore his pester for they know he means well"
+        ),
+        "race": "Human",
+        "class": "Student",
+        "level": 8,
+        "stats": [60, 40, 90, 90, 80, 9], #btw adrian agreed with these and was right next to me when i made them
+        "aggro": False,
+        "killable": False,
+        "wander": True,
+        "responses":{
+            "hi": "hi, how are you?",
+            "good": "nice me too",
+            "bad": "that sucks my bestie"
+        }
     },
 }
 

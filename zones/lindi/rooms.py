@@ -13,10 +13,10 @@ ROOMS: dict[int, Room] = {
             {"direction": "south", "roomId": 1},
         ],
         "objects": [
-            #O.spawn("water bottle"),
-            #O.spawn("pitch fork")
+            O.spawn("despicable duo"),
+            O.spawn("despicableduo")
         ],
-        "mobs": [M.spawn("malcom")],
+        "mobs": [M.spawn("malcom"), M.spawn("adrian")],
     }),
     6: Room({
         "number": 6,
@@ -37,7 +37,7 @@ ROOMS: dict[int, Room] = {
         "indoors": True,
         "terrain": "ground",
         "exits": [
-            {"direction": "north", "roomId": 1},
+            {"direction": "south", "roomId": 3},
         ],
         "objects": [],
         "mobs": [M.spawn("The Beast of Geometry and Algebra")],
@@ -51,7 +51,9 @@ ROOMS: dict[int, Room] = {
         "exits": [
             {"direction": "south", "roomId": 4},
         ],
-        "objects": [O.spawn("dagger of detriment")],
+        "objects": [
+            O.spawn("dagger of detriment")
+        ],
         "mobs": [],
     }),
     9: Room({
@@ -61,7 +63,7 @@ ROOMS: dict[int, Room] = {
         "indoors": True,
         "terrain": "ground",
         "exits": [
-            {"direction": "south", "roomId": 3},
+            {"direction": "north", "roomId": 1},
         ],
         "objects": [],
         "mobs": [M.spawn("arlo")],
@@ -74,6 +76,7 @@ ROOMS: dict[int, Room] = {
         "terrain": "ground",
         "exits": [
             {"direction": "east", "roomId": 9},
+            {"direction": "north", "roomId": 2}
         ],
         "objects": [],
         "mobs": [],

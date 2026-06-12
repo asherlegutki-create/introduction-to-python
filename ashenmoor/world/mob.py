@@ -2,6 +2,10 @@
 ashenmoor.world.mob
 ───────────────────
 Mob — a non-player character controlled by the game engine.
+
+Mob inventory and equipment entries may now be zone template key strings
+in addition to raw dicts. Pass object_templates to the constructor and
+they will be resolved automatically.
 """
 
 from __future__ import annotations
@@ -27,7 +31,9 @@ def _resolve_hp(template: dict) -> int:
 
 class Mob(Character):
 
-    def __init__(self, template: dict, races: dict | None = None) -> None:
+    def __init__(self, template: dict,
+                 races: dict | None = None,
+                 object_templates: dict | None = None) -> None:
         hp_val = _resolve_hp(template)
 
         if races is None:
@@ -69,41 +75,34 @@ class Mob(Character):
         self.hit_dice:    str  = template.get("hit_dice",    "1d6+0")
         self.coins:       dict = dict(template.get("coins", {}))
 
-        self.aggressive: bool     = template.get("aggro", template.get("aggressive", False))
-        self.memory:     set[str] = set()
-        self.perception_prof: bool = template.get("perception_prof", False)
-        self.killable:   bool      = template.get("killable",   True)
-        self.has_dialog: bool      = template.get("has_dialog", False)
+        self.aggressive:      bool      = template.get("aggro", template.get("aggressive", False))
+        self.memory:          set[str]  = set()
+        self.perception_prof: bool      = template.get("perception_prof", False)
+        self.killable:        bool      = template.get("killable",   True)
+        self.has_dialog:      bool      = template.get("has_dialog", False)
 
-        self._template: dict = template
+        self._template:          dict            = template
+        self._object_templates:  dict | None     = object_templates
 
         self.responses = {k.lower(): v for k, v in template.get("responses", {}).items()}
 
-        # ── Multi-combat tracking ─────────────────────────────────────────────
-        # primary_target: the player this mob focuses counter-attacks on
-        # attackers:      set of player names currently hitting this mob
         self.primary_target: str | None = None
         self.attackers:      set[str]   = set()
 
         from .corpse import load_mob_gear
-        load_mob_gear(self, template)
+        load_mob_gear(self, template, object_templates=object_templates)
 
     # ── Multi-combat helpers ──────────────────────────────────────────────────
 
     def add_attacker(self, player_name: str) -> None:
-        """Register a player as attacking this mob."""
         self.attackers.add(player_name)
         if self.primary_target is None:
             self.primary_target = player_name
 
     def remove_attacker(self, player_name: str) -> None:
-        """Remove a player from this mob's attacker set."""
         self.attackers.discard(player_name)
         if self.primary_target == player_name:
-            # Hand focus to the next attacker if any
             self.primary_target = next(iter(self.attackers), None)
-
-    # ── D&D Passive Perception ────────────────────────────────────────────────
 
     def passive_perception(self) -> int:
         from ..dnd.abilities import modifier, proficiency_bonus
@@ -112,15 +111,11 @@ class Mob(Character):
             pp += proficiency_bonus(self.level)
         return pp
 
-    # ── Aggression helpers ────────────────────────────────────────────────────
-
     def remember(self, player_name: str) -> None:
         self.memory.add(player_name)
 
     def is_hostile_to(self, player_name: str) -> bool:
         return self.aggressive or (player_name in self.memory)
-
-    # ── Combat helpers ────────────────────────────────────────────────────────
 
     def roll_damage(self) -> int:
         return max(1, _roll(self.damage_dice))
@@ -155,7 +150,7 @@ class Mob(Character):
         self.inventory.clear()
         self.equipment.clear()
         from .corpse import load_mob_gear
-        load_mob_gear(self, self._template)
+        load_mob_gear(self, self._template, object_templates=self._object_templates)
 
     def __repr__(self) -> str:
         return (f"Mob(name={self.name!r}, level={self.level}, "

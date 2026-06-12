@@ -22,10 +22,16 @@ TEMPLATES: dict[str, dict] = {
         ),
         "race": "Human",
         "class": "Staff",
-        "level": 10,
+        "level": 100,
         "stats": [60, 65, 60, 80, 70, 75],
         "aggro": False,
         "wander": True,
+        "killable": False,
+        "response": {
+            "hi": ("Hi do you need help?"),
+            "no": ("ok then go kill the zombies that have over run this school and save us!"),
+            "yes": ("Alright then take this sword and potion.It will help you deffeat the zombies.")
+        }
     },
     "Mrs.Stubblefield": {
         "name": "Mrs.stubblefield",
@@ -39,8 +45,9 @@ TEMPLATES: dict[str, dict] = {
         "stats": [71, 75, 80, 84, 79, 73],
         "aggro": False,
         "wander": False,
+        "killable": False,
         "responses":{
-            "hi": ("Hello child how are you today?")
+            "hi": ("Help us. These zombies have taken over everything.")
         }
     },
     "Mr. Carlson": {
@@ -52,17 +59,34 @@ TEMPLATES: dict[str, dict] = {
         "class": "Principal",
         "level": 100,
         "stats": [70, 65, 81, 74, 89, 93],
-        "aggro": True,
+        "aggro":  False,
         "wander": False,
+        "killable": False,
         "responses":{
             "hi":("Hi? What are you doing out of class?"),
             "i don't Know": ("Do you need a quest?"),               
             "yes": ("Ok then i need goo. the directions are for you to go to the beginning, and then go north, then up. then bring the goo to me."),  
-            "i have the goo" : ("Ok now do nothing i just needed you to leave so now i can write you up as tarty.")         
-                            
+            "i have the goo" : ("Ok now do nothing i just needed you to leave so now i can write you up as tarty.")  ,       
+                      "what!":("Actually heres a nife that might help in your fight.")      
                             
                             
         }
+    },
+     "zombie": {
+        "name": "Zombie",
+        "key_words": ("Zom","Zombie","z"),
+        "room_description": "A zombie stands here ready to fight.",
+        "description": (
+            "The zombie is one of hundreds that is here to take over the world,this zombie is green with rather new cloths  maby some one from our time.\n"
+        ),
+        "race": "Zombie",
+        "class": "Warrior",
+        "level":  43,
+        "stats": [60, 65, 60, 80, 70, 75],
+        "aggro": True,
+        "wander": False,
+        "killable": True,
+        
     },
     
 }

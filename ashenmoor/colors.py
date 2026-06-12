@@ -43,7 +43,7 @@ class C:
     # Structural
     RESET   = "&N"       # reset after any colored segment
     SEP     = "&w"       # separator lines  -=-=-=-
-    DIM     = "&x"       # dim / secondary info
+    DIM     = "&L"       # dim / secondary info
     PLAIN   = "&g"       # plain text for UI
 
     # Text roles
@@ -140,13 +140,12 @@ _RACE_COLORS: dict[str, str] = {
     "human":     "&W",
     "dwarf":     "&y",
     "grey elf":  "&C",
-    "half elf":  "&C",
-    "elf":       "&C",
-    "ogre":      "&r",
+    "half elf":  "&g",
+    "ogre":      "&b",
     # Placeholder entries for future races
     "halfling":  "&y",
-    "gnome":     "&G",
-    "half-orc":  "&r",
+    "gnome":     "&R",
+    "half-orc":  "&L",
     "tiefling":  "&M",
     "dragonborn":"&R",
 }
